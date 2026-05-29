@@ -1,4 +1,4 @@
-﻿"""可灵视频生成核心节点"""
+"""可灵视频生成核心节点"""
 
 import json
 import time
@@ -81,7 +81,7 @@ class KlingText2Video:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "创建时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Kling"
+    CATEGORY = "🍐LLAI/Kling"
 
     @classmethod
     def INPUT_LABELS(cls):
@@ -238,7 +238,7 @@ class KlingImage2Video:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "创建时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Kling"
+    CATEGORY = "🍐LLAI/Kling"
 
     @classmethod
     def INPUT_LABELS(cls):
@@ -367,7 +367,7 @@ class KlingQueryTask:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "时长", "原始响应")
     FUNCTION = "query"
-    CATEGORY = "KuAi/Kling"
+    CATEGORY = "🍐LLAI/Kling"
 
     @classmethod
     def INPUT_LABELS(cls):
@@ -502,7 +502,7 @@ class KlingText2VideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "时长", "任务ID")
     FUNCTION = "run"
-    CATEGORY = "KuAi/Kling"
+    CATEGORY = "🍐LLAI/Kling"
 
     @classmethod
     def INPUT_LABELS(cls):
@@ -592,7 +592,7 @@ class KlingImage2VideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "时长", "任务ID")
     FUNCTION = "run"
-    CATEGORY = "KuAi/Kling"
+    CATEGORY = "🍐LLAI/Kling"
 
     @classmethod
     def INPUT_LABELS(cls):

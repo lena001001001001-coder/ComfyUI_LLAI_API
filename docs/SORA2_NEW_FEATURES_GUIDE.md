@@ -1,4 +1,4 @@
-﻿# Sora2 新功能使用指南
+# Sora2 新功能使用指南
 
 ## 概述
 
@@ -359,7 +359,7 @@ A: 建议保持在 200 字符以内，过长的提示词可能影响编辑效果
 
 - **位置**：`/workspaces/ComfyUI_LLAI_API/nodes/Sora2/sora2.py`
 - **依赖**：`requests`、`kuai_utils`
-- **分类**：`KuAi/Sora2`
+- **分类**：`🍐LLAI/Sora2`
 
 ### 错误处理
 

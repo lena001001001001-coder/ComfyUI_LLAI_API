@@ -23,7 +23,7 @@ Grok 视频生成节点已成功安装到 ComfyUI_LLAI_API 插件中！
 
 **方式 A: 环境变量（推荐）**
 ```bash
-export KUAI_API_KEY=sk-kpXUUC5LidOkfhTEi3T78w11CXqEKooA2cXjJMsm2kvazaXX
+export KUAI_API_KEY=sk-your-kuai-api-key-here
 ```
 
 **方式 B: 节点参数**

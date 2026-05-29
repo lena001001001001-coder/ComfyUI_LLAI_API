@@ -1,4 +1,4 @@
-﻿# NanoBanana 批量处理使用指南
+# NanoBanana 批量处理使用指南
 
 ## 📋 概述
 
@@ -108,12 +108,12 @@ NanoBananaBatchProcessor
 
 1. **添加 CSV 批量读取器节点**
    - 节点名称: `CSVBatchReader`
-   - 分类: `KuAi/Utils`
+   - 分类: `🍐LLAI/Utils`
    - 参数: `csv_path` - CSV 文件的完整路径
 
 2. **添加 NanoBanana 批量处理器节点**
    - 节点名称: `NanoBananaBatchProcessor`
-   - 分类: `KuAi/NanoBanana`
+   - 分类: `🍐LLAI/NanoBanana`
    - 参数:
      - `batch_tasks`: 连接到 CSVBatchReader 的输出
      - `api_base`: API 端点地址（默认: `https://api.kuai.host`）

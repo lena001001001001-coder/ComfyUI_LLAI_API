@@ -135,14 +135,14 @@ def test_gpt_image_edit_images_node_registered_and_has_15_image_inputs():
     from nodes.GPTImage import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
     assert "GPTImage2EditImages" in NODE_CLASS_MAPPINGS
-    assert NODE_DISPLAY_NAME_MAPPINGS["GPTImage2EditImages"] == "🍐 GPT Image 2 多图改图"
+    assert NODE_DISPLAY_NAME_MAPPINGS["GPTImage2EditImages"] == "🍐 GPT Image 2 图生图"
 
     node_class = NODE_CLASS_MAPPINGS["GPTImage2EditImages"]
     inputs = node_class.INPUT_TYPES()
     required = inputs["required"]
     optional = inputs["optional"]
 
-    assert node_class.CATEGORY == "KuAi/GPTImage"
+    assert node_class.CATEGORY == "🍐LLAI/GPTImage"
     assert node_class.RETURN_TYPES == ("IMAGE", "STRING", "STRING")
     assert node_class.RETURN_NAMES == ("图像", "生成信息", "响应JSON摘要")
     assert "image_1" in required

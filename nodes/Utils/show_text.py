@@ -24,7 +24,7 @@ class ShowText:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("文本",)
     FUNCTION = "show"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
     OUTPUT_NODE = True
 
     def show(self, text):

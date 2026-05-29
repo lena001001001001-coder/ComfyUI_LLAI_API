@@ -410,7 +410,7 @@ class GPTImage2Generate:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("图像", "生成信息")
     FUNCTION = "generate"
-    CATEGORY = "KuAi/GPTImage"
+    CATEGORY = "🍐LLAI/GPTImage"
 
     def generate(self, **kwargs):
         prompt = kwargs.get(K_PROMPT, "")
@@ -481,7 +481,7 @@ class GPTImage2Edit:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("图像", "生成信息")
     FUNCTION = "edit"
-    CATEGORY = "KuAi/GPTImage"
+    CATEGORY = "🍐LLAI/GPTImage"
 
     def edit(self, **kwargs):
         image_url_1 = kwargs.get(K_IMAGE_URL_1, "")
@@ -583,7 +583,7 @@ class GPTImage2EditImages:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("图像", "生成信息", "响应JSON摘要")
     FUNCTION = "edit"
-    CATEGORY = "KuAi/GPTImage"
+    CATEGORY = "🍐LLAI/GPTImage"
 
     def edit(self, **kwargs):
         prompt = kwargs.get(K_PROMPT, "")

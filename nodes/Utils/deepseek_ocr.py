@@ -43,7 +43,7 @@ class DeepseekOCRToPrompt:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("OCR文本", "原始响应JSON")
     FUNCTION = "run_ocr"
-    CATEGORY = "KuAi/配套能力"
+    CATEGORY = "🍐LLAI/配套能力"
     
     @classmethod
     def INPUT_LABELS(cls):

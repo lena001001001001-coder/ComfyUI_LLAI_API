@@ -8,16 +8,16 @@ app.registerExtension({
       "ScriptGenerator": "📝 脚本生成",
       "Sora2": "🎬 Sora2 视频生成",
       "Veo3": "🚀 Veo3.1 视频生成",
-      "Grok": "🤖 Grok 视频生成",
+      "Grok": "🍓 Grok 视频生成",
       "Kling": "🎞️ 可灵视频生成",
-      "WAN": "⚡ WAN 视频生成",
+      "WAN": "💎 WAN 视频生成",
       "Gemini": "🔍 Gemini 理解",
       "NanoBanana": "🍌 Nano Banana 图像生成",
       "GPTImage": "🍐 GPT 图像生成",
       "GrokImage": "🍐 Grok Image 图像生成",
       "Utils": "🛠️ 工具节点",
-      "Product": "📦 产品管理",
-      "配套能力": "🛠️ 配套能力"
+      "Product": "📝 产品管理",
+      "配套能力": "🛠️ 配套能力",
     };
 
     // 自动发现节点
@@ -26,7 +26,7 @@ app.registerExtension({
 
       for (const [nodeType, nodeClass] of Object.entries(LiteGraph.registered_node_types)) {
         const category = nodeClass.category;
-        if (category && (category.toLowerCase().startsWith("kuai/") || category.toLowerCase().startsWith("kuaipower/"))) {
+        if (category && (category.startsWith("🍐LLAI/") || category.toLowerCase().startsWith("llai/") || category.toLowerCase().startsWith("kuaipower/"))) {
           const categoryName = category.split("/")[1];
           const displayCategory = categoryNameMap[categoryName] || categoryName;
 

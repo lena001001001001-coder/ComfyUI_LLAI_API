@@ -1,4 +1,4 @@
-﻿"""WAN 一键生视频节点"""
+"""WAN 一键生视频节点"""
 
 import json
 import time
@@ -135,7 +135,7 @@ class WanCreateAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "原始提示词", "增强提示词")
     FUNCTION = "create_and_wait"
-    CATEGORY = "KuAi/WAN"
+    CATEGORY = "🍐LLAI/WAN"
 
     @staticmethod
     def _normalize_status(status: str) -> str:

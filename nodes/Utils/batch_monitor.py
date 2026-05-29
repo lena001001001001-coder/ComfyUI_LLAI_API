@@ -36,7 +36,7 @@ class BatchProcessMonitor:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("实时日志",)
     FUNCTION = "monitor"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
     OUTPUT_NODE = True  # 标记为输出节点，可以在 UI 中显示
 
     def monitor(self, poll_interval=2.0, max_display_tasks=20):

@@ -146,7 +146,7 @@ class Sora2BatchProcessor:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("处理结果", "输出目录")
     FUNCTION = "process_batch"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
 
     def process_batch(self, batch_tasks, api_key="", output_dir="./output/sora2_batch",
                      delay_between_tasks=2.0, api_base="https://api.llaiapi.host",

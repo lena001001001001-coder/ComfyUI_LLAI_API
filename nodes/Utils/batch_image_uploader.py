@@ -1,4 +1,4 @@
-﻿"""批量图片上传节点 - 从本地目录读取图片并上传获取URL"""
+"""批量图片上传节点 - 从本地目录读取图片并上传获取URL"""
 
 import os
 import json
@@ -82,7 +82,7 @@ class BatchImageUploader:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("图片URL列表", "上传详情", "成功数量")
     FUNCTION = "batch_upload"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
 
     def batch_upload(self, directory_path, upload_url="https://imageproxy.zhongzhuan.chat/api/upload",
                     format="jpeg", quality=90, timeout=30, max_images=100):

@@ -1,4 +1,4 @@
-﻿"""Grok 10路并发视频生成节点"""
+"""Grok 10路并发视频生成节点"""
 
 import time
 import requests
@@ -171,7 +171,7 @@ class GrokText2Video10Concurrent:
         ["处理报告"]
     )
     FUNCTION = "run"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def run(self, api_key, **kwargs):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -273,7 +273,7 @@ class GrokImage2Video10Concurrent:
         ["处理报告"]
     )
     FUNCTION = "run"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def run(self, api_key, **kwargs):
         api_key = env_or(api_key, "KUAI_API_KEY")

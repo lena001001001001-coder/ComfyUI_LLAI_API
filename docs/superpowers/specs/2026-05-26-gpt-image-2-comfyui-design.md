@@ -32,7 +32,7 @@
 - 新增 `GPTImage2EditImages`，直接接收 ComfyUI `IMAGE`，最多 15 张参考图。
 - 对生图和改图共用可靠的响应解析，兼容 URL、data URL、`b64_json`、`data` 数组、`data` 对象和 provider 的 `choices[].message.content` 回退。
 - 把请求构造拆出来做离线单测，不依赖真实 API Key。
-- 保持现有 `KuAi/GPTImage` 分类和中文 UI 风格。
+- 保持现有 `🍐LLAI/GPTImage` 分类和中文 UI 风格。
 
 ## 非目标
 
@@ -258,7 +258,7 @@ def _extract_image_outputs(data: dict, fallback_format: str = "png") -> list[dic
 - `GPTImage2Generate` 注册正常。
 - `GPTImage2Generate.INPUT_TYPES()` 包含 `format` 和 `quality`。
 - `GPTImage2Generate.RETURN_TYPES == ("IMAGE", "STRING")`。
-- `GPTImage2EditImages` 注册到 `KuAi/GPTImage`。
+- `GPTImage2EditImages` 注册到 `🍐LLAI/GPTImage`。
 - `GPTImage2EditImages.INPUT_TYPES()` 包含 `image_1` 到 `image_15`。
 - `GPTImage2EditImages.RETURN_TYPES == ("IMAGE", "STRING", "STRING")`，第三个 `RETURN_NAMES` 为 `响应JSON摘要`。
 - `INPUT_LABELS()` 覆盖所有新增输入。

@@ -32,7 +32,7 @@ class NanoBananaBatchProcessor:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("处理结果", "输出目录")
     FUNCTION = "process_batch"
-    CATEGORY = "KuAi/NanoBanana"
+    CATEGORY = "🍐LLAI/NanoBanana"
 
     @classmethod
     def INPUT_LABELS(cls):

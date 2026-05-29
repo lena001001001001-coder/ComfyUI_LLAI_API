@@ -1,4 +1,4 @@
-﻿# Grok 视频生成节点使用指南
+# Grok 视频生成节点使用指南
 
 ## 概述
 
@@ -294,7 +294,7 @@ A: 可以在提示词中添加风格描述，如 "cinematic style"、"anime styl
 ### 节点实现
 - **位置**：`/workspaces/ComfyUI_LLAI_API/nodes/Grok/grok.py`
 - **依赖**：`requests`、`kuai_utils`
-- **分类**：`KuAi/Grok`
+- **分类**：`🍐LLAI/Grok`
 
 ### 轮询机制
 `GrokCreateAndWait` 使用轮询机制等待任务完成：

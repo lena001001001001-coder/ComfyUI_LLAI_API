@@ -1,4 +1,4 @@
-﻿"""Grok CSV 并发批量处理器 — 从 CSV 读取任务，按批次并发提交、轮询、下载"""
+"""Grok CSV 并发批量处理器 — 从 CSV 读取任务，按批次并发提交、轮询、下载"""
 
 import json
 import os
@@ -213,7 +213,7 @@ class GrokCSVConcurrentProcessor:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("处理报告", "视频保存目录", "详细报告JSON")
     FUNCTION = "process"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def process(self, batch_tasks, api_key,
                 save_dir="output/grok", batch_size=10,

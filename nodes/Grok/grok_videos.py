@@ -1,4 +1,4 @@
-﻿"""Grok-videos 6-10s 视频节点"""
+"""Grok-videos 6-10s 视频节点"""
 
 import json
 import time
@@ -159,7 +159,7 @@ class GrokVideosCreateVideo:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "原始响应")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create(self, prompt, seconds, size, api_key="", input_reference="", api_base="https://api.llaiapi.host"):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -250,7 +250,7 @@ class GrokVideosQueryVideo:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "封面URL", "原始响应")
     FUNCTION = "query"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def query(self, task_id, api_key="", api_base="https://api.llaiapi.host"):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -363,7 +363,7 @@ class GrokVideosCreateAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "原始响应")
     FUNCTION = "create_and_wait"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create_and_wait(
         self,

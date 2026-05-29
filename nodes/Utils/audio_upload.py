@@ -89,7 +89,7 @@ class UploadAudioToHost:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("音频URL", "创建时间")
     FUNCTION = "upload"
-    CATEGORY = "KuAi/配套能力"
+    CATEGORY = "🍐LLAI/配套能力"
 
     @classmethod
     def INPUT_LABELS(cls):

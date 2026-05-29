@@ -1,4 +1,4 @@
-﻿"""Gemini 图片和视频理解节点"""
+"""Gemini 图片和视频理解节点"""
 
 import os
 import io
@@ -111,7 +111,7 @@ class GeminiImageUnderstanding:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("理解结果",)
     FUNCTION = "understand_image"
-    CATEGORY = "KuAi/Gemini"
+    CATEGORY = "🍐LLAI/Gemini"
 
     def understand_image(self, image, prompt, model, api_key="", custom_model="", api_base="https://api.llaiapi.host", timeout=120):
         """理解图片内容"""
@@ -262,7 +262,7 @@ class GeminiVideoUnderstanding:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("理解结果",)
     FUNCTION = "understand_video"
-    CATEGORY = "KuAi/Gemini"
+    CATEGORY = "🍐LLAI/Gemini"
 
     def understand_video(self, video, prompt, model, api_key="", video_path="", custom_model="", api_base="https://api.llaiapi.host", timeout=300, max_wait_time=1200):
         """理解视频内容"""

@@ -19,7 +19,7 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "GPTImage2Generate": "🍐 GPT Image 2 文生图",
     "GPTImage2Edit": "🍐 GPT Image 2 图片编辑",
-    "GPTImage2EditImages": "🍐 GPT Image 2 多图改图",
+    "GPTImage2EditImages": "🍐 GPT Image 2 图生图",
     **({
         "GPTImage2AllGenerate": "🍐 gpt-image-2-all生图",
         "GPTImage2AllEdit": "🍐 gpt-image-2-all编辑图",

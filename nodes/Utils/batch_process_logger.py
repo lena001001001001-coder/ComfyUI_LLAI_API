@@ -34,7 +34,7 @@ class BatchProcessLogger:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("格式化日志",)
     FUNCTION = "format_log"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
 
     def format_log(self, report_json, verbose=True):
         """格式化批量处理日志"""

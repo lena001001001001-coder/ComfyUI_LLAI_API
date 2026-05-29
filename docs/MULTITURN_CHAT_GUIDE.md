@@ -41,7 +41,7 @@ class NanoBananaMultiTurnChat:
 ### 1. 添加节点
 
 在 ComfyUI 中添加 `NanoBananaMultiTurnChat` 节点：
-- 方法 1: 右键菜单 → `KuAi/NanoBanana` → `🍌 Nano Banana 多轮对话`
+- 方法 1: 右键菜单 → `🍐LLAI/NanoBanana` → `🍌 Nano Banana 多轮对话`
 - 方法 2: 快捷键 `Ctrl+Shift+K` → 选择 `🍌 Nano Banana 图像生成` → 点击 `🍌 Nano Banana 多轮对话`
 
 ### 2. 配置参数

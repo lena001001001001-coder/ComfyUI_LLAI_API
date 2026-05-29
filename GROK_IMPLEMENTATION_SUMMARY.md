@@ -259,7 +259,7 @@ ImageUpload → image_url → GrokCreateAndWait
 
 ### 1. 设置 API 密钥
 ```bash
-export KUAI_API_KEY=sk-kpXUUC5LidOkfhTEi3T78w11CXqEKooA2cXjJMsm2kvazaXX
+export KUAI_API_KEY=sk-your-kuai-api-key-here
 ```
 
 ### 2. 重启 ComfyUI

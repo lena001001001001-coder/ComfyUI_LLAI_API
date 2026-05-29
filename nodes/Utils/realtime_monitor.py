@@ -67,7 +67,7 @@ class RealtimeBatchMonitor:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("监控状态",)
     FUNCTION = "monitor"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
     OUTPUT_NODE = True
 
     def monitor(self, enable=True, refresh_rate=3.0, max_tasks=10, max_logs=50):

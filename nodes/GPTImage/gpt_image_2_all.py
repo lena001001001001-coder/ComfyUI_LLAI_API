@@ -1,4 +1,4 @@
-﻿"""gpt-image-2-all 节点"""
+"""gpt-image-2-all 节点"""
 
 import io
 import json
@@ -69,7 +69,7 @@ class GPTImage2AllGenerate:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("图像", "图片URL", "revised_prompt", "原始响应")
     FUNCTION = "generate"
-    CATEGORY = "KuAi/GPTImage"
+    CATEGORY = "🍐LLAI/GPTImage"
 
     def generate(self, **kwargs):
         prompt = kwargs.get(K_PROMPT, "")
@@ -133,7 +133,7 @@ class GPTImage2AllEdit:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("图像", "图片URL", "revised_prompt", "原始响应")
     FUNCTION = "edit"
-    CATEGORY = "KuAi/GPTImage"
+    CATEGORY = "🍐LLAI/GPTImage"
 
     def edit(self, **kwargs):
         prompt = kwargs.get(K_PROMPT, "")

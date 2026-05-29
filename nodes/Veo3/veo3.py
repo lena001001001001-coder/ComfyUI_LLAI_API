@@ -1,4 +1,4 @@
-﻿import json
+import json
 import time
 import requests
 from ..Sora2.kuai_utils import (env_or, ensure_list_from_urls,
@@ -103,7 +103,7 @@ class VeoText2Video:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "状态更新时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def create(self, prompt, model, aspect_ratio, enhance_prompt, enable_upsample,
                api_base="https://api.llaiapi.host", api_key="", timeout=120, custom_model=""):
@@ -181,7 +181,7 @@ class VeoImage2Video:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "状态更新时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def create(self, prompt, model, aspect_ratio, enhance_prompt, enable_upsample,
                image_1="", image_2="", image_3="",
@@ -250,7 +250,7 @@ class VeoQueryTask:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "增强后提示词", "原始响应JSON")
     FUNCTION = "query"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def query(self, task_id, api_base="https://api.llaiapi.host", api_key="", wait=True, poll_interval_sec=5, timeout_sec=600):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -337,7 +337,7 @@ class VeoText2VideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "增强后提示词", "任务ID")
     FUNCTION = "run"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
     
     def run(self, **kwargs):
         creator_kwargs = {k: v for k, v in kwargs.items() if k in VeoText2Video.INPUT_TYPES()["required"] or k in VeoText2Video.INPUT_TYPES()["optional"]}
@@ -370,7 +370,7 @@ class VeoImage2VideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "增强后提示词", "任务ID")
     FUNCTION = "run"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def run(self, **kwargs):
         creator_kwargs = {}

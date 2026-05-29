@@ -1,4 +1,4 @@
-﻿"""Nano Banana 节点实现 - 基于 kuai.host API (使用 base64 图片传递)"""
+"""Nano Banana 节点实现 - 基于 kuai.host API (使用 base64 图片传递)"""
 
 import io
 import json
@@ -74,7 +74,7 @@ class NanoBananaAIO:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("图像", "思考过程", "引用来源")
     FUNCTION = "generate_unified"
-    CATEGORY = "KuAi/NanoBanana"
+    CATEGORY = "🍐LLAI/NanoBanana"
 
     @classmethod
     def INPUT_LABELS(cls):
@@ -409,7 +409,7 @@ class NanoBananaMultiTurnChat:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("图像", "响应文本", "元数据", "对话历史")
     FUNCTION = "generate_multiturn_image"
-    CATEGORY = "KuAi/NanoBanana"
+    CATEGORY = "🍐LLAI/NanoBanana"
 
     @classmethod
     def INPUT_LABELS(cls):

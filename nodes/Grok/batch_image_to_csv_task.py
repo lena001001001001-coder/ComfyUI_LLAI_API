@@ -1,4 +1,4 @@
-﻿"""Grok 批量图片转任务列表节点
+"""Grok 批量图片转任务列表节点
 
 将 BatchImageUploader 输出的 JSON URL 列表转换为 CSV 并发处理器可用的任务列表。
 实现完全闭环：BatchImageUploader → GrokBatchImageToCSVTask → GrokCSVConcurrentProcessor
@@ -73,7 +73,7 @@ class GrokBatchImageToCSVTask:
     RETURN_TYPES = ("STRING", "INT")
     RETURN_NAMES = ("任务列表JSON", "任务数量")
     FUNCTION = "generate_tasks"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def generate_tasks(self, image_urls_json, prompt_template, model,
                       aspect_ratio, size, enhance_prompt,

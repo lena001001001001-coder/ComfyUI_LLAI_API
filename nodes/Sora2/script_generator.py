@@ -317,7 +317,7 @@ class ProductInfoBuilder:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("产品信息JSON", "参考图片URL", "视频时长")
     FUNCTION = "build"
-    CATEGORY = "KuAi/ScriptGenerator"
+    CATEGORY = "🍐LLAI/ScriptGenerator"
     
     @classmethod
     def INPUT_LABELS(cls):
@@ -376,7 +376,7 @@ class SoraPromptFromProduct:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("Sora提示词", "视频时长", "参考图URL", "AI原始响应")
     FUNCTION = "generate"
-    CATEGORY = "KuAi/ScriptGenerator"
+    CATEGORY = "🍐LLAI/ScriptGenerator"
     
     @classmethod
     def INPUT_LABELS(cls):

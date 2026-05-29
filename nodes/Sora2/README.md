@@ -10,7 +10,7 @@
 - JSON 路径提取
 
 ### script_generator.py
-脚本生成相关节点（分类：`KuAi/ScriptGenerator`）：
+脚本生成相关节点（分类：`🍐LLAI/ScriptGenerator`）：
 
 | 节点 | 功能 | 输入 | 输出 |
 |------|------|------|------|
@@ -19,7 +19,7 @@
 | DeepseekOCRToPrompt | OCR 文本提取 | image_url | ocr_text, raw_response_json |
 
 ### sora2.py
-Sora2 API 调用节点（分类：`KuAi/Sora2`）：
+Sora2 API 调用节点（分类：`🍐LLAI/Sora2`）：
 
 | 节点 | 功能 | 输入 | 输出 |
 |------|------|------|------|

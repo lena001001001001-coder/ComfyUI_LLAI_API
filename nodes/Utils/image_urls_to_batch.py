@@ -1,4 +1,4 @@
-﻿"""图片URL列表转CSV任务 - 将批量上传的URL列表转换为批量处理任务"""
+"""图片URL列表转CSV任务 - 将批量上传的URL列表转换为批量处理任务"""
 
 import json
 
@@ -39,7 +39,7 @@ class ImageURLsToGrokBatchTasks:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("批量任务",)
     FUNCTION = "convert"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
 
     def convert(self, image_urls_json, prompt_template, output_prefix="video"):
         """将URL列表转换为Grok批量任务"""
@@ -113,7 +113,7 @@ class ImageURLsToVeo3BatchTasks:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("批量任务",)
     FUNCTION = "convert"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
 
     def convert(self, image_urls_json, prompt_template, output_prefix="video"):
         """将URL列表转换为Veo3批量任务"""
@@ -187,7 +187,7 @@ class ImageURLsToSoraBatchTasks:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("批量任务",)
     FUNCTION = "convert"
-    CATEGORY = "KuAi/Utils"
+    CATEGORY = "🍐LLAI/Utils"
 
     def convert(self, image_urls_json, prompt_template, output_prefix="sora_local"):
         """将URL列表转换为Sora批量任务"""

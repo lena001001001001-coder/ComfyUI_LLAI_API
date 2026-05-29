@@ -1,4 +1,4 @@
-﻿import io
+import io
 import json
 
 import numpy as np
@@ -76,7 +76,7 @@ class GrokImageGenerate:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("图像", "图片URL", "原始响应")
     FUNCTION = "generate"
-    CATEGORY = "KuAi/GrokImage"
+    CATEGORY = "🍐LLAI/GrokImage"
 
     def generate(self, prompt, model, size, api_key, api_base="https://api.llaiapi.host", timeout=120):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -146,7 +146,7 @@ class GrokImageEdit:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("图像", "图片URL", "原始响应")
     FUNCTION = "edit"
-    CATEGORY = "KuAi/GrokImage"
+    CATEGORY = "🍐LLAI/GrokImage"
 
     def edit(
         self,

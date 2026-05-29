@@ -1,4 +1,4 @@
-﻿"""Veo3 legacy 批量视频生成处理器"""
+"""Veo3 legacy 批量视频生成处理器"""
 
 import json
 import os
@@ -99,7 +99,7 @@ class Veo3BatchProcessor:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("处理结果", "输出目录")
     FUNCTION = "process_batch"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def process_batch(self, batch_tasks, api_key="", output_dir="./output/veo3_batch",
                      delay_between_tasks=2.0, api_base="https://api.llaiapi.host",

@@ -1,4 +1,4 @@
-﻿# GPT Image 2 ComfyUI Multi-Image Nodes Implementation Plan
+# GPT Image 2 ComfyUI Multi-Image Nodes Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -24,7 +24,7 @@ Do not add CSV batch processing, mask editing, `input_fidelity`, `output_compres
 - ComfyUI official custom node docs require node classes to define `INPUT_TYPES`, `RETURN_TYPES`, `FUNCTION`, and `CATEGORY`. `INPUT_TYPES()` must return a dict with `required` and may include `optional`.
 - ComfyUI `IMAGE` is singular as a type name, but the value is a batch tensor. Official walkthrough examples describe receiving an `IMAGE` batch, so this plan explicitly expands `[B,H,W,C]` instead of silently using index 0.
 - ComfyUI optional inputs are only supplied when connected or configured. Every optional `IMAGE` and optional widget must therefore have a default in `GPTImage2EditImages.edit()`.
-- Existing repo style uses Chinese labels, `KuAi/...` categories, `NODE_CLASS_MAPPINGS`, `NODE_DISPLAY_NAME_MAPPINGS`, and `env_or(api_key, "KUAI_API_KEY")`.
+- Existing repo style uses Chinese labels, `🍐LLAI/...` categories, `NODE_CLASS_MAPPINGS`, `NODE_DISPLAY_NAME_MAPPINGS`, and `env_or(api_key, "KUAI_API_KEY")`.
 
 ## File Structure
 
@@ -200,7 +200,7 @@ def test_gpt_image_edit_images_node_registered_and_has_15_image_inputs():
     required = inputs["required"]
     optional = inputs["optional"]
 
-    assert node_class.CATEGORY == "KuAi/GPTImage"
+    assert node_class.CATEGORY == "🍐LLAI/GPTImage"
     assert node_class.RETURN_TYPES == ("IMAGE", "STRING", "STRING")
     assert node_class.RETURN_NAMES == ("图像", "图片URL/DataURL", "响应JSON摘要")
     assert "image_1" in required
@@ -1054,7 +1054,7 @@ class GPTImage2EditImages:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("图像", "图片URL/DataURL", "响应JSON摘要")
     FUNCTION = "edit"
-    CATEGORY = "KuAi/GPTImage"
+    CATEGORY = "🍐LLAI/GPTImage"
 
     def edit(
         self,
@@ -1222,7 +1222,7 @@ for name in required:
     assert hasattr(cls, "CATEGORY"), name
     assert name in NODE_DISPLAY_NAME_MAPPINGS, name
 
-assert NODE_CLASS_MAPPINGS["GPTImage2EditImages"].CATEGORY == "KuAi/GPTImage"
+assert NODE_CLASS_MAPPINGS["GPTImage2EditImages"].CATEGORY == "🍐LLAI/GPTImage"
 print("GPTImage nodes import and register correctly")
 PY
 ```
@@ -1328,7 +1328,7 @@ Expected: the request succeeds. Record whether KuAi accepts multipart field `ima
 Manual check:
 
 1. Restart ComfyUI so custom nodes reload.
-2. Confirm `🍐 GPT Image 2 多图改图` appears under `KuAi/GPTImage`.
+2. Confirm `🍐 GPT Image 2 多图改图` appears under `🍐LLAI/GPTImage`.
 3. Add the node.
 4. Confirm `image_1` is required, `image_2` through `image_15` are optional `IMAGE` inputs, and widget options include `format`, `quality`, `background`, `moderation`, `api_base`, and `timeout`.
 5. Connect a batched `IMAGE` output to `image_1` and confirm the workflow queues without ComfyUI validation errors.

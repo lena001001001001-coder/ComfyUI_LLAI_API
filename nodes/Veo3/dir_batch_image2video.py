@@ -1,4 +1,4 @@
-﻿"""Veo3 目录批量图生视频（一键闭环）
+"""Veo3 目录批量图生视频（一键闭环）
 
 完整链路：扫描本地目录 → 并发上传图片 → 并发图生视频 → 轮询 → 下载 MP4
 单节点完成全部操作，无需串联多个节点。
@@ -327,7 +327,7 @@ class VeoDirBatchImage2Video:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("处理报告", "视频保存目录")
     FUNCTION = "run"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def run(self, directory_path, prompt, api_key,
             model="veo3.1", aspect_ratio="9:16",

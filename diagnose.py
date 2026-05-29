@@ -1,4 +1,4 @@
-﻿"""快速诊断脚本 - 检查所有配置和依赖"""
+"""快速诊断脚本 - 检查所有配置和依赖"""
 
 import sys
 from pathlib import Path
@@ -174,11 +174,11 @@ def check_categories():
         print()
         
         # 检查分类命名
-        valid_categories = all(cat.startswith("KuAi/") for cat in categories.keys())
+        valid_categories = all(cat.startswith("🍐LLAI/") for cat in categories.keys())
         if valid_categories:
-            print("   ✅ 所有分类都以 'KuAi/' 开头")
+            print("   ✅ 所有分类都以 '🍐LLAI/' 开头")
         else:
-            print("   ⚠️  部分分类不以 'KuAi/' 开头")
+            print("   ⚠️  部分分类不以 '🍐LLAI/' 开头")
         
         print()
         return True

@@ -1,4 +1,4 @@
-﻿"""Grok 视频生成节点"""
+"""Grok 视频生成节点"""
 
 import json
 import os
@@ -81,7 +81,7 @@ class GrokCreateVideo:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "增强提示词")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create(self, prompt, model, aspect_ratio, size, enhance_prompt, api_key="", image_urls="", api_base="https://api.llaiapi.host", custom_model=""):
         """创建 Grok 视频生成任务"""
@@ -182,7 +182,7 @@ class GrokQueryVideo:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词", "状态更新时间")
     FUNCTION = "query"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def query(self, task_id, api_key="", api_base="https://api.llaiapi.host"):
         """查询 Grok 视频生成任务状态"""
@@ -318,7 +318,7 @@ class GrokCreateAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词")
     FUNCTION = "create_and_wait"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create_and_wait(self, prompt, model, aspect_ratio, size, enhance_prompt=True, api_key="",
                        image_urls="", api_base="https://api.llaiapi.host",
@@ -452,7 +452,7 @@ class GrokImage2Video:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "增强提示词", "状态更新时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create(self, prompt, model, aspect_ratio, size, enhance_prompt=True, api_key="",
                image_url_1="", image_url_2="", image_url_3="",
@@ -625,7 +625,7 @@ class GrokImage2VideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词")
     FUNCTION = "create_and_wait"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create_and_wait(self, prompt, model, aspect_ratio, size, enhance_prompt=True,
                        api_key="", image_url_1="", image_url_2="", image_url_3="",
@@ -747,7 +747,7 @@ class GrokText2Video:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "增强提示词")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create(self, prompt, model, aspect_ratio, size, enhance_prompt=True, api_key="", api_base="https://api.llaiapi.host", custom_model=""):
         """创建 Grok 文生视频任务"""
@@ -881,7 +881,7 @@ class GrokText2VideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词")
     FUNCTION = "create_and_wait"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create_and_wait(self, prompt, model, aspect_ratio, size, enhance_prompt=True,
                        api_key="", api_base="https://api.llaiapi.host",
@@ -983,7 +983,7 @@ class GrokExtendVideo:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "INT", "INT")
     RETURN_NAMES = ("任务ID", "状态", "扩展提示词", "状态更新时间", "视频时长")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create(self, prompt, task_id, model, start_time, aspect_ratio, size, upscale=False,
                api_key="", api_base="https://api.llaiapi.host", custom_model=""):
@@ -1079,7 +1079,7 @@ class GrokExtendVideoAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "视频URL", "扩展提示词", "视频时长")
     FUNCTION = "create_and_wait"
-    CATEGORY = "KuAi/Grok"
+    CATEGORY = "🍐LLAI/Grok"
 
     def create_and_wait(self, prompt, task_id, model, start_time, aspect_ratio, size, upscale=False,
                        api_key="", api_base="https://api.llaiapi.host", custom_model="",

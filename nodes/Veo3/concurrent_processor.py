@@ -1,4 +1,4 @@
-﻿"""Veo3 10路并发视频生成节点"""
+"""Veo3 10路并发视频生成节点"""
 
 import time
 import requests
@@ -182,7 +182,7 @@ class VeoText2Video10Concurrent:
         ["处理报告"]
     )
     FUNCTION = "run"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def run(self, api_key, **kwargs):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -288,7 +288,7 @@ class VeoImage2Video10Concurrent:
         ["处理报告"]
     )
     FUNCTION = "run"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def run(self, api_key, **kwargs):
         api_key = env_or(api_key, "KUAI_API_KEY")

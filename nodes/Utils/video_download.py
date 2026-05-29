@@ -22,7 +22,7 @@ class DownloadVideo:
     RETURN_NAMES = ("本地路径", "状态")
     FUNCTION = "download"
     OUTPUT_NODE = True
-    CATEGORY = "KuAi/配套能力"
+    CATEGORY = "🍐LLAI/配套能力"
     
     @classmethod
     def INPUT_LABELS(cls):
@@ -88,7 +88,7 @@ class PreviewVideo:
     RETURN_TYPES = ()
     OUTPUT_NODE = True
     FUNCTION = "preview"
-    CATEGORY = "KuAi/配套能力"
+    CATEGORY = "🍐LLAI/配套能力"
     
     @classmethod
     def INPUT_LABELS(cls):

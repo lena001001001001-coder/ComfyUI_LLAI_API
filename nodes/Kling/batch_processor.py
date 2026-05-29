@@ -52,7 +52,7 @@ class KlingBatchProcessor:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("处理结果", "输出目录")
     FUNCTION = "process_batch"
-    CATEGORY = "KuAi/Kling"
+    CATEGORY = "🍐LLAI/Kling"
 
     def process_batch(self, batch_tasks, api_key="", output_dir="./output/batch",
                      delay_between_tasks=2.0):

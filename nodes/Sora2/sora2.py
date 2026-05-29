@@ -1,4 +1,4 @@
-﻿import json
+import json
 import time
 import requests
 from .kuai_utils import (env_or, ensure_list_from_urls,
@@ -36,7 +36,7 @@ class SoraCreateVideo:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "状态更新时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
     
     @classmethod
     def INPUT_LABELS(cls):
@@ -126,7 +126,7 @@ class SoraQueryTask:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "GIF_URL", "缩略图URL", "原始响应JSON")
     FUNCTION = "query"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
     
     @classmethod
     def INPUT_LABELS(cls):
@@ -224,7 +224,7 @@ class SoraCreateAndWait:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("状态", "视频URL", "GIF_URL", "缩略图URL", "任务ID")
     FUNCTION = "run"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
     
     @classmethod
     def INPUT_LABELS(cls):
@@ -294,7 +294,7 @@ class SoraText2Video:
     RETURN_TYPES = ("STRING", "STRING", "INT")
     RETURN_NAMES = ("任务ID", "状态", "状态更新时间")
     FUNCTION = "create"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
     
     @classmethod
     def INPUT_LABELS(cls):
@@ -378,7 +378,7 @@ class SoraCreateCharacter:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("角色ID", "角色名称", "角色主页", "角色头像URL")
     FUNCTION = "create_character"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
 
     @classmethod
     def INPUT_LABELS(cls):
@@ -452,7 +452,7 @@ class SoraRemixVideo:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("新任务ID", "状态", "原始视频ID")
     FUNCTION = "remix"
-    CATEGORY = "KuAi/Sora2"
+    CATEGORY = "🍐LLAI/Sora2"
 
     @classmethod
     def INPUT_LABELS(cls):

@@ -1,4 +1,4 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
@@ -184,7 +184,7 @@ class MyNode:
     RETURN_TYPES = ("STRING", "INT")
     RETURN_NAMES = ("输出1", "输出2")
     FUNCTION = "execute"
-    CATEGORY = "KuAi/CategoryName"
+    CATEGORY = "🍐LLAI/CategoryName"
 
     def execute(self, param1, param2=0):
         # Implementation
@@ -192,7 +192,7 @@ class MyNode:
 ```
 
 **Important Conventions**:
-- All categories start with `KuAi/`
+- All categories start with `🍐LLAI/`
 - Use Chinese for `RETURN_NAMES` and `INPUT_LABELS`
 - Use emoji prefixes in `NODE_DISPLAY_NAME_MAPPINGS` (🎬 🍐 🍌 📦 🔍 ⚡)
 - Raise `RuntimeError` with user-friendly Chinese error messages
@@ -358,7 +358,7 @@ class MyGenerationNode:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("图像", "元数据")
     FUNCTION = "generate"
-    CATEGORY = "KuAi/CategoryName"
+    CATEGORY = "🍐LLAI/CategoryName"
 
     def generate(self, prompt, model_name, api_key="", seed=0, system_prompt=""):
         """执行生成"""
@@ -738,7 +738,7 @@ class MyBatchProcessor:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("处理结果", "输出目录")
     FUNCTION = "process_batch"
-    CATEGORY = "KuAi/CategoryName"
+    CATEGORY = "🍐LLAI/CategoryName"
 
     def process_batch(self, batch_tasks, api_key="", output_dir="./output/batch",
                      delay_between_tasks=2.0):

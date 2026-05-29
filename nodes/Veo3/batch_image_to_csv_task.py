@@ -1,4 +1,4 @@
-﻿"""Veo3 批量图片转任务列表节点
+"""Veo3 批量图片转任务列表节点
 
 将 BatchImageUploader 输出的 JSON URL 列表转换为 CSV 并发处理器可用的任务列表。
 实现完全闭环：BatchImageUploader → VeoBatchImageToCSVTask → VeoCSVConcurrentProcessor
@@ -81,7 +81,7 @@ class VeoBatchImageToCSVTask:
     RETURN_TYPES = ("STRING", "INT")
     RETURN_NAMES = ("任务列表JSON", "任务数量")
     FUNCTION = "generate_tasks"
-    CATEGORY = "KuAi/Veo3"
+    CATEGORY = "🍐LLAI/Veo3"
 
     def generate_tasks(self, image_urls_json, prompt_template, model,
                       aspect_ratio, enhance_prompt, enable_upsample,
