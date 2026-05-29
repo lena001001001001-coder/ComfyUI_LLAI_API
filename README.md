@@ -1,8 +1,8 @@
-﻿# ComfyUI KuAi Power
+﻿# ComfyUI LLAI API
 
 ComfyUI 节点扩展，提供对 Sora2 和 Veo 视频生成模型、Nano Banana 图像生成以及 AI 脚本生成功能的支持。
 
-> **API 服务**: [kuai.host](https://api.kuai.host/register?aff=z2C8) | **国内镜像**: [videos.kuai.host](https://videos.kuai.host/) | **国内镜像**: [nbnb.kuai.host](https://nbnb.kuai.host/) | **视频教程**: [Bilibili](https://www.bilibili.com/video/BV1umCjBqEpt/)
+> **API 服务**: [api.llaiapi.host](https://api.llaiapi.host) | **国内镜像**: [api.llaiapi.host](https://api.llaiapi.host) | **国内镜像**: [api.llaiapi.host](https://api.llaiapi.host) | **飞书教程**: [feishu](https://my.feishu.cn/wiki/PjYZw0u8Pi0HzYkY0UgcjpjAn2b?from=from_copylink)
 
 ## 🚀 快速开始
 
@@ -15,7 +15,7 @@ pip install -r requirements.txt
 ```
 
 ### 2. 配置 API Key
-在节点参数中直接填写，或创建 `.env` 文件并设置环境变量 `KUAI_API_KEY=your_api_key_here`。
+在节点参数中直接填写，或创建 `.env` 文件并设置环境变量 `LLAI_API_KEY=your_api_key_here`。
 
 ### 3. 重启 ComfyUI
 重启后，即可在右键菜单或 `Ctrl+Shift+K` 快捷面板中找到新节点。
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 
 所有节点均提供全中文界面，分类清晰，易于使用。
 
-### 🚀 Veo 视频生成 (`KuAi/Veo3`)
+### 🚀 Veo 视频生成 (`LLAI/Veo3`)
 新一代视频模型，支持文生视频和图生视频。
 
 | 节点名称 | 功能简介 |
@@ -37,7 +37,7 @@ pip install -r requirements.txt
 | **⚡ Veo 一键文生视频** | 提交任务并自动等待视频生成完成。 |
 | **⚡ Veo 一键图生视频** | 提交带参考图的任务并等待完成。 |
 
-### 🎬 Sora2 视频生成 (`KuAi/Sora2`)
+### 🎬 Sora2 视频生成 (`LLAI/Sora2`)
 强大的图生视频模型，支持视频生成、角色创建、视频编辑和批量处理。
 
 | 节点名称 | 功能简介 |
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 | **🎬 编辑视频** | 基于已生成的视频进行二次编辑（Remix）。 |
 | **📦 Sora2 批量处理器** | 通过 CSV 文件批量生成视频，支持文生视频和图生视频。 |
 
-### 📝 AI 脚本生成 (`KuAi/ScriptGenerator`)
+### 📝 AI 脚本生成 (`LLAI/ScriptGenerator`)
 利用大语言模型自动为您的产品生成专业的视频脚本/提示词。
 
 | 节点名称 | 功能简介 |
@@ -58,7 +58,7 @@ pip install -r requirements.txt
 | **📦 产品信息构建器** | 将产品信息结构化，为 AI 生成做准备。 |
 | **🤖 AI 生成提示词** | 根据产品信息，调用 AI 生成专业级的 Sora 提示词。 |
 
-### 🍌 Nano Banana 图像生成 (`KuAi/NanoBanana`)
+### 🍌 Nano Banana 图像生成 (`LLAI/NanoBanana`)
 基于 Google Gemini 模型的多模态图像生成，支持文生图、图生图、多轮对话和批量处理。
 
 | 节点名称 | 功能简介 |
@@ -71,9 +71,9 @@ pip install -r requirements.txt
 
 | 节点名称 | 分类 | 功能简介 |
 | :--- | :--- | :--- |
-| **UploadToImageHost** | `KuAi/Utils` | 将本地图片上传到图床并返回 URL。 |
-| **DeepseekOCRToPrompt**| `KuAi/Utils` | 提取图片中的文本内容。 |
-| **CSV 批量读取器** | `KuAi/Utils` | 读取 CSV 文件并解析为批量任务数据。 |
+| **UploadToImageHost** | `LLAI/Utils` | 将本地图片上传到图床并返回 URL。 |
+| **DeepseekOCRToPrompt**| `LLAI/Utils` | 提取图片中的文本内容。 |
+| **CSV 批量读取器** | `LLAI/Utils` | 读取 CSV 文件并解析为批量任务数据。 |
 
 ---
 
