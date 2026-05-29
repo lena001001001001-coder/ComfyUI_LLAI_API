@@ -1,0 +1,6 @@
+prompt,image_urls,model,aspect_ratio,enhance_prompt,enable_upsample,output_prefix
+"Animate this scene with dynamic lighting and natural movement","https://example.com/image1.jpg","veo_3_1-fast","9:16","true","true","veo3_i2v_001"
+"Transform this still image into a cinematic video with depth","https://example.com/image2.jpg","veo_3_1-fast","16:9","true","true","veo3_i2v_002"
+"Bring this landscape to life with moving clouds and wind effects","https://example.com/image3.jpg","veo3.1","16:9","true","true","veo3_i2v_003"
+"Add realistic water ripples and ambient motion to this scene","https://example.com/image4.jpg","veo3.1","9:16","true","true","veo3_i2v_004"
+"Create a parallax zoom effect with atmospheric haze","https://example.com/image5.jpg","veo_3_1-fast","16:9","true","true","veo3_i2v_005"

@@ -1,0 +1,7 @@
+prompt,images,model,duration_sora2,duration_sora2pro,orientation,size,watermark,output_prefix
+"A futuristic city at night with neon lights, cyberpunk style, cinematic camera movement",,sora-2,15,,landscape,large,false,cyberpunk_city
+"A chef preparing a gourmet dish, close-up of hands, professional kitchen lighting",https://example.com/chef.jpg,sora-2,10,,portrait,large,false,chef_cooking
+"An astronaut floating in space, Earth in background, slow motion, epic scale",,sora-2-pro,,25,landscape,large,false,astronaut_space
+"A fashion model walking on runway, elegant movements, dramatic lighting, high fashion",https://example.com/model.jpg,sora-2,15,,portrait,large,false,fashion_runway
+"A waterfall in a tropical forest, misty atmosphere, natural lighting, serene mood",,sora-2-pro,,15,landscape,small,false,waterfall_forest
+"A musician playing guitar on stage, concert lighting, dynamic camera angles",https://example.com/musician.jpg,sora-2,10,,landscape,large,false,musician_concert

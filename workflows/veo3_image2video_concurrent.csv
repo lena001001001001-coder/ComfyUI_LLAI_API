@@ -1,0 +1,3 @@
+prompt,image_urls,output_prefix,model,aspect_ratio,enhance_prompt,enable_upsample
+科技感视频,https://example.com/1.jpg,veo3_tech_1,veo_3_1-fast,9:16,true,true
+自然风景,https://example.com/2.jpg,veo3_nature_1,veo_3_1-fast,9:16,true,true

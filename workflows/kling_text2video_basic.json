@@ -1,0 +1,139 @@
+﻿{
+  "last_node_id": 3,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "KlingText2VideoAndWait",
+      "pos": [100, 100],
+      "size": [400, 500],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "状态",
+          "type": "STRING",
+          "links": [1],
+          "slot_index": 0
+        },
+        {
+          "name": "视频URL",
+          "type": "STRING",
+          "links": [2],
+          "slot_index": 1
+        },
+        {
+          "name": "时长",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "任务ID",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KlingText2VideoAndWait"
+      },
+      "widgets_values": [
+        "海边日落，海浪轻轻拍打着金色的沙滩，天空中云彩被染成橙红色",
+        "kling-v1",
+        "std",
+        "5",
+        "16:9",
+        "",
+        0.5,
+        false,
+        false,
+        "",
+        "https://api.kuai.host",
+        120,
+        15,
+        1200
+      ]
+    },
+    {
+      "id": 2,
+      "type": "ShowText",
+      "pos": [550, 100],
+      "size": [300, 100],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        "",
+        "任务状态"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "ShowText",
+      "pos": [550, 250],
+      "size": [300, 100],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        "",
+        "视频下载地址"
+      ]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "STRING"],
+    [2, 1, 1, 3, 0, "STRING"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4,
+  "workflow_info": {
+    "name": "可灵文生视频工作流",
+    "description": "使用可灵 AI 根据文本提示词生成视频的基础工作流。\n\n使用说明：\n1. 在 KlingText2VideoAndWait 节点中输入提示词\n2. 选择模型和参数（模式、时长、宽高比等）\n3. 配置 API Key（留空使用环境变量 KUAI_API_KEY）\n4. 执行工作流，等待视频生成完成\n5. 从输出节点获取视频 URL\n\n参数说明：\n- prompt: 视频描述文本，越详细越好\n- model_name: 模型选择（kling-v1 速度快，kling-v2-master 质量高）\n- mode: std（标准）性价比高，pro（专家）质量更佳\n- duration: 5s 或 10s\n- aspect_ratio: 16:9（横屏）、9:16（竖屏）、1:1（方形）\n- negative_prompt: 不希望出现的内容\n- cfg_scale: 0.0-1.0，控制提示词引导强度\n\n提示词示例：\n- 海边日落，海浪轻轻拍打着金色的沙滩，天空中云彩被染成橙红色\n- 城市夜景，高楼大厦灯火通明，车流在街道上穿梭\n- 森林中的小溪，清澈的溪水流过青苔覆盖的石头，阳光透过树叶洒下斑驳的光影\n\n注意事项：\n- 视频生成通常需要 2-10 分钟\n- 确保 API Key 配置正确\n- 建议先用 std 模式测试，满意后再用 pro 模式\n- 可以使用负面提示词排除不需要的元素",
+    "author": "ComfyUI_LLAI_API",
+    "version": "1.0.0",
+    "created": "2026-03-06"
+  }
+}

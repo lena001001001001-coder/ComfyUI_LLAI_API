@@ -1,0 +1,75 @@
+﻿{
+  "last_node_id": 1,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "VeoDirBatchImage2Video",
+      "pos": [
+        120,
+        80
+      ],
+      "size": [
+        420,
+        860
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "处理报告",
+          "type": "STRING",
+          "slot_index": 0,
+          "links": null
+        },
+        {
+          "name": "视频保存目录",
+          "type": "STRING",
+          "slot_index": 1,
+          "links": null
+        }
+      ],
+      "title": "⚡ Veo3 目录批量图生视频（一键闭环）",
+      "properties": {
+        "Node name for S&R": "VeoDirBatchImage2Video"
+      },
+      "widgets_values": [
+        "/root/ComfyUI/input/veo3/demo1",
+        "生成一个商品展示视频，镜头平滑推进，突出主体细节和质感",
+        "",
+        "veo3.1",
+        "9:16",
+        true,
+        true,
+        "",
+        "output/veo3",
+        "veo3",
+        5,
+        5,
+        100,
+        "https://imageproxy.zhongzhuan.chat/api/upload",
+        "jpeg",
+        90,
+        "https://api.llaiapi.host",
+        1200,
+        15,
+        180
+      ]
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.0,
+      "offset": [
+        0,
+        0
+      ]
+    }
+  },
+  "version": 0.4
+}

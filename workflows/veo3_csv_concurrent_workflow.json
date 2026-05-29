@@ -1,0 +1,192 @@
+﻿{
+  "last_node_id": 4,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CSVBatchReader",
+      "pos": [
+        60,
+        200
+      ],
+      "size": [
+        340,
+        120
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "批量任务数据",
+          "type": "STRING",
+          "slot_index": 0,
+          "links": [
+            1
+          ]
+        }
+      ],
+      "title": "📄 CSV 读取器",
+      "properties": {
+        "Node name for S&R": "CSVBatchReader"
+      },
+      "widgets_values": [
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 2,
+      "type": "VeoCSVConcurrentProcessor",
+      "pos": [
+        460,
+        60
+      ],
+      "size": [
+        400,
+        380
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "batch_tasks",
+          "type": "STRING",
+          "link": 1,
+          "slot_index": 0
+        }
+      ],
+      "outputs": [
+        {
+          "name": "处理报告",
+          "type": "STRING",
+          "slot_index": 0,
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "视频保存目录",
+          "type": "STRING",
+          "slot_index": 1,
+          "links": [
+            3
+          ]
+        }
+      ],
+      "title": "📦 Veo3 CSV 并发批量处理器",
+      "properties": {
+        "Node name for S&R": "VeoCSVConcurrentProcessor"
+      },
+      "widgets_values": [
+        "",
+        "output/veo3",
+        10,
+        "veo_3_1-fast",
+        "9:16",
+        true,
+        true,
+        "https://api.llaiapi.host",
+        1200,
+        15,
+        180
+      ]
+    },
+    {
+      "id": 3,
+      "type": "ShowText",
+      "pos": [
+        920,
+        60
+      ],
+      "size": [
+        420,
+        280
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 2,
+          "slot_index": 0
+        }
+      ],
+      "outputs": [],
+      "title": "📋 处理报告",
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 4,
+      "type": "ShowText",
+      "pos": [
+        920,
+        380
+      ],
+      "size": [
+        420,
+        80
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 3,
+          "slot_index": 0
+        }
+      ],
+      "outputs": [],
+      "title": "📁 视频保存目录",
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      3,
+      2,
+      1,
+      4,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "title": "Veo3 CSV 并发批量处理（文/图生视频完整闭环）"
+  },
+  "version": 0.4
+}

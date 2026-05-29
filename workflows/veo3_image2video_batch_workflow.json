@@ -1,0 +1,225 @@
+﻿{
+  "last_node_id": 6,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "BatchImageUploader",
+      "pos": [100, 100],
+      "size": [420, 250],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "图片URL列表",
+          "type": "STRING",
+          "links": [1],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "上传详情",
+          "type": "STRING",
+          "links": [2],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BatchImageUploader"
+      },
+      "widgets_values": [
+        "/root/ComfyUI/input/veo3/demo1",
+        "https://imageproxy.zhongzhuan.chat/api/upload",
+        "jpeg",
+        90,
+        30,
+        100
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "title": "📤 批量上传本地图片"
+    },
+    {
+      "id": 2,
+      "type": "ImageURLsToVeo3BatchTasks",
+      "pos": [600, 100],
+      "size": [420, 350],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_urls_json",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "批量任务",
+          "type": "STRING",
+          "links": [3],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageURLsToVeo3BatchTasks"
+      },
+      "widgets_values": [
+        "将这张图片转换为视频，添加自然的镜头运动和电影级灯光效果",
+        "veo3_local"
+      ],
+      "color": "#322",
+      "bgcolor": "#533",
+      "title": "🔄 图片URL转Veo3批量任务"
+    },
+    {
+      "id": 3,
+      "type": "VeoCSVConcurrentProcessor",
+      "pos": [1120, 100],
+      "size": [470, 420],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "batch_tasks",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "处理报告",
+          "type": "STRING",
+          "links": [4],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "视频保存目录",
+          "type": "STRING",
+          "links": [5],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VeoCSVConcurrentProcessor"
+      },
+      "widgets_values": [
+        "",
+        "output/veo3",
+        10,
+        "veo3.1",
+        "16:9",
+        true,
+        false,
+        "https://api.llaiapi.host",
+        1200,
+        15,
+        180
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "📦 Veo3 CSV 并发批量处理器"
+    },
+    {
+      "id": 4,
+      "type": "ShowText",
+      "pos": [1650, 100],
+      "size": [420, 300],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "title": "📊 处理结果显示"
+    },
+    {
+      "id": 5,
+      "type": "ShowText",
+      "pos": [100, 420],
+      "size": [420, 290],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "title": "📋 上传详情显示"
+    },
+    {
+      "id": 6,
+      "type": "ShowText",
+      "pos": [1650, 430],
+      "size": [420, 140],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 5
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "📁 输出目录显示"
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "STRING"],
+    [2, 1, 1, 5, 0, "STRING"],
+    [3, 2, 0, 3, 0, "STRING"],
+    [4, 3, 0, 4, 0, "STRING"],
+    [5, 3, 1, 6, 0, "STRING"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "workflow_info": {
+      "name": "Veo3 图生视频批量处理工作流（本地目录上传 + 并发）",
+      "description": "从 /root/ComfyUI/input/veo3/<demo目录> 读取图片（1-100 命名），批量上传后并发生成Veo3图生视频并自动下载到本地 output/veo3。支持10路并发，大幅提升处理效率。",
+      "version": "2.0.0",
+      "author": "ComfyUI_LLAI_API",
+      "category": "Video Generation/Batch/Local/Concurrent"
+    }
+  },
+  "version": 0.4
+}

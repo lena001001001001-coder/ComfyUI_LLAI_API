@@ -1,0 +1,246 @@
+﻿{
+  "id": "grok-image-edit",
+  "revision": 0,
+  "last_node_id": 12,
+  "last_link_id": 9,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [-220, 180],
+      "size": [330, 370],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {"label": "IMAGE", "localized_name": "图像", "name": "IMAGE", "type": "IMAGE", "links": [1], "slot_index": 0},
+        {"label": "MASK", "localized_name": "遮罩", "name": "MASK", "type": "MASK", "links": null}
+      ],
+      "properties": {"cnr_id": "comfy-core", "ver": "0.3.67", "Node name for S&R": "LoadImage"},
+      "widgets_values": ["example.png", "image"],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 2,
+      "type": "UploadToImageHost",
+      "pos": [190, 200],
+      "size": [320, 240],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "image", "name": "image", "type": "IMAGE", "link": 1}
+      ],
+      "outputs": [
+        {"localized_name": "图片URL", "name": "图片URL", "type": "STRING", "links": [2, 7]},
+        {"localized_name": "创建时间", "name": "创建时间", "type": "STRING", "links": null}
+      ],
+      "title": "📷 传图到临时图床",
+      "properties": {"Node name for S&R": "UploadToImageHost"},
+      "widgets_values": ["https://imageproxy.zhongzhuan.chat/api/upload", "jpeg", 100, 1800]
+    },
+    {
+      "id": 3,
+      "type": "Text Multiline",
+      "pos": [-220, 620],
+      "size": [400, 180],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "文本", "name": "text", "type": "STRING", "widget": {"name": "text"}, "link": null}
+      ],
+      "outputs": [
+        {"label": "字符串", "localized_name": "字符串", "name": "STRING", "type": "STRING", "links": [3]}
+      ],
+      "title": "编辑提示词",
+      "properties": {"Node name for S&R": "Text Multiline"},
+      "widgets_values": ["保留主体构图，把商品场景改成高级科技展台，补充霓虹灯氛围和精致倒影"]
+    },
+    {
+      "id": 4,
+      "type": "PrimitiveString",
+      "pos": [-180, 900],
+      "size": [270, 110],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [{"localized_name": "值", "name": "value", "type": "STRING", "widget": {"name": "value"}, "link": null}],
+      "outputs": [{"label": "STRING", "localized_name": "字符串", "name": "STRING", "type": "STRING", "links": [4]}],
+      "title": "API KEY",
+      "properties": {"cnr_id": "comfy-core", "ver": "0.3.67", "Node name for S&R": "PrimitiveString"},
+      "widgets_values": ["粘贴你的密钥到这里"],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 5,
+      "type": "PrimitiveString",
+      "pos": [-180, 1100],
+      "size": [270, 110],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [{"localized_name": "值", "name": "value", "type": "STRING", "widget": {"name": "value"}, "link": null}],
+      "outputs": [{"label": "STRING", "localized_name": "字符串", "name": "STRING", "type": "STRING", "links": [5]}],
+      "title": "服务器地址",
+      "properties": {"cnr_id": "comfy-core", "ver": "0.3.67", "Node name for S&R": "PrimitiveString"},
+      "widgets_values": ["https://api.llaiapi.host"],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 6,
+      "type": "GrokImageEdit",
+      "pos": [700, 250],
+      "size": [390, 560],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "image", "name": "image", "type": "STRING", "widget": {"name": "image"}, "link": 2},
+        {"localized_name": "prompt", "name": "prompt", "type": "STRING", "widget": {"name": "prompt"}, "link": 3},
+        {"localized_name": "model", "name": "model", "type": "COMBO", "widget": {"name": "model"}, "link": null},
+        {"localized_name": "api_key", "name": "api_key", "type": "STRING", "widget": {"name": "api_key"}, "link": 4},
+        {"localized_name": "aspect_ratio", "name": "aspect_ratio", "shape": 7, "type": "COMBO", "widget": {"name": "aspect_ratio"}, "link": null},
+        {"localized_name": "response_format", "name": "response_format", "shape": 7, "type": "COMBO", "widget": {"name": "response_format"}, "link": null},
+        {"localized_name": "resolution", "name": "resolution", "shape": 7, "type": "COMBO", "widget": {"name": "resolution"}, "link": null},
+        {"localized_name": "quality", "name": "quality", "shape": 7, "type": "COMBO", "widget": {"name": "quality"}, "link": null},
+        {"localized_name": "n", "name": "n", "shape": 7, "type": "INT", "widget": {"name": "n"}, "link": null},
+        {"localized_name": "api_base", "name": "api_base", "shape": 7, "type": "STRING", "widget": {"name": "api_base"}, "link": 5},
+        {"localized_name": "timeout", "name": "timeout", "shape": 7, "type": "INT", "widget": {"name": "timeout"}, "link": null}
+      ],
+      "outputs": [
+        {"localized_name": "图像", "name": "图像", "type": "IMAGE", "links": [6, 9]},
+        {"localized_name": "图片URL", "name": "图片URL", "type": "STRING", "links": [8]},
+        {"localized_name": "原始响应", "name": "原始响应", "type": "STRING", "links": [10]}
+      ],
+      "properties": {"Node name for S&R": "GrokImageEdit"},
+      "widgets_values": ["", "", "grok-4.2-image", "", "auto", "url", "2k", "high", 1, "https://api.llaiapi.host", 120],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "🎨 Grok-image图片编辑"
+    },
+    {
+      "id": 7,
+      "type": "PreviewImage",
+      "pos": [1160, 240],
+      "size": [400, 400],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [{"localized_name": "图片", "name": "images", "type": "IMAGE", "link": 6}],
+      "outputs": [],
+      "properties": {"Node name for S&R": "PreviewImage"},
+      "widgets_values": []
+    },
+    {
+      "id": 8,
+      "type": "SaveImage",
+      "pos": [1590, 240],
+      "size": [540, 700],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "图片", "name": "images", "type": "IMAGE", "link": 9},
+        {"localized_name": "文件名前缀", "name": "filename_prefix", "type": "STRING", "widget": {"name": "filename_prefix"}, "link": null}
+      ],
+      "outputs": [],
+      "properties": {"cnr_id": "comfy-core", "ver": "0.3.74", "Node name for S&R": "SaveImage"},
+      "widgets_values": ["grok_image_edit"]
+    },
+    {
+      "id": 9,
+      "type": "MarkdownNote",
+      "pos": [-520, 1320],
+      "size": [980, 280],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "结果说明",
+      "properties": {},
+      "widgets_values": ["# Grok-image图片编辑\n\n闭环链路：LoadImage → 📷 传图到临时图床 → 编辑节点 → 预览 → 保存。\n\n执行后可在右侧文本显示节点中直接查看：\n- 上传后的图片URL\n- 编辑结果图片URL\n- 原始响应 JSON"],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 10,
+      "type": "ShowText|pysssss",
+      "pos": [1180, 690],
+      "size": [520, 140],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "text", "name": "text", "type": "STRING", "link": 7}
+      ],
+      "outputs": [],
+      "properties": {"Node name for S&R": "ShowText|pysssss"},
+      "title": "上传URL显示",
+      "widgets_values": [""]
+    },
+    {
+      "id": 11,
+      "type": "ShowText|pysssss",
+      "pos": [1180, 870],
+      "size": [520, 140],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "text", "name": "text", "type": "STRING", "link": 8}
+      ],
+      "outputs": [],
+      "properties": {"Node name for S&R": "ShowText|pysssss"},
+      "title": "编辑结果URL显示",
+      "widgets_values": [""]
+    },
+    {
+      "id": 12,
+      "type": "ShowText|pysssss",
+      "pos": [1180, 1050],
+      "size": [520, 220],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {"localized_name": "text", "name": "text", "type": "STRING", "link": 10}
+      ],
+      "outputs": [],
+      "properties": {"Node name for S&R": "ShowText|pysssss"},
+      "title": "原始响应显示",
+      "widgets_values": [""]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "IMAGE"],
+    [2, 2, 0, 6, 0, "STRING"],
+    [3, 3, 0, 6, 1, "STRING"],
+    [4, 4, 0, 6, 3, "STRING"],
+    [5, 5, 0, 6, 9, "STRING"],
+    [6, 6, 0, 7, 0, "IMAGE"],
+    [7, 2, 0, 10, 0, "STRING"],
+    [8, 6, 1, 11, 0, "STRING"],
+    [9, 6, 0, 8, 0, "IMAGE"],
+    [10, 6, 2, 12, 0, "STRING"]
+  ],
+  "groups": [
+    {"id": 1, "title": "输入区", "bounding": [-260, 120, 560, 1100], "color": "#3f789e", "font_size": 24, "flags": {}},
+    {"id": 2, "title": "编辑与输出", "bounding": [620, 160, 1180, 1180], "color": "#3f789e", "font_size": 24, "flags": {}}
+  ],
+  "config": {},
+  "extra": {
+    "workflow_info": {
+      "name": "Grok-image图片编辑",
+      "description": "从本地图片上传到图床，再调用 Grok-image 图片编辑并预览保存的闭环工作流",
+      "version": "1.0.1",
+      "author": "ComfyUI_LLAI_API",
+      "category": "Image Generation/Complete"
+    }
+  },
+  "version": 0.4
+}

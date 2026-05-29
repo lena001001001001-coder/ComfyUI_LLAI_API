@@ -1,0 +1,6 @@
+prompt,images,model,orientation,size,watermark,output_prefix
+"A cat playing with a colorful ball in a sunny garden, slow motion, cinematic lighting",https://example.com/cat.jpg,sora-2,portrait,large,false,cat_playing
+"A majestic eagle soaring through the clouds at sunset, aerial view, 4K quality",,sora-2,landscape,large,false,eagle_sunset
+"A dancer performing in the rain, dramatic lighting, close-up shot, artistic style",https://example.com/dancer.jpg,sora-2,portrait,large,false,dancer_rain
+"A beautiful landscape with mountains and rivers, time-lapse, golden hour",,sora-2-pro,landscape,large,false,landscape_timelapse
+"A sports car driving on a coastal highway, tracking shot, cinematic",https://example.com/car.jpg,sora-2,landscape,small,false,car_highway

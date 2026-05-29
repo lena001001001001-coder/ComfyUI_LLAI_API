@@ -1,0 +1,112 @@
+﻿{
+  "last_node_id": 5,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "VeoText2VideoAndWait",
+      "pos": [100, 200],
+      "size": [380, 320],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "状态",        "type": "STRING", "slot_index": 0, "links": [2]},
+        {"name": "视频URL",     "type": "STRING", "slot_index": 1, "links": [3]},
+        {"name": "增强后提示词","type": "STRING", "slot_index": 2, "links": [4]},
+        {"name": "任务ID",      "type": "STRING", "slot_index": 3, "links": [1]}
+      ],
+      "properties": {"Node name for S&R": "VeoText2VideoAndWait"},
+      "widgets_values": [
+        "一只猫咪在草地上奔跑，阳光明媚，电影级画质",
+        "veo_3_1-fast",
+        "9:16",
+        true,
+        true,
+        "",
+        "https://api.llaiapi.host",
+        120,
+        "",
+        600,
+        5
+      ]
+    },
+    {
+      "id": 2,
+      "type": "DownloadVideo",
+      "pos": [570, 160],
+      "size": [300, 130],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "video_url", "type": "STRING", "link": 3, "slot_index": 0}
+      ],
+      "outputs": [
+        {"name": "本地路径", "type": "STRING", "slot_index": 0, "links": []},
+        {"name": "状态",    "type": "STRING", "slot_index": 1, "links": []}
+      ],
+      "properties": {"Node name for S&R": "DownloadVideo"},
+      "widgets_values": ["output/veo3", "", 180]
+    },
+    {
+      "id": 3,
+      "type": "ShowText",
+      "pos": [570, 330],
+      "size": [300, 80],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "text", "type": "STRING", "link": 1, "slot_index": 0}
+      ],
+      "outputs": [],
+      "title": "任务ID",
+      "properties": {"Node name for S&R": "ShowText"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 4,
+      "type": "ShowText",
+      "pos": [570, 440],
+      "size": [300, 80],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "text", "type": "STRING", "link": 2, "slot_index": 0}
+      ],
+      "outputs": [],
+      "title": "状态",
+      "properties": {"Node name for S&R": "ShowText"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 5,
+      "type": "ShowText",
+      "pos": [570, 550],
+      "size": [300, 80],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "text", "type": "STRING", "link": 4, "slot_index": 0}
+      ],
+      "outputs": [],
+      "title": "增强后提示词",
+      "properties": {"Node name for S&R": "ShowText"},
+      "widgets_values": [""]
+    }
+  ],
+  "links": [
+    [1, 1, 3, 3, 0, "STRING"],
+    [2, 1, 0, 4, 0, "STRING"],
+    [3, 1, 1, 2, 0, "STRING"],
+    [4, 1, 2, 5, 0, "STRING"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

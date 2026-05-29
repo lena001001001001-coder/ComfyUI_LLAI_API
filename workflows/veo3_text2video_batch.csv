@@ -1,0 +1,6 @@
+prompt,model,aspect_ratio,enhance_prompt,enable_upsample,output_prefix
+"A serene Japanese garden with koi fish swimming in a crystal clear pond","veo_3_1-fast","9:16","true","true","veo3_t2v_001"
+"Cinematic aerial view of a winding river through autumn forests","veo_3_1-fast","16:9","true","true","veo3_t2v_002"
+"A bustling night market in Southeast Asia with colorful lanterns","veo3.1","9:16","true","true","veo3_t2v_003"
+"Northern lights dancing over a frozen lake with reflections","veo3.1","16:9","true","true","veo3_t2v_004"
+"A lighthouse beam sweeping through thick ocean fog at dusk","veo_3_1-fast","16:9","true","true","veo3_t2v_005"
