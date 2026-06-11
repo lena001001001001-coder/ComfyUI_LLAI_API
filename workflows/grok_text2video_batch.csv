@@ -1,0 +1,6 @@
+prompt,model,aspect_ratio,size,enhance_prompt,output_prefix
+"A futuristic cityscape at night with neon lights reflecting on wet streets","grok-video-3 (6秒)","3:2","720P","true","grok_t2v_001"
+"A majestic eagle soaring over snow-capped mountains at sunrise","grok-video-3 (6秒)","3:2","720P","true","grok_t2v_002"
+"A cozy coffee shop interior with steam rising from cups, warm lighting","grok-video-3 (6秒)","2:3","720P","true","grok_t2v_003"
+"Ocean waves crashing on rocky cliffs during a stormy sunset","grok-video-3-10s (10秒)","3:2","1080P","true","grok_t2v_004"
+"A time-lapse of blooming flowers in a spring garden","grok-video-3-10s (10秒)","1:1","720P","true","grok_t2v_005"

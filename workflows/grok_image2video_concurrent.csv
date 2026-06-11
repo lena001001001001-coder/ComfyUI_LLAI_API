@@ -1,0 +1,3 @@
+prompt,image_urls,output_prefix,model,aspect_ratio,size,enhance_prompt
+一个科技感的视频,https://example.com/1.jpg,tech_video_1,grok-video-3 (6秒),3:2,720P,true
+自然风景视频,https://example.com/2.jpg,nature_video_1,grok-video-3 (6秒),3:2,720P,true

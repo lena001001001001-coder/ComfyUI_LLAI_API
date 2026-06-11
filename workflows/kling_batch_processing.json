@@ -1,0 +1,120 @@
+﻿{
+  "last_node_id": 3,
+  "last_link_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CSVBatchReader",
+      "pos": [100, 100],
+      "size": [350, 200],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "批量任务",
+          "type": "STRING",
+          "links": [1],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CSVBatchReader"
+      },
+      "widgets_values": [
+        "upload",
+        "",
+        "examples/kling_batch_basic.csv"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "KlingBatchProcessor",
+      "pos": [500, 100],
+      "size": [400, 250],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "batch_tasks",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "处理结果",
+          "type": "STRING",
+          "links": [2],
+          "slot_index": 0
+        },
+        {
+          "name": "输出目录",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KlingBatchProcessor"
+      },
+      "widgets_values": [
+        "",
+        "",
+        "./output/kling_batch",
+        2.0
+      ]
+    },
+    {
+      "id": 3,
+      "type": "ShowText",
+      "pos": [950, 100],
+      "size": [400, 200],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        "",
+        "批量处理结果"
+      ]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "STRING"],
+    [2, 2, 0, 3, 0, "STRING"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4,
+  "workflow_info": {
+    "name": "可灵批量处理工作流",
+    "description": "使用 CSV 文件批量生成可灵视频的工作流。\n\n使用说明：\n1. 准备 CSV 文件（参考 examples/kling_batch_basic.csv）\n2. 在 CSVBatchReader 节点中选择 CSV 文件\n3. 配置 KlingBatchProcessor 的参数\n4. 执行工作流，等待批量处理完成\n5. 查看处理结果和输出目录\n\nCSV 文件格式：\n必需列：\n- task_type: text2video（文生视频）或 image2video（图生视频）\n- prompt: 提示词（text2video 必需）\n\n可选列：\n- model_name: 模型名称（默认 kling-v1）\n- mode: std 或 pro（默认 std）\n- duration: 5 或 10（默认 5）\n- aspect_ratio: 16:9, 9:16, 1:1（默认 16:9）\n- negative_prompt: 负面提示词\n- cfg_scale: 0.0-1.0（默认 0.5）\n- multi_shot: true 或 false（默认 false）\n- watermark: true 或 false（默认 false）\n- output_prefix: 输出文件前缀\n- image: 图片 URL（image2video 必需）\n- image_tail: 尾帧图片 URL\n\nCSV 示例：\ntask_type,prompt,model_name,mode,duration,aspect_ratio,output_prefix\ntext2video,海边日落，海浪拍打岸边,kling-v1,std,5,16:9,sunset\ntext2video,城市夜景，车流穿梭,kling-v1,std,5,16:9,city\n\n参数说明：\n- batch_tasks: 来自 CSVBatchReader 的任务数据（自动连接）\n- api_key: API 密钥（留空使用环境变量 KUAI_API_KEY）\n- output_dir: 输出目录，保存 tasks.json\n- delay_between_tasks: 任务间延迟秒数，避免 API 限流\n\n输出结果：\n- 控制台显示处理进度\n- output_dir/tasks.json 保存所有任务信息\n- 每个任务包含：task_id, status, video_url, duration 等\n\n最佳实践：\n1. 小批量测试：先用 2-3 个任务测试\n2. 合理延迟：建议 2-5 秒，避免 API 限流\n3. 备份 CSV：处理前备份原始文件\n4. 检查配额：确保 API 配额充足\n5. 使用前缀：便于识别和管理生成的视频\n\n示例 CSV 文件位置：\n- examples/kling_batch_basic.csv - 基础文生视频\n- examples/kling_batch_advanced.csv - 高级功能\n- examples/kling_batch_image2video.csv - 图生视频\n\n详细说明请参考：examples/KLING_CSV_GUIDE.md",
+    "author": "ComfyUI_LLAI_API",
+    "version": "1.0.0",
+    "created": "2026-03-06"
+  }
+}

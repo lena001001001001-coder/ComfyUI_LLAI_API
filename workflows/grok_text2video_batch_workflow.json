@@ -1,0 +1,153 @@
+﻿{
+  "last_node_id": 4,
+  "last_link_id": 3,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CSVBatchReader",
+      "pos": [100, 100],
+      "size": [400, 200],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "批量任务",
+          "type": "STRING",
+          "links": [1],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CSVBatchReader"
+      },
+      "widgets_values": [
+        "grok_text2video_batch.csv",
+        "",
+        "utf-8"
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "title": "📂 CSV批量读取器"
+    },
+    {
+      "id": 2,
+      "type": "GrokCSVConcurrentProcessor",
+      "pos": [600, 100],
+      "size": [450, 400],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "batch_tasks",
+          "type": "STRING",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "处理报告",
+          "type": "STRING",
+          "links": [2],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "视频保存目录",
+          "type": "STRING",
+          "links": [3],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrokCSVConcurrentProcessor"
+      },
+      "widgets_values": [
+        "",
+        "output/grok",
+        10,
+        "grok-video-3 (6秒)",
+        "3:2",
+        "720P",
+        true,
+        "https://api.llaiapi.host",
+        1200,
+        10,
+        180
+      ],
+      "color": "#322",
+      "bgcolor": "#533",
+      "title": "📦 Grok CSV 并发批量处理器"
+    },
+    {
+      "id": 3,
+      "type": "ShowText",
+      "pos": [1150, 100],
+      "size": [400, 300],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "📊 处理结果显示"
+    },
+    {
+      "id": 4,
+      "type": "ShowText",
+      "pos": [1150, 450],
+      "size": [400, 150],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "📁 输出目录显示"
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "STRING"],
+    [2, 2, 0, 3, 0, "STRING"],
+    [3, 2, 1, 4, 0, "STRING"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "workflow_info": {
+      "name": "Grok 文生视频批量处理工作流（并发）",
+      "description": "使用CSV文件批量生成Grok文生视频，支持10路并发处理，支持多种模型和参数配置，自动下载视频到本地output/grok目录。大幅提升处理效率。",
+      "version": "2.0.0",
+      "author": "ComfyUI_LLAI_API",
+      "category": "Video Generation/Batch/Concurrent"
+    }
+  },
+  "version": 0.4
+}

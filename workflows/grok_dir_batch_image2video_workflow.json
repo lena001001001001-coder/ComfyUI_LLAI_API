@@ -1,0 +1,63 @@
+﻿{
+  "last_node_id": 1,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "GrokDirBatchImage2Video",
+      "pos": [100, 100],
+      "size": [400, 800],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "处理报告",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "name": "视频保存目录",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrokDirBatchImage2Video"
+      },
+      "widgets_values": [
+        "/root/ComfyUI/input/grok/demo1",
+        "一个产品展示视频，镜头缓慢推进，展现产品细节",
+        "",
+        "grok-video-3 (6秒)",
+        "3:2",
+        "1080P",
+        true,
+        "",
+        "output/grok",
+        "grok",
+        5,
+        5,
+        100,
+        "https://imageproxy.zhongzhuan.chat/api/upload",
+        "jpeg",
+        90,
+        "https://api.llaiapi.host",
+        1200,
+        10,
+        180
+      ]
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.0,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4
+}

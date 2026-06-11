@@ -1,0 +1,262 @@
+﻿{
+  "last_node_id": 6,
+  "last_link_id": 7,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [100, 100],
+      "size": [320, 314],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [1],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "example.png",
+        "image"
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "title": "🍐 加载图片"
+    },
+    {
+      "id": 2,
+      "type": "UploadToImageHost",
+      "pos": [500, 100],
+      "size": [400, 250],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "图片URL",
+          "type": "STRING",
+          "links": [2],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "创建时间",
+          "type": "STRING",
+          "links": [],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UploadToImageHost"
+      },
+      "widgets_values": [
+        "https://imageproxy.zhongzhuan.chat/api/upload",
+        "jpeg",
+        90,
+        30
+      ],
+      "color": "#322",
+      "bgcolor": "#533",
+      "title": "📷 上传图片到图床"
+    },
+    {
+      "id": 3,
+      "type": "VeoImage2VideoAndWait",
+      "pos": [1000, 100],
+      "size": [400, 500],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_urls",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "任务ID",
+          "type": "STRING",
+          "links": [],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "状态",
+          "type": "STRING",
+          "links": [],
+          "shape": 3,
+          "slot_index": 1
+        },
+        {
+          "name": "视频URL",
+          "type": "STRING",
+          "links": [3],
+          "shape": 3,
+          "slot_index": 2
+        },
+        {
+          "name": "增强提示词",
+          "type": "STRING",
+          "links": [4],
+          "shape": 3,
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VeoImage2VideoAndWait"
+      },
+      "widgets_values": [
+        "将这张图片转换为视频，添加平滑的镜头运动，保持画面稳定，电影级质感",
+        "veo3.1",
+        6,
+        "16:9",
+        true,
+        false,
+        "",
+        "https://api.llaiapi.host",
+        "",
+        1200,
+        15
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "🚀 Veo3 图生视频（一键）"
+    },
+    {
+      "id": 4,
+      "type": "DownloadVideo",
+      "pos": [1500, 100],
+      "size": [400, 200],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video_url",
+          "type": "STRING",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "本地路径",
+          "type": "STRING",
+          "links": [5],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "状态",
+          "type": "STRING",
+          "links": [6],
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DownloadVideo"
+      },
+      "widgets_values": [
+        "output/veo3",
+        "veo3_image2video.mp4",
+        180
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "title": "💾 下载视频"
+    },
+    {
+      "id": 5,
+      "type": "ShowText",
+      "pos": [2000, 100],
+      "size": [400, 200],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 5
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#322",
+      "bgcolor": "#533",
+      "title": "📁 本地路径显示"
+    },
+    {
+      "id": 6,
+      "type": "ShowText",
+      "pos": [2000, 350],
+      "size": [400, 200],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 4
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#322",
+      "bgcolor": "#533",
+      "title": "📝 增强提示词显示"
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "IMAGE"],
+    [2, 2, 0, 3, 0, "STRING"],
+    [3, 3, 2, 4, 0, "STRING"],
+    [4, 3, 3, 6, 0, "STRING"],
+    [5, 4, 0, 5, 0, "STRING"],
+    [6, 4, 1, 5, 0, "STRING"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "workflow_info": {
+      "name": "Veo3 图生视频完整工作流",
+      "description": "从图片加载、上传到视频生成、下载保存的完整闭环工作流",
+      "version": "1.0.0",
+      "author": "ComfyUI_LLAI_API",
+      "category": "Video Generation/Complete"
+    }
+  },
+  "version": 0.4
+}

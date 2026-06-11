@@ -1,0 +1,6 @@
+prompt,image_urls,model,aspect_ratio,size,enhance_prompt,output_prefix
+"Transform this image into a cinematic video with smooth camera movement","https://example.com/image1.jpg","grok-video-3 (6秒)","3:2","720P","true","grok_i2v_001"
+"Animate this scene with gentle wind and natural motion","https://example.com/image2.jpg","grok-video-3 (6秒)","3:2","720P","true","grok_i2v_002"
+"Bring this landscape to life with flowing clouds and moving water","https://example.com/image3.jpg","grok-video-3-10s (10秒)","3:2","1080P","true","grok_i2v_003"
+"Add dramatic lighting changes and subtle movement to this portrait","https://example.com/image4.jpg","grok-video-3 (6秒)","2:3","720P","true","grok_i2v_004"
+"Create a slow zoom-out effect revealing the full scene","https://example.com/image5.jpg","grok-video-3-10s (10秒)","1:1","720P","true","grok_i2v_005"

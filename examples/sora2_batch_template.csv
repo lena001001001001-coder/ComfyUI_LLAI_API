@@ -1,0 +1,7 @@
+prompt,images,model,duration_sora2,duration_sora2pro,orientation,size,watermark,output_prefix
+"示例1: 一只可爱的猫咪在阳光花园里玩彩色球，慢动作，电影级光照",,sora-2,10,,portrait,large,false,example_1
+"示例2: 一只雄鹰在日落时分翱翔云端，航拍视角，4K画质",,sora-2,15,,landscape,large,false,example_2
+"示例3: 舞者在雨中表演，戏剧性光照，特写镜头，艺术风格",,sora-2,10,,portrait,large,false,example_3
+"示例4: 美丽的山川河流风景，延时摄影，黄金时刻",,sora-2-pro,,15,landscape,large,false,example_4
+"示例5: 跑车在海岸公路上行驶，跟踪镜头，电影感",,sora-2-pro,,25,landscape,large,false,example_5
+"示例6: 产品展示视频，旋转镜头，专业灯光，高端质感",,sora-2,10,,portrait,small,false,example_6
