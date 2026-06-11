@@ -1,0 +1,132 @@
+doc.kuai.host 接口格式参考使用说明
+
+1. 基本理解
+
+doc.kuai.host 不是必须使用它的 base 地址，而是接口格式参考文档。
+实际调用 llaiapi.host 时，通常只参考文档里的：
+
+- 请求方法，例如 POST / GET
+- endpoint 路径，例如 /v1/video/create
+- 请求头，例如 Authorization: Bearer sk-...
+- 请求体 JSON 字段
+- 查询任务结果的接口
+- 返回结构里的 task_id、status、url 等字段
+
+实际 base 仍然使用：
+
+https://api.llaiapi.host
+
+完整调用格式是：
+
+{api_base} + {文档里的 endpoint path}
+
+例如文档写：
+
+POST /v1/video/create
+
+实际调用就是：
+
+POST https://api.llaiapi.host/v1/video/create
+
+
+2. 写 ComfyUI 节点的基本步骤
+
+1. 在 doc.kuai.host 找到目标模型或功能页面。
+2. 记下 method、path、headers、body、query、response。
+3. 在 config.py 里添加或确认 platform、api_format、model、API_PATHS。
+4. 新建或修改对应节点文件，例如 nodes_sound_generator.py。
+5. 写三块核心逻辑：
+   - 提交任务：_create / _submit
+   - 查询任务：_query
+   - 轮询等待：_poll
+6. 把返回结果转换成 ComfyUI 需要的输出类型。
+   - 视频一般输出 IO.VIDEO
+   - 音频一般输出 IO.AUDIO
+   - 图片一般输出 IMAGE
+   - 文本一般输出 STRING
+
+
+3. Suno 示例
+
+当前插件里已经有 Suno 节点：
+
+nodes_sound_generator.py
+
+它在 config.py 里配置了：
+
+SOUND_API_FORMATS = ["runninghub-/openapi/v2", "suno/submit"]
+
+API_PATHS = {
+    "sound_suno/submit": {
+        "suno_create": "/suno/submit/music",
+        "suno_query": "/suno/fetch/{task_id}",
+    },
+}
+
+所以实际调用的是：
+
+POST https://api.llaiapi.host/suno/submit/music
+GET  https://api.llaiapi.host/suno/fetch/{task_id}
+
+
+4. Suno 描述模式 payload 示例
+
+{
+  "gpt_description_prompt": "一首赛博朋克风格电子音乐",
+  "mv": "chirp-crow",
+  "prompt": "",
+  "make_instrumental": true
+}
+
+说明：
+
+- gpt_description_prompt：歌曲描述
+- mv：Suno 版本模型，例如 chirp-crow
+- prompt：描述模式下一般为空
+- make_instrumental：是否纯音乐
+
+
+5. Suno 歌词定制模式 payload 示例
+
+{
+  "prompt": "你的歌词",
+  "mv": "chirp-crow",
+  "title": "歌曲标题",
+  "tags": "pop, electronic"
+}
+
+说明：
+
+- prompt：歌词或完整创作提示词
+- mv：Suno 版本模型
+- title：歌曲标题
+- tags：风格标签
+
+
+6. 常见排错
+
+401 Unauthorized 或 无效的令牌：
+
+通常是 API key 错误、key 不是 llaiapi.host 后台生成的，或者 key 没有该模型权限。
+
+返回 HTML 或 non-JSON response：
+
+通常是 endpoint 路径错了，或者 api_base 和 api_format 不匹配。
+
+有 task_id 但没有生成结果：
+
+需要检查 query 接口返回的 status、state、progress、fail_reason，以及音频/视频 URL 字段名。
+
+没有调用到接口，日志显示 API key not found：
+
+说明 Relay API Settings 节点没有把 key 传给下游节点，需要重新输入真实 sk key。
+
+
+7. 重点注意
+
+- doc.kuai.host 只参考接口格式，不代表实际 base 必须使用 api.kuai.host。
+- 当前你的实际 base 是 https://api.llaiapi.host。
+- key 必须来自 llaiapi.host 后台，并且有对应模型权限。
+- 写新节点时，优先看文档里的 method、path、payload、query、response。
+- 如果模型是异步生成类，通常需要 submit + query + poll 三段逻辑。
+- 如果接口返回结果字段不固定，节点里要兼容常见字段，例如 task_id/id/request_id、url/audio_url/video_url/output_url。
