@@ -19,6 +19,8 @@ TASK_TYPES = ["image", "video", "sound", "text"]
 DEFAULT_MODELS = {
     # video
     "Grok": ["grok-video-3-10s", "grok-video-3", "grok-videos"],
+    "GrokImagineVideo": ["grok-imagine-video", "grok-imagine-video-1.5-preview"],
+    "GrokImagineVideo15": ["grok-imagine-video-1.5-preview"],
     "Veo": ["veo3.1", "veo3.1-fast", "veo_3_1-lite", "veo_3_1-lite-4K", "veo_3_1-fast-4K"],
     # image �?通用 fallback
     "banana-pro": ["nano-banana-pro"],
@@ -77,6 +79,8 @@ FORMAT_MODELS = {
 
 TASK_PLATFORMS = {
     "video": ["Grok", "Veo"],
+    "grok_imagine_video": ["GrokImagineVideo"],
+    "grok_imagine_video_15": ["GrokImagineVideo15"],
     "image": ["banana-pro", "banana-2", "gpt-image2"],
     "sound": ["Suno"],
     "text": ["GeminiText", "OpenaiText"],
@@ -86,12 +90,14 @@ TASK_PLATFORMS = {
 PLATFORMS = list(DEFAULT_MODELS.keys())
 
 VIDEO_API_FORMATS = ["runninghub-/openapi/v2", "v1/video", "v1/videos", "v2/videos"]
+GROK_IMAGINE_VIDEO_API_FORMATS = ["v1/videos"]
 IMAGE_API_FORMATS = ["runninghub-/openapi/v2", "v1beta/models", "v1/images", "v1/chat/completions"]
 SOUND_API_FORMATS = ["runninghub-/openapi/v2", "suno/submit"]
 TEXT_API_FORMATS = ["runninghub-/v1", "v1beta/models", "v1/chat/completions"]
 
 API_FORMATS_BY_TASK = {
     "video": VIDEO_API_FORMATS,
+    "grok_imagine_video": GROK_IMAGINE_VIDEO_API_FORMATS,
     "image": IMAGE_API_FORMATS,
     "sound": SOUND_API_FORMATS,
     "text": TEXT_API_FORMATS,

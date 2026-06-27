@@ -71,7 +71,7 @@ class RelayAPISettings:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("info",)
     FUNCTION = "set_api"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
     @classmethod
     def VALIDATE_INPUTS(cls, model=None, api_base=None, **kwargs):

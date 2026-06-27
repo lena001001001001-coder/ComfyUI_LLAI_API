@@ -1,4 +1,4 @@
-"""Grok 视频生成节点"""
+﻿"""Grok 瑙嗛鐢熸垚鑺傜偣"""
 
 import json
 import os
@@ -15,7 +15,7 @@ from ..Sora2.kuai_utils import (
 
 
 class GrokCreateVideo:
-    """创建 Grok 视频生成任务"""
+    """鍒涘缓 Grok 瑙嗛鐢熸垚浠诲姟"""
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -24,42 +24,42 @@ class GrokCreateVideo:
                 "prompt": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "tooltip": "视频生成提示词（支持中英文）"
+                    "tooltip": "瑙嗛鐢熸垚鎻愮ず璇嶏紙鏀寔涓嫳鏂囷級"
                 }),
-                "model": (["grok-video-3 (6秒)", "grok-video-3-10s (10秒)", "grok-video-3-15s (15秒)"], {
-                    "default": "grok-video-3 (6秒)",
-                    "tooltip": "选择 Grok 模型"
+                "model": (["grok-video-3 (6绉?", "grok-video-3-10s (10绉?", "grok-video-3-15s (15绉?"], {
+                    "default": "grok-video-3 (6绉?",
+                    "tooltip": "閫夋嫨 Grok 妯″瀷"
                 }),
                 "aspect_ratio": (["2:3", "3:2", "1:1"], {
                     "default": "3:2",
-                    "tooltip": "视频宽高比"
+                    "tooltip": "瑙嗛瀹介珮姣?
                 }),
                 "size": (["720P", "1080P"], {
                     "default": "1080P",
-                    "tooltip": "视频分辨率"
+                    "tooltip": "瑙嗛鍒嗚鲸鐜?
                 }),
                 "enhance_prompt": ("BOOLEAN", {
                     "default": True,
-                    "tooltip": "自动将中文提示词优化并翻译为英文"
+                    "tooltip": "鑷姩灏嗕腑鏂囨彁绀鸿瘝浼樺寲骞剁炕璇戜负鑻辨枃"
                 }),
                 "api_key": ("STRING", {
                     "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
+                    "tooltip": "API瀵嗛挜锛堢暀绌轰娇鐢ㄧ幆澧冨彉閲?KUAI_API_KEY锛?
                 }),
             },
             "optional": {
                 "image_urls": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "tooltip": "参考图片URL（多个用逗号、分号或换行分隔）"
+                    "tooltip": "鍙傝€冨浘鐗嘦RL锛堝涓敤閫楀彿銆佸垎鍙锋垨鎹㈣鍒嗛殧锛?
                 }),
                 "custom_model": ("STRING", {
                     "default": "",
-                    "tooltip": "自定义模型（留空使用下拉模型）"
+                    "tooltip": "鑷畾涔夋ā鍨嬶紙鐣欑┖浣跨敤涓嬫媺妯″瀷锛?
                 }),
                 "api_base": ("STRING", {
                     "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
+                    "tooltip": "API绔偣鍦板潃"
                 }),
             }
         }
@@ -67,42 +67,41 @@ class GrokCreateVideo:
     @classmethod
     def INPUT_LABELS(cls):
         return {
-            "prompt": "提示词",
-            "model": "模型",
-            "aspect_ratio": "宽高比",
-            "size": "分辨率",
-            "enhance_prompt": "提示词增强",
-            "api_key": "API密钥",
-            "image_urls": "参考图片URL",
-            "custom_model": "自定义模型",
-            "api_base": "API地址"
+            "prompt": "鎻愮ず璇?,
+            "model": "妯″瀷",
+            "aspect_ratio": "瀹介珮姣?,
+            "size": "鍒嗚鲸鐜?,
+            "enhance_prompt": "鎻愮ず璇嶅寮?,
+            "api_key": "API瀵嗛挜",
+            "image_urls": "鍙傝€冨浘鐗嘦RL",
+            "custom_model": "鑷畾涔夋ā鍨?,
+            "api_base": "API鍦板潃"
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("任务ID", "状态", "增强提示词")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "澧炲己鎻愮ず璇?)
     FUNCTION = "create"
-    CATEGORY = "🍐LLAI/Grok"
+    CATEGORY = "馃崘LLAI/Grok"
 
     def create(self, prompt, model, aspect_ratio, size, enhance_prompt, api_key="", image_urls="", api_base="https://api.llaiapi.host", custom_model=""):
-        """创建 Grok 视频生成任务"""
+        """鍒涘缓 Grok 瑙嗛鐢熸垚浠诲姟"""
         api_key = env_or(api_key, "KUAI_API_KEY")
         if not api_key:
-            raise RuntimeError("API Key 未配置，请在节点参数或环境变量中设置 KUAI_API_KEY")
+            raise RuntimeError("API Key 鏈厤缃紝璇峰湪鑺傜偣鍙傛暟鎴栫幆澧冨彉閲忎腑璁剧疆 KUAI_API_KEY")
 
         api_base = api_base.rstrip("/")
         headers = http_headers_auth_only(api_key)
 
-        # 提取实际的模型名称（去掉时长说明）
-        actual_model = model.split(" (")[0] if " (" in model else model
+        # 鎻愬彇瀹為檯鐨勬ā鍨嬪悕绉帮紙鍘绘帀鏃堕暱璇存槑锛?        actual_model = model.split(" (")[0] if " (" in model else model
         effective_model = (custom_model or "").strip() or actual_model
 
-        # 根据 effective_model 判断是否支持 1080P（只有 15 秒模型支持）
+        # 鏍规嵁 effective_model 鍒ゆ柇鏄惁鏀寔 1080P锛堝彧鏈?15 绉掓ā鍨嬫敮鎸侊級
         effective_size = size
         if "15s" not in effective_model.lower() and size == "1080P":
             effective_size = "720P"
-            print(f"[ComfyUI_LLAI_API] 警告：{effective_model} 不支持 1080P，已自动降级到 720P")
+            print(f"[ComfyUI_LLAI_API] 璀﹀憡锛歿effective_model} 涓嶆敮鎸?1080P锛屽凡鑷姩闄嶇骇鍒?720P")
 
-        # 解析图片URL列表
+        # 瑙ｆ瀽鍥剧墖URL鍒楄〃
         images = ensure_list_from_urls(image_urls) if image_urls else []
 
         payload = {
@@ -114,10 +113,10 @@ class GrokCreateVideo:
             "images": images
         }
 
-        print(f"[ComfyUI_LLAI_API] Grok 创建视频任务: {prompt[:50]}...")
-        print(f"[ComfyUI_LLAI_API] 模型: {effective_model}, 宽高比: {aspect_ratio}, 分辨率: {effective_size}")
+        print(f"[ComfyUI_LLAI_API] Grok 鍒涘缓瑙嗛浠诲姟: {prompt[:50]}...")
+        print(f"[ComfyUI_LLAI_API] 妯″瀷: {effective_model}, 瀹介珮姣? {aspect_ratio}, 鍒嗚鲸鐜? {effective_size}")
         if enhance_prompt:
-            print(f"[ComfyUI_LLAI_API] 提示词增强: 已启用")
+            print(f"[ComfyUI_LLAI_API] 鎻愮ず璇嶅寮? 宸插惎鐢?)
 
         try:
             resp = requests.post(
@@ -128,27 +127,27 @@ class GrokCreateVideo:
             )
             if resp.status_code >= 400:
                 detail = extract_error_message_from_response(resp)
-                raise RuntimeError(f"Grok 视频创建失败: {detail}")
+                raise RuntimeError(f"Grok 瑙嗛鍒涘缓澶辫触: {detail}")
 
             result = resp.json()
             task_id = result.get("id", "")
             status = result.get("status", "pending")
             enhanced_prompt = result.get("enhanced_prompt", "")
 
-            print(f"[ComfyUI_LLAI_API] Grok 任务已创建: {task_id}, 状态: {status}")
+            print(f"[ComfyUI_LLAI_API] Grok 浠诲姟宸插垱寤? {task_id}, 鐘舵€? {status}")
             if enhanced_prompt and enhanced_prompt != prompt:
-                print(f"[ComfyUI_LLAI_API] 增强后的提示词: {enhanced_prompt[:100]}...")
+                print(f"[ComfyUI_LLAI_API] 澧炲己鍚庣殑鎻愮ず璇? {enhanced_prompt[:100]}...")
 
             return (task_id, status, enhanced_prompt)
 
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Grok 视频创建失败: {str(e)}")
+            raise RuntimeError(f"Grok 瑙嗛鍒涘缓澶辫触: {str(e)}")
 
 
 class GrokQueryVideo:
-    """查询 Grok 视频生成任务状态"""
+    """鏌ヨ Grok 瑙嗛鐢熸垚浠诲姟鐘舵€?""
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -156,17 +155,17 @@ class GrokQueryVideo:
             "required": {
                 "task_id": ("STRING", {
                     "default": "",
-                    "tooltip": "任务ID"
+                    "tooltip": "浠诲姟ID"
                 }),
                 "api_key": ("STRING", {
                     "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
+                    "tooltip": "API瀵嗛挜锛堢暀绌轰娇鐢ㄧ幆澧冨彉閲?KUAI_API_KEY锛?
                 }),
             },
             "optional": {
                 "api_base": ("STRING", {
                     "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
+                    "tooltip": "API绔偣鍦板潃"
                 }),
             }
         }
@@ -174,29 +173,29 @@ class GrokQueryVideo:
     @classmethod
     def INPUT_LABELS(cls):
         return {
-            "task_id": "任务ID",
-            "api_key": "API密钥",
-            "api_base": "API地址"
+            "task_id": "浠诲姟ID",
+            "api_key": "API瀵嗛挜",
+            "api_base": "API鍦板潃"
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "INT")
-    RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词", "状态更新时间")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "瑙嗛URL", "澧炲己鎻愮ず璇?, "鐘舵€佹洿鏂版椂闂?)
     FUNCTION = "query"
-    CATEGORY = "🍐LLAI/Grok"
+    CATEGORY = "馃崘LLAI/Grok"
 
     def query(self, task_id, api_key="", api_base="https://api.llaiapi.host"):
-        """查询 Grok 视频生成任务状态"""
+        """鏌ヨ Grok 瑙嗛鐢熸垚浠诲姟鐘舵€?""
         api_key = env_or(api_key, "KUAI_API_KEY")
         if not api_key:
-            raise RuntimeError("API Key 未配置，请在节点参数或环境变量中设置 KUAI_API_KEY")
+            raise RuntimeError("API Key 鏈厤缃紝璇峰湪鑺傜偣鍙傛暟鎴栫幆澧冨彉閲忎腑璁剧疆 KUAI_API_KEY")
 
         if not task_id:
-            raise RuntimeError("任务ID不能为空")
+            raise RuntimeError("浠诲姟ID涓嶈兘涓虹┖")
 
         api_base = api_base.rstrip("/")
         headers = http_headers_json(api_key)
 
-        print(f"[ComfyUI_LLAI_API] Grok 查询任务: {task_id}")
+        print(f"[ComfyUI_LLAI_API] Grok 鏌ヨ浠诲姟: {task_id}")
 
         try:
             resp = requests.get(
@@ -207,7 +206,7 @@ class GrokQueryVideo:
             )
             if resp.status_code >= 400:
                 detail = extract_error_message_from_response(resp)
-                raise RuntimeError(f"Grok 视频查询失败: {detail}")
+                raise RuntimeError(f"Grok 瑙嗛鏌ヨ澶辫触: {detail}")
 
             result = resp.json()
             status = result.get("status", "unknown")
@@ -219,26 +218,26 @@ class GrokQueryVideo:
                 fail_detail = extract_task_failure_detail(result)
                 if not fail_detail:
                     fail_detail = json.dumps(result, ensure_ascii=False)
-                raise RuntimeError(f"Grok 视频任务失败: {fail_detail}")
+                raise RuntimeError(f"Grok 瑙嗛浠诲姟澶辫触: {fail_detail}")
 
             if status == "completed" and not str(video_url).strip():
-                missing_detail = extract_task_failure_detail(result) or "任务已完成但未返回视频URL"
-                raise RuntimeError(f"Grok 视频查询失败: {missing_detail}")
+                missing_detail = extract_task_failure_detail(result) or "浠诲姟宸插畬鎴愪絾鏈繑鍥炶棰慤RL"
+                raise RuntimeError(f"Grok 瑙嗛鏌ヨ澶辫触: {missing_detail}")
 
-            print(f"[ComfyUI_LLAI_API] Grok 任务状态: {status}")
+            print(f"[ComfyUI_LLAI_API] Grok 浠诲姟鐘舵€? {status}")
             if video_url:
-                print(f"[ComfyUI_LLAI_API] Grok 视频URL: {video_url}")
+                print(f"[ComfyUI_LLAI_API] Grok 瑙嗛URL: {video_url}")
 
             return (task_id, status, video_url, enhanced_prompt, status_update_time)
 
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Grok 视频查询失败: {str(e)}")
+            raise RuntimeError(f"Grok 瑙嗛鏌ヨ澶辫触: {str(e)}")
 
 
 class GrokCreateAndWait:
-    """创建 Grok 视频并等待完成（一键生成）"""
+    """鍒涘缓 Grok 瑙嗛骞剁瓑寰呭畬鎴愶紙涓€閿敓鎴愶級"""
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -247,54 +246,54 @@ class GrokCreateAndWait:
                 "prompt": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "tooltip": "视频生成提示词"
+                    "tooltip": "瑙嗛鐢熸垚鎻愮ず璇?
                 }),
-                "model": (["grok-video-3 (6秒)", "grok-video-3-10s (10秒)", "grok-video-3-15s (15秒)"], {
-                    "default": "grok-video-3 (6秒)",
-                    "tooltip": "选择 Grok 模型"
+                "model": (["grok-video-3 (6绉?", "grok-video-3-10s (10绉?", "grok-video-3-15s (15绉?"], {
+                    "default": "grok-video-3 (6绉?",
+                    "tooltip": "閫夋嫨 Grok 妯″瀷"
                 }),
                 "aspect_ratio": (["2:3", "3:2", "1:1"], {
                     "default": "3:2",
-                    "tooltip": "视频宽高比"
+                    "tooltip": "瑙嗛瀹介珮姣?
                 }),
                 "size": (["720P", "1080P"], {
                     "default": "1080P",
-                    "tooltip": "视频分辨率"
+                    "tooltip": "瑙嗛鍒嗚鲸鐜?
                 }),
                                 "enhance_prompt": ("BOOLEAN", {
                     "default": True,
-                    "tooltip": "自动将中文提示词优化并翻译为英文"
+                    "tooltip": "鑷姩灏嗕腑鏂囨彁绀鸿瘝浼樺寲骞剁炕璇戜负鑻辨枃"
                 }),
                 "api_key": ("STRING", {
                     "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
+                    "tooltip": "API瀵嗛挜锛堢暀绌轰娇鐢ㄧ幆澧冨彉閲?KUAI_API_KEY锛?
                 }),
             },
             "optional": {
                 "image_urls": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "tooltip": "参考图片URL（多个用逗号、分号或换行分隔）"
+                    "tooltip": "鍙傝€冨浘鐗嘦RL锛堝涓敤閫楀彿銆佸垎鍙锋垨鎹㈣鍒嗛殧锛?
                 }),
                 "custom_model": ("STRING", {
                     "default": "",
-                    "tooltip": "自定义模型（留空使用下拉模型）"
+                    "tooltip": "鑷畾涔夋ā鍨嬶紙鐣欑┖浣跨敤涓嬫媺妯″瀷锛?
                 }),
                 "api_base": ("STRING", {
                     "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
+                    "tooltip": "API绔偣鍦板潃"
                 }),
                 "max_wait_time": ("INT", {
                     "default": 1200,
                     "min": 60,
                     "max": 1800,
-                    "tooltip": "最大等待时间（秒）"
+                    "tooltip": "鏈€澶х瓑寰呮椂闂达紙绉掞級"
                 }),
                 "poll_interval": ("INT", {
                     "default": 10,
                     "min": 5,
                     "max": 60,
-                    "tooltip": "轮询间隔（秒）"
+                    "tooltip": "杞闂撮殧锛堢锛?
                 }),
             }
         }
@@ -302,29 +301,29 @@ class GrokCreateAndWait:
     @classmethod
     def INPUT_LABELS(cls):
         return {
-            "prompt": "提示词",
-            "model": "模型",
-            "aspect_ratio": "宽高比",
-            "size": "分辨率",
-            "enhance_prompt": "提示词增强",
-            "api_key": "API密钥",
-            "image_urls": "参考图片URL",
-            "custom_model": "自定义模型",
-            "api_base": "API地址",
-            "max_wait_time": "最大等待时间",
-            "poll_interval": "轮询间隔"
+            "prompt": "鎻愮ず璇?,
+            "model": "妯″瀷",
+            "aspect_ratio": "瀹介珮姣?,
+            "size": "鍒嗚鲸鐜?,
+            "enhance_prompt": "鎻愮ず璇嶅寮?,
+            "api_key": "API瀵嗛挜",
+            "image_urls": "鍙傝€冨浘鐗嘦RL",
+            "custom_model": "鑷畾涔夋ā鍨?,
+            "api_base": "API鍦板潃",
+            "max_wait_time": "鏈€澶х瓑寰呮椂闂?,
+            "poll_interval": "杞闂撮殧"
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "瑙嗛URL", "澧炲己鎻愮ず璇?)
     FUNCTION = "create_and_wait"
-    CATEGORY = "🍐LLAI/Grok"
+    CATEGORY = "馃崘LLAI/Grok"
 
     def create_and_wait(self, prompt, model, aspect_ratio, size, enhance_prompt=True, api_key="",
                        image_urls="", api_base="https://api.llaiapi.host",
                        max_wait_time=1200, poll_interval=10, custom_model=""):
-        """创建 Grok 视频并等待完成"""
-        # 创建任务
+        """鍒涘缓 Grok 瑙嗛骞剁瓑寰呭畬鎴?""
+        # 鍒涘缓浠诲姟
         creator = GrokCreateVideo()
         task_id, status, enhanced_prompt = creator.create(
             prompt=prompt,
@@ -338,14 +337,13 @@ class GrokCreateAndWait:
             custom_model=custom_model,
         )
 
-        # 如果已经完成，直接返回
-        if status in ["completed", "failed"]:
+        # 濡傛灉宸茬粡瀹屾垚锛岀洿鎺ヨ繑鍥?        if status in ["completed", "failed"]:
             querier = GrokQueryVideo()
             task_id, status, video_url, enhanced_prompt, _ = querier.query(task_id, api_key, api_base)
             return (task_id, status, video_url, enhanced_prompt)
 
-        # 轮询等待完成
-        print(f"[ComfyUI_LLAI_API] Grok 等待视频生成完成，最多等待 {max_wait_time} 秒...")
+        # 杞绛夊緟瀹屾垚
+        print(f"[ComfyUI_LLAI_API] Grok 绛夊緟瑙嗛鐢熸垚瀹屾垚锛屾渶澶氱瓑寰?{max_wait_time} 绉?..")
 
         querier = GrokQueryVideo()
         elapsed = 0
@@ -358,648 +356,87 @@ class GrokCreateAndWait:
                 task_id, status, video_url, enhanced_prompt, _ = querier.query(task_id, api_key, api_base)
 
                 if status == "completed":
-                    print(f"[ComfyUI_LLAI_API] Grok 视频生成完成！")
+                    print(f"[ComfyUI_LLAI_API] Grok 瑙嗛鐢熸垚瀹屾垚锛?)
                     return (task_id, status, video_url, enhanced_prompt)
 
-                print(f"[ComfyUI_LLAI_API] Grok 任务进行中... 已等待 {elapsed}/{max_wait_time} 秒")
+                print(f"[ComfyUI_LLAI_API] Grok 浠诲姟杩涜涓?.. 宸茬瓑寰?{elapsed}/{max_wait_time} 绉?)
 
             except RuntimeError:
                 raise
             except Exception as e:
-                print(f"[ComfyUI_LLAI_API] Grok 查询出错: {str(e)}")
-                # 继续等待，不立即失败
+                print(f"[ComfyUI_LLAI_API] Grok 鏌ヨ鍑洪敊: {str(e)}")
+                # 缁х画绛夊緟锛屼笉绔嬪嵆澶辫触
 
-        # 超时
+        # 瓒呮椂
         raise RuntimeError(
-            f"Grok 视频生成超时（等待了 {max_wait_time} 秒）。"
-            f"任务ID: {task_id}，可使用查询节点继续检查状态。"
+            f"Grok 瑙嗛鐢熸垚瓒呮椂锛堢瓑寰呬簡 {max_wait_time} 绉掞級銆?
+            f"浠诲姟ID: {task_id}锛屽彲浣跨敤鏌ヨ鑺傜偣缁х画妫€鏌ョ姸鎬併€?
         )
 
-
-class GrokImage2Video:
-    """Grok 图生视频创建节点（支持 0-3 张图片）"""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "视频生成提示词"
-                }),
-                "model": (["grok-video-3 (6秒)", "grok-video-3-10s (10秒)", "grok-video-3-15s (15秒)"], {
-                    "default": "grok-video-3 (6秒)",
-                    "tooltip": "选择 Grok 模型"
-                }),
-                "aspect_ratio": (["2:3", "3:2", "1:1"], {
-                    "default": "3:2",
-                    "tooltip": "视频宽高比"
-                }),
-                "size": (["720P", "1080P"], {
-                    "default": "720P",
-                    "tooltip": "视频分辨率（暂只支持720P）"
-                }),
-                "enhance_prompt": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "自动将中文提示词优化并翻译为英文"
-                }),
-                "api_key": ("STRING", {
-                    "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
-                }),
-            },
-            "optional": {
-                "image_url_1": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "第1张参考图片URL（来自图片上传节点）"
-                }),
-                "image_url_2": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "第2张参考图片URL（可选）"
-                }),
-                "image_url_3": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "第3张参考图片URL（可选）"
-                }),
-                "api_base": ("STRING", {
-                    "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
-                }),
-                "custom_model": ("STRING", {
-                    "default": "",
-                    "tooltip": "自定义模型（留空使用下拉模型）"
-                }),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        return {
-            "prompt": "提示词",
-            "model": "模型",
-            "aspect_ratio": "宽高比",
-            "size": "分辨率",
-            "enhance_prompt": "提示词增强",
-            "api_key": "API密钥",
-            "image_url_1": "参考图片1",
-            "image_url_2": "参考图片2",
-            "image_url_3": "参考图片3",
-            "custom_model": "自定义模型",
-            "api_base": "API地址"
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "INT")
-    RETURN_NAMES = ("任务ID", "状态", "增强提示词", "状态更新时间")
-    FUNCTION = "create"
-    CATEGORY = "🍐LLAI/Grok"
-
-    def create(self, prompt, model, aspect_ratio, size, enhance_prompt=True, api_key="",
-               image_url_1="", image_url_2="", image_url_3="",
-               api_base="https://api.llaiapi.host", custom_model=""):
-        """创建 Grok 图生视频任务"""
-        # 1. 解析 API key
-        api_key = env_or(api_key, "KUAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("API Key 未配置，请在节点参数或环境变量中设置 KUAI_API_KEY")
-
-        # 2. 收集图片 URL（过滤空字符串）
-        images_list = []
-        for url in [image_url_1, image_url_2, image_url_3]:
-            url_stripped = (url or "").strip()
-            if url_stripped:
-                images_list.append(url_stripped)
-
-        # 验证图片数量（最多3张）
-        if len(images_list) > 3:
-            raise RuntimeError(f"最多支持3张参考图片，当前提供了 {len(images_list)} 张")
-
-        # 3. 构建请求
-        api_base = api_base.rstrip("/")
-        headers = http_headers_auth_only(api_key)
-
-        # 提取实际的模型名称（去掉时长说明）
-        actual_model = model.split(" (")[0] if " (" in model else model
-        effective_model = (custom_model or "").strip() or actual_model
-
-        # 根据 effective_model 判断是否支持 1080P（只有 15 秒模型支持）
-        effective_size = size
-        if "15s" not in effective_model.lower() and size == "1080P":
-            effective_size = "720P"
-            print(f"[ComfyUI_LLAI_API] 警告：{effective_model} 不支持 1080P，已自动降级到 720P")
-
-        payload = {
-            "model": effective_model,
-            "prompt": prompt,
-            "aspect_ratio": aspect_ratio,
-            "size": effective_size,
-            "enhance_prompt": bool(enhance_prompt),
-            "images": images_list
-        }
-
-        # 日志输出
-        if images_list:
-            print(f"[ComfyUI_LLAI_API] Grok 图生视频任务: {prompt[:50]}... (图片数: {len(images_list)})")
-        else:
-            print(f"[ComfyUI_LLAI_API] Grok 文生视频任务: {prompt[:50]}...")
-        print(f"[ComfyUI_LLAI_API] 模型: {effective_model}, 宽高比: {aspect_ratio}, 分辨率: {effective_size}")
-
-        # 4. 调用 API
-        try:
-            resp = requests.post(
-                f"{api_base}/v1/video/create",
-                json=payload,
-                headers=headers,
-                timeout=30
-            )
-            if resp.status_code >= 400:
-                detail = extract_error_message_from_response(resp)
-                raise RuntimeError(f"Grok 视频创建失败: {detail}")
-
-            result = resp.json()
-            task_id = result.get("id", "")
-            status = result.get("status", "pending")
-            enhanced_prompt = result.get("enhanced_prompt", "")
-            status_update_time = int(result.get("status_update_time", 0))
-
-            if not task_id:
-                raise RuntimeError(f"创建响应缺少任务 ID")
-
-            print(f"[ComfyUI_LLAI_API] Grok 视频任务已创建: {task_id}, 状态: {status}")
-
-            return (task_id, status, enhanced_prompt, status_update_time)
-
-        except RuntimeError:
-            raise
-        except Exception as e:
-            raise RuntimeError(f"Grok 视频创建失败: {str(e)}")
-
-
-class GrokImage2VideoAndWait:
-    """Grok 图生视频一键生成节点（支持 0-3 张图片）"""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "视频生成提示词"
-                }),
-                "model": (["grok-video-3 (6秒)", "grok-video-3-10s (10秒)"], {
-                    "default": "grok-video-3 (6秒)",
-                    "tooltip": "选择 Grok 模型"
-                }),
-                "aspect_ratio": (["2:3", "3:2", "1:1"], {
-                    "default": "3:2",
-                    "tooltip": "视频宽高比"
-                }),
-                "size": (["720P", "1080P"], {
-                    "default": "720P",
-                    "tooltip": "视频分辨率（暂只支持720P）"
-                }),
-                "enhance_prompt": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "自动将中文提示词优化并翻译为英文"
-                }),
-                "api_key": ("STRING", {
-                    "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
-                }),
-            },
-            "optional": {
-                "image_url_1": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "第1张参考图片URL（来自图片上传节点）"
-                }),
-                "image_url_2": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "第2张参考图片URL（可选）"
-                }),
-                "image_url_3": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "第3张参考图片URL（可选）"
-                }),
-                "api_base": ("STRING", {
-                    "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
-                }),
-                "custom_model": ("STRING", {
-                    "default": "",
-                    "tooltip": "自定义模型（留空使用下拉模型）"
-                }),
-                "max_wait_time": ("INT", {
-                    "default": 1200,
-                    "min": 60,
-                    "max": 1800,
-                    "tooltip": "最大等待时间（秒）"
-                }),
-                "poll_interval": ("INT", {
-                    "default": 10,
-                    "min": 5,
-                    "max": 60,
-                    "tooltip": "轮询间隔（秒）"
-                }),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        return {
-            "prompt": "提示词",
-            "model": "模型",
-            "aspect_ratio": "宽高比",
-            "size": "分辨率",
-            "enhance_prompt": "提示词增强",
-            "api_key": "API密钥",
-            "image_url_1": "参考图片1",
-            "image_url_2": "参考图片2",
-            "image_url_3": "参考图片3",
-            "api_base": "API地址",
-            "custom_model": "自定义模型",
-            "max_wait_time": "最大等待时间",
-            "poll_interval": "轮询间隔"
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词")
-    FUNCTION = "create_and_wait"
-    CATEGORY = "🍐LLAI/Grok"
-
-    def create_and_wait(self, prompt, model, aspect_ratio, size, enhance_prompt=True,
-                       api_key="", image_url_1="", image_url_2="", image_url_3="",
-                       api_base="https://api.llaiapi.host",
-                       max_wait_time=1200, poll_interval=10, custom_model=""):
-        """创建 Grok 图生视频并等待完成"""
-        # 1. 创建任务
-        creator = GrokImage2Video()
-        task_id, status, enhanced_prompt, _ = creator.create(
-            prompt=prompt,
-            model=model,
-            aspect_ratio=aspect_ratio,
-            size=size,
-            enhance_prompt=enhance_prompt,
-            api_key=api_key,
-            image_url_1=image_url_1,
-            image_url_2=image_url_2,
-            image_url_3=image_url_3,
-            api_base=api_base,
-            custom_model=custom_model,
-        )
-
-        # 2. 如果已经完成，直接返回
-        if status in ["completed", "failed"]:
-            querier = GrokQueryVideo()
-            task_id, status, video_url, enhanced_prompt, _ = querier.query(task_id, api_key, api_base)
-            return (task_id, status, video_url, enhanced_prompt)
-
-        # 3. 轮询等待完成
-        print(f"[ComfyUI_LLAI_API] Grok 等待视频生成完成，最多等待 {max_wait_time} 秒...")
-
-        querier = GrokQueryVideo()
-        elapsed = 0
-
-        while elapsed < max_wait_time:
-            time.sleep(poll_interval)
-            elapsed += poll_interval
-
-            try:
-                task_id, status, video_url, enhanced_prompt, _ = querier.query(task_id, api_key, api_base)
-
-                if status == "completed":
-                    print(f"[ComfyUI_LLAI_API] Grok 视频生成完成！")
-                    return (task_id, status, video_url, enhanced_prompt)
-
-                print(f"[ComfyUI_LLAI_API] Grok 任务进行中... 已等待 {elapsed}/{max_wait_time} 秒")
-
-            except RuntimeError:
-                raise
-            except Exception as e:
-                print(f"[ComfyUI_LLAI_API] Grok 查询出错: {str(e)}")
-                # 继续等待，不立即失败
-
-        # 4. 超时
-        raise RuntimeError(
-            f"Grok 视频生成超时（等待了 {max_wait_time} 秒）。"
-            f"任务ID: {task_id}，可使用查询节点继续检查状态。"
-        )
-
-
-class GrokText2Video:
-    """Grok 文生视频创建节点"""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "视频生成提示词"
-                }),
-                "model": (["grok-video-3 (6秒)", "grok-video-3-10s (10秒)", "grok-video-3-15s (15秒)"], {
-                    "default": "grok-video-3 (6秒)",
-                    "tooltip": "选择 Grok 模型"
-                }),
-                "aspect_ratio": (["2:3", "3:2", "1:1"], {
-                    "default": "3:2",
-                    "tooltip": "视频宽高比"
-                }),
-                "size": (["720P", "1080P"], {
-                    "default": "720P",
-                    "tooltip": "视频分辨率（暂只支持720P）"
-                }),
-                                "enhance_prompt": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "自动将中文提示词优化并翻译为英文"
-                }),
-                "api_key": ("STRING", {
-                    "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
-                }),
-            },
-            "optional": {
-                "api_base": ("STRING", {
-                    "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
-                }),
-                "custom_model": ("STRING", {
-                    "default": "",
-                    "tooltip": "自定义模型（留空使用下拉模型）"
-                }),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        return {
-            "prompt": "提示词",
-            "model": "模型",
-            "aspect_ratio": "宽高比",
-            "size": "分辨率",
-            "enhance_prompt": "提示词增强",
-            "api_key": "API密钥",
-            "api_base": "API地址",
-            "custom_model": "自定义模型"
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("任务ID", "状态", "增强提示词")
-    FUNCTION = "create"
-    CATEGORY = "🍐LLAI/Grok"
-
-    def create(self, prompt, model, aspect_ratio, size, enhance_prompt=True, api_key="", api_base="https://api.llaiapi.host", custom_model=""):
-        """创建 Grok 文生视频任务"""
-        api_key = env_or(api_key, "KUAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("API Key 未配置，请在节点参数或环境变量中设置 KUAI_API_KEY")
-
-        api_base = api_base.rstrip("/")
-        headers = http_headers_auth_only(api_key)
-
-        # 提取实际的模型名称（去掉时长说明）
-        actual_model = model.split(" (")[0] if " (" in model else model
-        effective_model = (custom_model or "").strip() or actual_model
-
-        # 根据 effective_model 判断是否支持 1080P（只有 15 秒模型支持）
-        effective_size = size
-        if "15s" not in effective_model.lower() and size == "1080P":
-            effective_size = "720P"
-            print(f"[ComfyUI_LLAI_API] 警告：{effective_model} 不支持 1080P，已自动降级到 720P")
-
-        payload = {
-            "model": effective_model,
-            "prompt": prompt,
-            "aspect_ratio": aspect_ratio,
-            "size": effective_size,
-            "enhance_prompt": bool(enhance_prompt),
-            "images": []  # 文生视频不需要图片
-        }
-
-        print(f"[ComfyUI_LLAI_API] Grok 文生视频任务: {prompt[:50]}...")
-        print(f"[ComfyUI_LLAI_API] 模型: {effective_model}, 宽高比: {aspect_ratio}, 分辨率: {effective_size}")
-
-        try:
-            resp = requests.post(
-                f"{api_base}/v1/video/create",
-                json=payload,
-                headers=headers,
-                timeout=30
-            )
-            if resp.status_code >= 400:
-                detail = extract_error_message_from_response(resp)
-                raise RuntimeError(f"Grok 文生视频创建失败: {detail}")
-
-            result = resp.json()
-            task_id = result.get("id", "")
-            status = result.get("status", "pending")
-            enhanced_prompt = result.get("enhanced_prompt", "")
-
-            print(f"[ComfyUI_LLAI_API] Grok 文生视频任务已创建: {task_id}, 状态: {status}")
-
-            return (task_id, status, enhanced_prompt)
-
-        except RuntimeError:
-            raise
-        except Exception as e:
-            raise RuntimeError(f"Grok 文生视频创建失败: {str(e)}")
-
-
-class GrokText2VideoAndWait:
-    """Grok 文生视频一键生成节点"""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "视频生成提示词"
-                }),
-                "model": (["grok-video-3 (6秒)", "grok-video-3-10s (10秒)"], {
-                    "default": "grok-video-3 (6秒)",
-                    "tooltip": "选择 Grok 模型"
-                }),
-                "aspect_ratio": (["2:3", "3:2", "1:1"], {
-                    "default": "3:2",
-                    "tooltip": "视频宽高比"
-                }),
-                "size": (["720P", "1080P"], {
-                    "default": "720P",
-                    "tooltip": "视频分辨率（暂只支持720P）"
-                }),
-                                "enhance_prompt": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "自动将中文提示词优化并翻译为英文"
-                }),
-                "api_key": ("STRING", {
-                    "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
-                }),
-            },
-            "optional": {
-                "api_base": ("STRING", {
-                    "default": "https://api.llaiapi.host",
-                    "tooltip": "API端点地址"
-                }),
-                "custom_model": ("STRING", {
-                    "default": "",
-                    "tooltip": "自定义模型（留空使用下拉模型）"
-                }),
-                "max_wait_time": ("INT", {
-                    "default": 1200,
-                    "min": 60,
-                    "max": 1800,
-                    "tooltip": "最大等待时间（秒）"
-                }),
-                "poll_interval": ("INT", {
-                    "default": 10,
-                    "min": 5,
-                    "max": 60,
-                    "tooltip": "轮询间隔（秒）"
-                }),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        return {
-            "prompt": "提示词",
-            "model": "模型",
-            "aspect_ratio": "宽高比",
-            "size": "分辨率",
-            "enhance_prompt": "提示词增强",
-            "api_key": "API密钥",
-            "api_base": "API地址",
-            "custom_model": "自定义模型",
-            "max_wait_time": "最大等待时间",
-            "poll_interval": "轮询间隔"
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("任务ID", "状态", "视频URL", "增强提示词")
-    FUNCTION = "create_and_wait"
-    CATEGORY = "🍐LLAI/Grok"
-
-    def create_and_wait(self, prompt, model, aspect_ratio, size, enhance_prompt=True,
-                       api_key="", api_base="https://api.llaiapi.host",
-                       max_wait_time=1200, poll_interval=10, custom_model=""):
-        """创建 Grok 文生视频并等待完成"""
-        # 1. 创建任务
-        creator = GrokText2Video()
-        task_id, status, enhanced_prompt = creator.create(
-            prompt=prompt,
-            model=model,
-            aspect_ratio=aspect_ratio,
-            size=size,
-            enhance_prompt=enhance_prompt,
-            api_key=api_key,
-            api_base=api_base,
-            custom_model=custom_model,
-        )
-
-        # 2. 如果已经完成，直接返回
-        if status in ["completed", "failed"]:
-            querier = GrokQueryVideo()
-            task_id, status, video_url, enhanced_prompt, _ = querier.query(task_id, api_key, api_base)
-            return (task_id, status, video_url, enhanced_prompt)
-
-        # 3. 轮询等待完成
-        print(f"[ComfyUI_LLAI_API] Grok 等待文生视频完成，最多等待 {max_wait_time} 秒...")
-
-        querier = GrokQueryVideo()
-        elapsed = 0
-
-        while elapsed < max_wait_time:
-            time.sleep(poll_interval)
-            elapsed += poll_interval
-
-            try:
-                task_id, status, video_url, enhanced_prompt, _ = querier.query(task_id, api_key, api_base)
-
-                if status == "completed":
-                    print(f"[ComfyUI_LLAI_API] Grok 文生视频完成！")
-                    return (task_id, status, video_url, enhanced_prompt)
-
-                print(f"[ComfyUI_LLAI_API] Grok 任务进行中... 已等待 {elapsed}/{max_wait_time} 秒")
-
-            except RuntimeError:
-                raise
-            except Exception as e:
-                print(f"[ComfyUI_LLAI_API] Grok 查询出错: {str(e)}")
-                # 继续等待，不立即失败
-
-        # 4. 超时
-        raise RuntimeError(
-            f"Grok 文生视频超时（等待了 {max_wait_time} 秒）。"
-            f"任务ID: {task_id}，可使用查询节点继续检查状态。"
-        )
 
 
 def explain_grok_extend_error(detail: str) -> str:
     if "task_origin_not_exist" not in detail:
-        return f"Grok 扩展视频失败: {detail}"
+        return f"Grok 鎵╁睍瑙嗛澶辫触: {detail}"
 
     return (
-        "Grok 扩展视频失败：原始视频任务不存在或不可扩展。"
-        "请确认 task_id 是否来自首段视频节点的真实输出、首段生成和扩展是否使用同一个 API 地址、"
-        "以及当前 API Key 是否属于创建该任务的同一账号。"
-        f" 后端详情: {detail}"
+        "Grok 鎵╁睍瑙嗛澶辫触锛氬師濮嬭棰戜换鍔′笉瀛樺湪鎴栦笉鍙墿灞曘€?
+        "璇风‘璁?task_id 鏄惁鏉ヨ嚜棣栨瑙嗛鑺傜偣鐨勭湡瀹炶緭鍑恒€侀娈电敓鎴愬拰鎵╁睍鏄惁浣跨敤鍚屼竴涓?API 鍦板潃銆?
+        "浠ュ強褰撳墠 API Key 鏄惁灞炰簬鍒涘缓璇ヤ换鍔＄殑鍚屼竴璐﹀彿銆?
+        f" 鍚庣璇︽儏: {detail}"
     )
 
 
 class GrokExtendVideo:
-    """创建 Grok 扩展视频任务"""
+    """鍒涘缓 Grok 鎵╁睍瑙嗛浠诲姟"""
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "扩展视频提示词"}),
-                "task_id": ("STRING", {"default": "", "tooltip": "待扩展的视频任务ID"}),
-                "model": (["grok-video-3"], {"default": "grok-video-3", "tooltip": "选择 Grok 模型"}),
-                "start_time": ("INT", {"default": 10, "min": 1, "max": 9999, "tooltip": "从第几秒开始扩展"}),
-                "aspect_ratio": (["2:3", "3:2", "1:1"], {"default": "3:2", "tooltip": "视频宽高比"}),
-                "size": (["720P", "1080P"], {"default": "720P", "tooltip": "视频分辨率"}),
-                "upscale": ("BOOLEAN", {"default": False, "tooltip": "是否启用放大"}),
-                "api_key": ("STRING", {"default": "", "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"}),
+                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "鎵╁睍瑙嗛鎻愮ず璇?}),
+                "task_id": ("STRING", {"default": "", "tooltip": "寰呮墿灞曠殑瑙嗛浠诲姟ID"}),
+                "model": (["grok-video-3"], {"default": "grok-video-3", "tooltip": "閫夋嫨 Grok 妯″瀷"}),
+                "start_time": ("INT", {"default": 10, "min": 1, "max": 9999, "tooltip": "浠庣鍑犵寮€濮嬫墿灞?}),
+                "aspect_ratio": (["2:3", "3:2", "1:1"], {"default": "3:2", "tooltip": "瑙嗛瀹介珮姣?}),
+                "size": (["720P", "1080P"], {"default": "720P", "tooltip": "瑙嗛鍒嗚鲸鐜?}),
+                "upscale": ("BOOLEAN", {"default": False, "tooltip": "鏄惁鍚敤鏀惧ぇ"}),
+                "api_key": ("STRING", {"default": "", "tooltip": "API瀵嗛挜锛堢暀绌轰娇鐢ㄧ幆澧冨彉閲?KUAI_API_KEY锛?}),
             },
             "optional": {
-                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API端点地址"}),
-                "custom_model": ("STRING", {"default": "", "tooltip": "自定义模型（留空使用下拉模型）"}),
+                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API绔偣鍦板潃"}),
+                "custom_model": ("STRING", {"default": "", "tooltip": "鑷畾涔夋ā鍨嬶紙鐣欑┖浣跨敤涓嬫媺妯″瀷锛?}),
             }
         }
 
     @classmethod
     def INPUT_LABELS(cls):
         return {
-            "prompt": "扩展提示词", "task_id": "任务ID", "model": "模型",
-            "start_time": "开始扩展时间", "aspect_ratio": "宽高比", "size": "分辨率",
-            "upscale": "是否放大", "api_key": "API密钥", "api_base": "API地址", "custom_model": "自定义模型"
+            "prompt": "鎵╁睍鎻愮ず璇?, "task_id": "浠诲姟ID", "model": "妯″瀷",
+            "start_time": "寮€濮嬫墿灞曟椂闂?, "aspect_ratio": "瀹介珮姣?, "size": "鍒嗚鲸鐜?,
+            "upscale": "鏄惁鏀惧ぇ", "api_key": "API瀵嗛挜", "api_base": "API鍦板潃", "custom_model": "鑷畾涔夋ā鍨?
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "INT", "INT")
-    RETURN_NAMES = ("任务ID", "状态", "扩展提示词", "状态更新时间", "视频时长")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "鎵╁睍鎻愮ず璇?, "鐘舵€佹洿鏂版椂闂?, "瑙嗛鏃堕暱")
     FUNCTION = "create"
-    CATEGORY = "🍐LLAI/Grok"
+    CATEGORY = "馃崘LLAI/Grok"
 
     def create(self, prompt, task_id, model, start_time, aspect_ratio, size, upscale=False,
                api_key="", api_base="https://api.llaiapi.host", custom_model=""):
         api_key = env_or(api_key, "KUAI_API_KEY")
         if not api_key:
-            raise RuntimeError("API Key 未配置，请在节点参数或环境变量中设置 KUAI_API_KEY")
+            raise RuntimeError("API Key 鏈厤缃紝璇峰湪鑺傜偣鍙傛暟鎴栫幆澧冨彉閲忎腑璁剧疆 KUAI_API_KEY")
         if not str(task_id).strip():
-            raise RuntimeError("任务ID不能为空")
+            raise RuntimeError("浠诲姟ID涓嶈兘涓虹┖")
         if not str(prompt).strip():
-            raise RuntimeError("提示词不能为空")
+            raise RuntimeError("鎻愮ず璇嶄笉鑳戒负绌?)
         try:
             normalized_start_time = int(start_time)
         except (TypeError, ValueError):
-            raise RuntimeError("start_time 必须是整数")
+            raise RuntimeError("start_time 蹇呴』鏄暣鏁?)
         if normalized_start_time <= 0:
-            raise RuntimeError("start_time 必须大于 0")
+            raise RuntimeError("start_time 蹇呴』澶т簬 0")
 
         api_base = api_base.rstrip("/")
         headers = http_headers_auth_only(api_key)
@@ -1016,8 +453,8 @@ class GrokExtendVideo:
             "upscale": bool(upscale),
         }
 
-        print(f"[ComfyUI_LLAI_API] Grok 扩展视频任务: {task_id} 从 {normalized_start_time}s 开始扩展")
-        print(f"[ComfyUI_LLAI_API] 模型: {effective_model}, 宽高比: {aspect_ratio}, 分辨率: {size}")
+        print(f"[ComfyUI_LLAI_API] Grok 鎵╁睍瑙嗛浠诲姟: {task_id} 浠?{normalized_start_time}s 寮€濮嬫墿灞?)
+        print(f"[ComfyUI_LLAI_API] 妯″瀷: {effective_model}, 瀹介珮姣? {aspect_ratio}, 鍒嗚鲸鐜? {size}")
 
         try:
             resp = requests.post(f"{api_base}/v1/video/extend", json=payload, headers=headers, timeout=30)
@@ -1032,54 +469,54 @@ class GrokExtendVideo:
             status_update_time = int(result.get("status_update_time", 0))
 
             if not new_task_id:
-                raise RuntimeError("创建响应缺少任务 ID")
+                raise RuntimeError("鍒涘缓鍝嶅簲缂哄皯浠诲姟 ID")
 
-            print(f"[ComfyUI_LLAI_API] Grok 扩展任务已创建: {new_task_id}, 状态: {status}")
+            print(f"[ComfyUI_LLAI_API] Grok 鎵╁睍浠诲姟宸插垱寤? {new_task_id}, 鐘舵€? {status}")
             return (new_task_id, status, enhanced_prompt, status_update_time, total_duration)
 
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"Grok 扩展视频失败: {str(e)}")
+            raise RuntimeError(f"Grok 鎵╁睍瑙嗛澶辫触: {str(e)}")
 
 
 class GrokExtendVideoAndWait:
-    """创建 Grok 扩展视频并等待完成"""
+    """鍒涘缓 Grok 鎵╁睍瑙嗛骞剁瓑寰呭畬鎴?""
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "扩展视频提示词"}),
-                "task_id": ("STRING", {"default": "", "tooltip": "待扩展的视频任务ID"}),
-                "model": (["grok-video-3"], {"default": "grok-video-3", "tooltip": "选择 Grok 模型"}),
-                "start_time": ("INT", {"default": 10, "min": 1, "max": 9999, "tooltip": "从第几秒开始扩展"}),
-                "aspect_ratio": (["2:3", "3:2", "1:1"], {"default": "3:2", "tooltip": "视频宽高比"}),
-                "size": (["720P", "1080P"], {"default": "720P", "tooltip": "视频分辨率"}),
-                "upscale": ("BOOLEAN", {"default": False, "tooltip": "是否启用放大"}),
-                "api_key": ("STRING", {"default": "", "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"}),
+                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "鎵╁睍瑙嗛鎻愮ず璇?}),
+                "task_id": ("STRING", {"default": "", "tooltip": "寰呮墿灞曠殑瑙嗛浠诲姟ID"}),
+                "model": (["grok-video-3"], {"default": "grok-video-3", "tooltip": "閫夋嫨 Grok 妯″瀷"}),
+                "start_time": ("INT", {"default": 10, "min": 1, "max": 9999, "tooltip": "浠庣鍑犵寮€濮嬫墿灞?}),
+                "aspect_ratio": (["2:3", "3:2", "1:1"], {"default": "3:2", "tooltip": "瑙嗛瀹介珮姣?}),
+                "size": (["720P", "1080P"], {"default": "720P", "tooltip": "瑙嗛鍒嗚鲸鐜?}),
+                "upscale": ("BOOLEAN", {"default": False, "tooltip": "鏄惁鍚敤鏀惧ぇ"}),
+                "api_key": ("STRING", {"default": "", "tooltip": "API瀵嗛挜锛堢暀绌轰娇鐢ㄧ幆澧冨彉閲?KUAI_API_KEY锛?}),
             },
             "optional": {
-                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API端点地址"}),
-                "custom_model": ("STRING", {"default": "", "tooltip": "自定义模型（留空使用下拉模型）"}),
-                "max_wait_time": ("INT", {"default": 1200, "min": 60, "max": 1800, "tooltip": "最大等待时间（秒）"}),
-                "poll_interval": ("INT", {"default": 10, "min": 5, "max": 60, "tooltip": "轮询间隔（秒）"}),
+                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API绔偣鍦板潃"}),
+                "custom_model": ("STRING", {"default": "", "tooltip": "鑷畾涔夋ā鍨嬶紙鐣欑┖浣跨敤涓嬫媺妯″瀷锛?}),
+                "max_wait_time": ("INT", {"default": 1200, "min": 60, "max": 1800, "tooltip": "鏈€澶х瓑寰呮椂闂达紙绉掞級"}),
+                "poll_interval": ("INT", {"default": 10, "min": 5, "max": 60, "tooltip": "杞闂撮殧锛堢锛?}),
             }
         }
 
     @classmethod
     def INPUT_LABELS(cls):
         return {
-            "prompt": "扩展提示词", "task_id": "任务ID", "model": "模型",
-            "start_time": "开始扩展时间", "aspect_ratio": "宽高比", "size": "分辨率",
-            "upscale": "是否放大", "api_key": "API密钥", "api_base": "API地址",
-            "custom_model": "自定义模型", "max_wait_time": "最大等待时间", "poll_interval": "轮询间隔"
+            "prompt": "鎵╁睍鎻愮ず璇?, "task_id": "浠诲姟ID", "model": "妯″瀷",
+            "start_time": "寮€濮嬫墿灞曟椂闂?, "aspect_ratio": "瀹介珮姣?, "size": "鍒嗚鲸鐜?,
+            "upscale": "鏄惁鏀惧ぇ", "api_key": "API瀵嗛挜", "api_base": "API鍦板潃",
+            "custom_model": "鑷畾涔夋ā鍨?, "max_wait_time": "鏈€澶х瓑寰呮椂闂?, "poll_interval": "杞闂撮殧"
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "INT")
-    RETURN_NAMES = ("任务ID", "状态", "视频URL", "扩展提示词", "视频时长")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "瑙嗛URL", "鎵╁睍鎻愮ず璇?, "瑙嗛鏃堕暱")
     FUNCTION = "create_and_wait"
-    CATEGORY = "🍐LLAI/Grok"
+    CATEGORY = "馃崘LLAI/Grok"
 
     def create_and_wait(self, prompt, task_id, model, start_time, aspect_ratio, size, upscale=False,
                        api_key="", api_base="https://api.llaiapi.host", custom_model="",
@@ -1096,9 +533,9 @@ class GrokExtendVideoAndWait:
             new_task_id, status, video_url, enhanced_prompt, _ = querier.query(new_task_id, api_key, api_base)
             return (new_task_id, status, video_url, enhanced_prompt, total_duration)
         if status == "failed":
-            raise RuntimeError(f"Grok 扩展视频失败: {enhanced_prompt or '任务创建失败'}")
+            raise RuntimeError(f"Grok 鎵╁睍瑙嗛澶辫触: {enhanced_prompt or '浠诲姟鍒涘缓澶辫触'}")
 
-        print(f"[ComfyUI_LLAI_API] Grok 等待扩展视频完成，最多等待 {max_wait_time} 秒...")
+        print(f"[ComfyUI_LLAI_API] Grok 绛夊緟鎵╁睍瑙嗛瀹屾垚锛屾渶澶氱瓑寰?{max_wait_time} 绉?..")
 
         querier = GrokQueryVideo()
         elapsed = 0
@@ -1110,15 +547,16 @@ class GrokExtendVideoAndWait:
             try:
                 new_task_id, status, video_url, enhanced_prompt, _ = querier.query(new_task_id, api_key, api_base)
                 if status == "completed":
-                    print(f"[ComfyUI_LLAI_API] Grok 扩展视频完成！")
+                    print(f"[ComfyUI_LLAI_API] Grok 鎵╁睍瑙嗛瀹屾垚锛?)
                     return (new_task_id, status, video_url, enhanced_prompt, total_duration)
-                print(f"[ComfyUI_LLAI_API] Grok 扩展任务进行中... 已等待 {elapsed}/{max_wait_time} 秒")
+                print(f"[ComfyUI_LLAI_API] Grok 鎵╁睍浠诲姟杩涜涓?.. 宸茬瓑寰?{elapsed}/{max_wait_time} 绉?)
             except RuntimeError:
                 raise
             except Exception as e:
-                print(f"[ComfyUI_LLAI_API] Grok 查询出错: {str(e)}")
+                print(f"[ComfyUI_LLAI_API] Grok 鏌ヨ鍑洪敊: {str(e)}")
 
         raise RuntimeError(
-            f"Grok 扩展视频超时（等待了 {max_wait_time} 秒）。"
-            f"任务ID: {new_task_id}，可使用查询节点继续检查状态。"
+            f"Grok 鎵╁睍瑙嗛瓒呮椂锛堢瓑寰呬簡 {max_wait_time} 绉掞級銆?
+            f"浠诲姟ID: {new_task_id}锛屽彲浣跨敤鏌ヨ鑺傜偣缁х画妫€鏌ョ姸鎬併€?
         )
+

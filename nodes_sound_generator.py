@@ -88,7 +88,7 @@ class RelaySoundGenerator:
     RETURN_TYPES = (IO.AUDIO, "STRING", "STRING", "STRING", "STRING")
     RETURN_NAMES = ("audio", "clip_id", "task_id", "response", "audio_url")
     FUNCTION = "generate_sound"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
     def __init__(self):
         self.timeout = 120

@@ -1,4 +1,4 @@
-from .gpt_image import GPTImage2Generate, GPTImage2Edit, GPTImage2EditImages
+﻿from .gpt_image import GPTImage2Generate, GPTImage2Edit, GPTImage2EditImages
 
 try:
     from .gpt_image_2_all import GPTImage2AllGenerate, GPTImage2AllEdit
@@ -17,11 +17,11 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GPTImage2Generate": "🍐 GPT Image 2 文生图",
-    "GPTImage2Edit": "🍐 GPT Image 2 图片编辑",
-    "GPTImage2EditImages": "🍐 GPT Image 2 图生图",
+    "GPTImage2Generate": "LL GPT Image 2 文生图",
+    "GPTImage2Edit": "LL GPT Image 2 图片编辑",
+    "GPTImage2EditImages": "LL GPT Image 2 图生图",
     **({
-        "GPTImage2AllGenerate": "🍐 gpt-image-2-all生图",
-        "GPTImage2AllEdit": "🍐 gpt-image-2-all编辑图",
+        "GPTImage2AllGenerate": "LL gpt-image-2-all生图",
+        "GPTImage2AllEdit": "LL gpt-image-2-all编辑图",
     } if GPTImage2AllGenerate and GPTImage2AllEdit else {}),
 }

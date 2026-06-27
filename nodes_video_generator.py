@@ -87,7 +87,7 @@ class RelayVideoGenerator:
     RETURN_TYPES = (IO.VIDEO, "STRING", "STRING", "STRING")
     RETURN_NAMES = ("video", "task_id", "response", "video_url")
     FUNCTION = "generate_video"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
     def __init__(self):
         self.timeout = 300
@@ -737,7 +737,7 @@ class RelayGrokVideo(RelayVideoGenerator):
     RETURN_TYPES = (IO.VIDEO, "STRING", "STRING", "STRING")
     RETURN_NAMES = ("video", "task_id", "response", "video_url")
     FUNCTION = "generate_grok_video"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
     def _build_info(self, api_base, model, apikey, unique_id):
         base_url = (api_base or "").strip().rstrip("/") or get_current_base_url()

@@ -1,11 +1,7 @@
-"""Grok 视频生成节点集合"""
-
-from .grok import (
+﻿from .grok import (
     GrokCreateVideo,
     GrokQueryVideo,
     GrokCreateAndWait,
-    GrokImage2Video,
-    GrokImage2VideoAndWait,
     GrokText2Video,
     GrokText2VideoAndWait,
     GrokExtendVideo,
@@ -29,8 +25,6 @@ NODE_CLASS_MAPPINGS = {
     "GrokCreateVideo": GrokCreateVideo,
     "GrokQueryVideo": GrokQueryVideo,
     "GrokCreateAndWait": GrokCreateAndWait,
-    "GrokImage2Video": GrokImage2Video,
-    "GrokImage2VideoAndWait": GrokImage2VideoAndWait,
     "GrokText2Video": GrokText2Video,
     "GrokText2VideoAndWait": GrokText2VideoAndWait,
     "GrokExtendVideo": GrokExtendVideo,
@@ -47,24 +41,22 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GrokCreateVideo": "🤖 Grok 创建视频",
-    "GrokQueryVideo": "🔍 Grok 查询视频",
-    "GrokCreateAndWait": "⚡ Grok 一键生成视频",
-    "GrokImage2Video": "🎬 Grok 图生视频",
-    "GrokImage2VideoAndWait": "⚡ Grok 图生视频（一键）",
-    "GrokText2Video": "📝 Grok 文生视频",
-    "GrokText2VideoAndWait": "⚡ Grok 文生视频（一键）",
-    "GrokExtendVideo": "🎬 Grok 扩展视频",
-    "GrokExtendVideoAndWait": "⚡ Grok 扩展视频（一键）",
-    "GrokVideosCreateVideo": "🤖 Grok-videos 生视频 6-10s",
-    "GrokVideosQueryVideo": "🔍 Grok-videos 查询视频",
-    "GrokVideosCreateAndWait": "⚡ Grok-videos 生视频 6-10s（一键）",
-    "GrokBatchProcessor": "📦 Grok 批量处理器",
-    "GrokText2Video10Concurrent": "⚡ Grok 文生视频（10路并发）",
-    "GrokImage2Video10Concurrent": "⚡ Grok 图生视频（10路并发）",
-    "GrokCSVConcurrentProcessor": "📦 Grok CSV 并发批量处理器（legacy）",
-    "GrokBatchImageToCSVTask": "📋 Grok 批量图片转任务列表（legacy）",
-    "GrokDirBatchImage2Video": "⚡ Grok 目录批量图生视频（一键闭环）",
+    "GrokCreateVideo": "LL Grok 创建视频",
+    "GrokQueryVideo": "LL Grok 查询视频",
+    "GrokCreateAndWait": "LL Grok 一键生成视频",
+    "GrokText2Video": "LL Grok 文生视频",
+    "GrokText2VideoAndWait": "LL Grok 文生视频（一键）",
+    "GrokExtendVideo": "LL Grok 扩展视频",
+    "GrokExtendVideoAndWait": "LL Grok 扩展视频（一键）",
+    "GrokVideosCreateVideo": "LL Grok-videos 生视频 6-10s",
+    "GrokVideosQueryVideo": "LL Grok-videos 查询视频",
+    "GrokVideosCreateAndWait": "LL Grok-videos 生视频 6-10s（一键）",
+    "GrokBatchProcessor": "LL Grok 批量处理器",
+    "GrokText2Video10Concurrent": "LL Grok 文生视频（10路并发）",
+    "GrokImage2Video10Concurrent": "LL Grok 图生视频（10路并发）",
+    "GrokCSVConcurrentProcessor": "LL Grok CSV 并发批量处理器（legacy）",
+    "GrokBatchImageToCSVTask": "LL Grok 批量图片转任务列表（legacy）",
+    "GrokDirBatchImage2Video": "LL Grok 目录批量图生视频（一键闭环）",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

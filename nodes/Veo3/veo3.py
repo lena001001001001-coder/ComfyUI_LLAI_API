@@ -1,4 +1,4 @@
-import json
+﻿import json
 import time
 import requests
 from ..Sora2.kuai_utils import (env_or, ensure_list_from_urls,
@@ -40,7 +40,7 @@ def _extract_error_message_from_json(data):
     if msg:
         return msg
 
-    # 常见嵌套字段回退
+    # 甯歌宓屽瀛楁鍥為€€
     nested_msg = _first_non_empty(
         json_get(data, "error.message", ""),
         json_get(data, "error.detail", ""),
@@ -69,12 +69,12 @@ def _extract_error_message_from_response(resp):
 
 
 class VeoText2Video:
-    """使用 Veo 模型进行文生视频"""
+    """浣跨敤 Veo 妯″瀷杩涜鏂囩敓瑙嗛"""
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "视频提示词（支持中英文）"}),
+                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "瑙嗛鎻愮ず璇嶏紙鏀寔涓嫳鏂囷級"}),
                 "model": ([
                     "veo_3_1-lite",
                     "veo_3_1-lite-4K",
@@ -87,23 +87,23 @@ class VeoText2Video:
                     "veo3.1-fast-components",
                     "veo3.1-4k",
                     "veo3.1-pro-4k",
-                ], {"default": "veo_3_1-lite", "tooltip": "模型选择"}),
-                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "视频宽高比"}),
-                "enhance_prompt": ("BOOLEAN", {"default": True, "tooltip": "自动将中文提示词优化并翻译为英文"}),
-                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "启用超分以提升视频质量"}),
+                ], {"default": "veo_3_1-lite", "tooltip": "妯″瀷閫夋嫨"}),
+                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "瑙嗛瀹介珮姣?}),
+                "enhance_prompt": ("BOOLEAN", {"default": True, "tooltip": "鑷姩灏嗕腑鏂囨彁绀鸿瘝浼樺寲骞剁炕璇戜负鑻辨枃"}),
+                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "鍚敤瓒呭垎浠ユ彁鍗囪棰戣川閲?}),
             },
             "optional": {
-                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API端点地址"}),
-                "api_key": ("STRING", {"default": "", "tooltip": "API密钥"}),
-                "timeout": ("INT", {"default": 1800, "min": 5, "max": 9999, "tooltip": "超时时间(秒)"}),
-                "custom_model": ("STRING", {"default": "", "tooltip": "自定义模型名（留空使用下拉模型）"}),
+                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API绔偣鍦板潃"}),
+                "api_key": ("STRING", {"default": "", "tooltip": "API瀵嗛挜"}),
+                "timeout": ("INT", {"default": 1800, "min": 5, "max": 9999, "tooltip": "瓒呮椂鏃堕棿(绉?"}),
+                "custom_model": ("STRING", {"default": "", "tooltip": "鑷畾涔夋ā鍨嬪悕锛堢暀绌轰娇鐢ㄤ笅鎷夋ā鍨嬶級"}),
             }
         }
 
     RETURN_TYPES = ("STRING", "STRING", "INT")
-    RETURN_NAMES = ("任务ID", "状态", "状态更新时间")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "鐘舵€佹洿鏂版椂闂?)
     FUNCTION = "create"
-    CATEGORY = "🍐LLAI/Veo3"
+    CATEGORY = "馃崘LLAI/Veo3"
 
     def create(self, prompt, model, aspect_ratio, enhance_prompt, enable_upsample,
                api_base="https://api.llaiapi.host", api_key="", timeout=120, custom_model=""):
@@ -125,29 +125,29 @@ class VeoText2Video:
             resp = requests.post(endpoint, headers=http_headers_auth_only(api_key), json=payload, timeout=int(timeout))
             if resp.status_code >= 400:
                 detail = _extract_error_message_from_response(resp)
-                raise RuntimeError(f"创建 Veo 视频失败: {detail}")
+                raise RuntimeError(f"鍒涘缓 Veo 瑙嗛澶辫触: {detail}")
             data = resp.json()
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"创建 Veo 视频失败: {str(e)}")
+            raise RuntimeError(f"鍒涘缓 Veo 瑙嗛澶辫触: {str(e)}")
 
         task_id = data.get("id") or ""
         status = data.get("status") or ""
         status_update_time = int(data.get("status_update_time") or 0)
 
         if not task_id:
-            raise RuntimeError(f"创建响应缺少任务 ID: {json.dumps(data, ensure_ascii=False)}")
+            raise RuntimeError(f"鍒涘缓鍝嶅簲缂哄皯浠诲姟 ID: {json.dumps(data, ensure_ascii=False)}")
 
         return (task_id, status, status_update_time)
 
 class VeoImage2Video:
-    """使用 Veo 模型进行图生视频"""
+    """浣跨敤 Veo 妯″瀷杩涜鍥剧敓瑙嗛"""
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "视频提示词（支持中英文）"}),
+                "prompt": ("STRING", {"default": "", "multiline": True, "tooltip": "瑙嗛鎻愮ず璇嶏紙鏀寔涓嫳鏂囷級"}),
                 "model": ([
                     "veo_3_1-lite",
                     "veo_3_1-lite-4K",
@@ -162,26 +162,26 @@ class VeoImage2Video:
                     "veo3.1-fast-components",
                     "veo3.1-4k",
                     "veo3.1-pro-4k",
-                ], {"default": "veo_3_1-lite", "tooltip": "模型选择"}),
-                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "视频宽高比"}),
-                "enhance_prompt": ("BOOLEAN", {"default": True, "tooltip": "自动将中文提示词优化并翻译为英文"}),
-                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "启用超分以提升视频质量"}),
+                ], {"default": "veo_3_1-lite", "tooltip": "妯″瀷閫夋嫨"}),
+                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "瑙嗛瀹介珮姣?}),
+                "enhance_prompt": ("BOOLEAN", {"default": True, "tooltip": "鑷姩灏嗕腑鏂囨彁绀鸿瘝浼樺寲骞剁炕璇戜负鑻辨枃"}),
+                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "鍚敤瓒呭垎浠ユ彁鍗囪棰戣川閲?}),
             },
             "optional": {
-                "image_1": ("STRING", {"default": "", "multiline": False, "tooltip": "参考图1 URL (首帧)"}),
-                "image_2": ("STRING", {"default": "", "multiline": False, "tooltip": "参考图2 URL (尾帧)"}),
-                "image_3": ("STRING", {"default": "", "multiline": False, "tooltip": "参考图3 URL (元素)"}),
-                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API端点地址"}),
-                "api_key": ("STRING", {"default": "", "tooltip": "API密钥"}),
-                "timeout": ("INT", {"default": 1800, "min": 5, "max": 9999, "tooltip": "超时时间(秒)"}),
-                "custom_model": ("STRING", {"default": "", "tooltip": "自定义模型名（留空使用下拉模型）"}),
+                "image_1": ("STRING", {"default": "", "multiline": False, "tooltip": "鍙傝€冨浘1 URL (棣栧抚)"}),
+                "image_2": ("STRING", {"default": "", "multiline": False, "tooltip": "鍙傝€冨浘2 URL (灏惧抚)"}),
+                "image_3": ("STRING", {"default": "", "multiline": False, "tooltip": "鍙傝€冨浘3 URL (鍏冪礌)"}),
+                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API绔偣鍦板潃"}),
+                "api_key": ("STRING", {"default": "", "tooltip": "API瀵嗛挜"}),
+                "timeout": ("INT", {"default": 1800, "min": 5, "max": 9999, "tooltip": "瓒呮椂鏃堕棿(绉?"}),
+                "custom_model": ("STRING", {"default": "", "tooltip": "鑷畾涔夋ā鍨嬪悕锛堢暀绌轰娇鐢ㄤ笅鎷夋ā鍨嬶級"}),
             }
         }
 
     RETURN_TYPES = ("STRING", "STRING", "INT")
-    RETURN_NAMES = ("任务ID", "状态", "状态更新时间")
+    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "鐘舵€佹洿鏂版椂闂?)
     FUNCTION = "create"
-    CATEGORY = "🍐LLAI/Veo3"
+    CATEGORY = "馃崘LLAI/Veo3"
 
     def create(self, prompt, model, aspect_ratio, enhance_prompt, enable_upsample,
                image_1="", image_2="", image_3="",
@@ -198,7 +198,7 @@ class VeoImage2Video:
         if image_3 and image_3.strip(): images_list.append(image_3.strip())
 
         if not images_list:
-            raise RuntimeError("图生视频模式下，请至少提供一个图片 URL")
+            raise RuntimeError("鍥剧敓瑙嗛妯″紡涓嬶紝璇疯嚦灏戞彁渚涗竴涓浘鐗?URL")
 
         payload = {
             "model": effective_model,
@@ -213,44 +213,44 @@ class VeoImage2Video:
             resp = requests.post(endpoint, headers=http_headers_auth_only(api_key), json=payload, timeout=int(timeout))
             if resp.status_code >= 400:
                 detail = _extract_error_message_from_response(resp)
-                raise RuntimeError(f"创建 Veo 视频失败: {detail}")
+                raise RuntimeError(f"鍒涘缓 Veo 瑙嗛澶辫触: {detail}")
             data = resp.json()
         except RuntimeError:
             raise
         except Exception as e:
-            raise RuntimeError(f"创建 Veo 视频失败: {str(e)}")
+            raise RuntimeError(f"鍒涘缓 Veo 瑙嗛澶辫触: {str(e)}")
 
         task_id = data.get("id") or ""
         status = data.get("status") or ""
         status_update_time = int(data.get("status_update_time") or 0)
 
         if not task_id:
-            raise RuntimeError(f"创建响应缺少任务 ID: {json.dumps(data, ensure_ascii=False)}")
+            raise RuntimeError(f"鍒涘缓鍝嶅簲缂哄皯浠诲姟 ID: {json.dumps(data, ensure_ascii=False)}")
 
         return (task_id, status, status_update_time)
 
 
 class VeoQueryTask:
-    """查询 Veo 视频任务"""
+    """鏌ヨ Veo 瑙嗛浠诲姟"""
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "task_id": ("STRING", {"default": "", "tooltip": "任务ID"}),
+                "task_id": ("STRING", {"default": "", "tooltip": "浠诲姟ID"}),
             },
             "optional": {
-                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API端点地址"}),
-                "api_key": ("STRING", {"default": "", "tooltip": "API密钥"}),
-                "wait": ("BOOLEAN", {"default": True, "tooltip": "是否等待任务完成"}),
-                "poll_interval_sec": ("INT", {"default": 15, "min": 5, "max": 90, "tooltip": "轮询间隔(秒)"}),
-                "timeout_sec": ("INT", {"default": 1800, "min": 600, "max": 9999, "tooltip": "总超时时间(秒)"}),
+                "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API绔偣鍦板潃"}),
+                "api_key": ("STRING", {"default": "", "tooltip": "API瀵嗛挜"}),
+                "wait": ("BOOLEAN", {"default": True, "tooltip": "鏄惁绛夊緟浠诲姟瀹屾垚"}),
+                "poll_interval_sec": ("INT", {"default": 15, "min": 5, "max": 90, "tooltip": "杞闂撮殧(绉?"}),
+                "timeout_sec": ("INT", {"default": 1800, "min": 600, "max": 9999, "tooltip": "鎬昏秴鏃舵椂闂?绉?"}),
             }
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("状态", "视频URL", "增强后提示词", "原始响应JSON")
+    RETURN_NAMES = ("鐘舵€?, "瑙嗛URL", "澧炲己鍚庢彁绀鸿瘝", "鍘熷鍝嶅簲JSON")
     FUNCTION = "query"
-    CATEGORY = "🍐LLAI/Veo3"
+    CATEGORY = "馃崘LLAI/Veo3"
 
     def query(self, task_id, api_base="https://api.llaiapi.host", api_key="", wait=True, poll_interval_sec=5, timeout_sec=600):
         api_key = env_or(api_key, "KUAI_API_KEY")
@@ -261,12 +261,12 @@ class VeoQueryTask:
                 resp = requests.get(endpoint, headers=http_headers_auth_only(api_key), params={"id": task_id}, timeout=60)
                 if resp.status_code >= 400:
                     detail = _extract_error_message_from_response(resp)
-                    raise RuntimeError(f"查询失败: {detail}")
+                    raise RuntimeError(f"鏌ヨ澶辫触: {detail}")
                 data = resp.json()
             except RuntimeError:
                 raise
             except Exception as e:
-                raise RuntimeError(f"查询失败: {str(e)}")
+                raise RuntimeError(f"鏌ヨ澶辫触: {str(e)}")
 
             status = data.get("status") or ""
             video_url = data.get("video_url") or ""
@@ -288,22 +288,22 @@ class VeoQueryTask:
                 if not fail_detail:
                     fail_detail = json.dumps(data, ensure_ascii=False)
 
-                raise RuntimeError(f"任务失败: {fail_detail}")
+                raise RuntimeError(f"浠诲姟澶辫触: {fail_detail}")
 
             if status == "completed" and not str(video_url).strip():
                 missing_detail = _first_non_empty(
                     data.get("error_message"),
                     data.get("message"),
                     data.get("reason"),
-                ) or "任务已完成但未返回视频URL"
-                raise RuntimeError(f"查询失败: {missing_detail}")
+                ) or "浠诲姟宸插畬鎴愪絾鏈繑鍥炶棰慤RL"
+                raise RuntimeError(f"鏌ヨ澶辫触: {missing_detail}")
 
             return status, video_url, enhanced_prompt, json.dumps(data, ensure_ascii=False)
 
         if not wait:
             return once()
 
-        print(f"[VeoQueryTask] 开始轮询任务 {task_id}，超时 {timeout_sec} 秒，间隔 {poll_interval_sec} 秒")
+        print(f"[VeoQueryTask] 寮€濮嬭疆璇换鍔?{task_id}锛岃秴鏃?{timeout_sec} 绉掞紝闂撮殧 {poll_interval_sec} 绉?)
         deadline = time.time() + int(timeout_sec)
         last_raw = ""
         poll_count = 0
@@ -311,18 +311,18 @@ class VeoQueryTask:
             poll_count += 1
             status, video_url, enhanced_prompt, raw = once()
             last_raw = raw
-            print(f"[VeoQueryTask] 第 {poll_count} 次查询: 状态={status}")
+            print(f"[VeoQueryTask] 绗?{poll_count} 娆℃煡璇? 鐘舵€?{status}")
             if status in ("completed", "failed"):
-                print(f"[VeoQueryTask] 任务完成: {status}")
+                print(f"[VeoQueryTask] 浠诲姟瀹屾垚: {status}")
                 return (status, video_url, enhanced_prompt, raw)
             time.sleep(int(poll_interval_sec))
         
-        print(f"[VeoQueryTask] 轮询超时")
+        print(f"[VeoQueryTask] 杞瓒呮椂")
         return ("timeout", "", "", last_raw or json.dumps({"error": "timeout"}, ensure_ascii=False))
 
 
 class VeoText2VideoAndWait:
-    """一键文生视频并等待"""
+    """涓€閿枃鐢熻棰戝苟绛夊緟"""
     @classmethod
     def INPUT_TYPES(cls):
         inputs = VeoText2Video.INPUT_TYPES()
@@ -335,9 +335,9 @@ class VeoText2VideoAndWait:
         return inputs
     
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("状态", "视频URL", "增强后提示词", "任务ID")
+    RETURN_NAMES = ("鐘舵€?, "瑙嗛URL", "澧炲己鍚庢彁绀鸿瘝", "浠诲姟ID")
     FUNCTION = "run"
-    CATEGORY = "🍐LLAI/Veo3"
+    CATEGORY = "馃崘LLAI/Veo3"
     
     def run(self, **kwargs):
         creator_kwargs = {k: v for k, v in kwargs.items() if k in VeoText2Video.INPUT_TYPES()["required"] or k in VeoText2Video.INPUT_TYPES()["optional"]}
@@ -355,7 +355,7 @@ class VeoText2VideoAndWait:
         return (status, video_url, enhanced_prompt, task_id)
 
 class VeoImage2VideoAndWait:
-    """一键图生视频并等待"""
+    """涓€閿浘鐢熻棰戝苟绛夊緟"""
     @classmethod
     def INPUT_TYPES(cls):
         inputs = VeoImage2Video.INPUT_TYPES()
@@ -368,22 +368,20 @@ class VeoImage2VideoAndWait:
         return inputs
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("状态", "视频URL", "增强后提示词", "任务ID")
+    RETURN_NAMES = ("鐘舵€?, "瑙嗛URL", "澧炲己鍚庢彁绀鸿瘝", "浠诲姟ID")
     FUNCTION = "run"
-    CATEGORY = "🍐LLAI/Veo3"
+    CATEGORY = "馃崘LLAI/Veo3"
 
     def run(self, **kwargs):
         creator_kwargs = {}
-        # 从 kwargs 中分离出创建节点的参数
-        creator_input_types = VeoImage2Video.INPUT_TYPES()
+        # 浠?kwargs 涓垎绂诲嚭鍒涘缓鑺傜偣鐨勫弬鏁?        creator_input_types = VeoImage2Video.INPUT_TYPES()
         creator_required_keys = creator_input_types["required"].keys()
         creator_optional_keys = creator_input_types["optional"].keys()
         for k, v in kwargs.items():
             if k in creator_required_keys or k in creator_optional_keys:
                 creator_kwargs[k] = v
 
-        # 从 kwargs 中分离出查询节点的参数
-        querier_kwargs = {k: v for k, v in kwargs.items() if k in VeoQueryTask.INPUT_TYPES()["optional"]}
+        # 浠?kwargs 涓垎绂诲嚭鏌ヨ鑺傜偣鐨勫弬鏁?        querier_kwargs = {k: v for k, v in kwargs.items() if k in VeoQueryTask.INPUT_TYPES()["optional"]}
         
         creator = VeoImage2Video()
         task_id, _, _ = creator.create(**creator_kwargs)
@@ -406,9 +404,10 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "VeoText2Video": "🎬 Veo 文生视频",
-    "VeoImage2Video": "🍐 Veo 图生视频",
-    "VeoQueryTask": "🔍 Veo 查询任务",
-    "VeoText2VideoAndWait": "⚡ Veo 一键文生视频",
-    "VeoImage2VideoAndWait": "⚡ Veo 一键图生视频",
+    "VeoText2Video": "馃幀 Veo 鏂囩敓瑙嗛",
+    "VeoImage2Video": "馃崘 Veo 鍥剧敓瑙嗛",
+    "VeoQueryTask": "馃攳 Veo 鏌ヨ浠诲姟",
+    "VeoText2VideoAndWait": "鈿?Veo 涓€閿枃鐢熻棰?,
+    "VeoImage2VideoAndWait": "鈿?Veo 涓€閿浘鐢熻棰?,
 }
+

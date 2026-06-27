@@ -8,6 +8,8 @@ const BOX_RADIUS = 12;
 const LINE_HEIGHT = 24;
 const BOX_TOP_GAP = 8;
 const TEXT_FONT = "16px sans-serif";
+const LINK_COLOR = "#8ec5ff";
+const TEXT_COLOR = "#dddddd";
 
 function wrapText(ctx, text, maxWidth) {
     const chars = Array.from(text || "");
@@ -28,6 +30,20 @@ function wrapText(ctx, text, maxWidth) {
     return lines.length ? lines : [""];
 }
 
+function parseNoticeLine(line) {
+    const match = String(line || "").match(/^\s*\[([^\]]+)\]\((https?:\/\/[^)]+)\)\s*$/);
+    if (match) {
+        return {
+            text: match[1],
+            url: match[2],
+        };
+    }
+    return {
+        text: String(line || ""),
+        url: "",
+    };
+}
+
 function getNoticeLines(node) {
     const message = String(node._noticeMessage || "").replace(/\r\n/g, "\n");
     return message ? message.split("\n") : [""];
@@ -35,7 +51,18 @@ function getNoticeLines(node) {
 
 function getWrappedLines(ctx, node, width) {
     const textWidth = Math.max(40, width - OUTER_PADDING_X * 2 - INNER_PADDING_X * 2);
-    return getNoticeLines(node).flatMap((line) => wrapText(ctx, line, textWidth));
+    return getNoticeLines(node).flatMap((line) => {
+        const parsed = parseNoticeLine(line);
+        return wrapText(ctx, parsed.text, textWidth).map((text) => ({
+            text,
+            url: parsed.url,
+        }));
+    });
+}
+
+function openNoticeLink(url) {
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
 }
 
 app.registerExtension({
@@ -61,6 +88,43 @@ app.registerExtension({
             }
             node.widgets.splice(messageWidgetIndex, 1);
         }
+
+        node._noticeHitRegions = [];
+
+        const originalOnMouseDown = node.onMouseDown?.bind(node);
+        node.onMouseDown = function (event, pos, graphCanvas) {
+            const [x, y] = pos || [];
+            const hit = (this._noticeHitRegions || []).find((region) => (
+                x >= region.x
+                && x <= region.x + region.width
+                && y >= region.y
+                && y <= region.y + region.height
+            ));
+
+            if (hit?.url) {
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+                openNoticeLink(hit.url);
+                return true;
+            }
+
+            return originalOnMouseDown ? originalOnMouseDown(event, pos, graphCanvas) : false;
+        };
+
+        const originalOnMouseMove = node.onMouseMove?.bind(node);
+        node.onMouseMove = function (event, pos, graphCanvas) {
+            const [x, y] = pos || [];
+            const hit = (this._noticeHitRegions || []).some((region) => (
+                x >= region.x
+                && x <= region.x + region.width
+                && y >= region.y
+                && y <= region.y + region.height
+            ));
+            if (graphCanvas?.canvas?.style) {
+                graphCanvas.canvas.style.cursor = hit ? "pointer" : "";
+            }
+            return originalOnMouseMove ? originalOnMouseMove(event, pos, graphCanvas) : false;
+        };
 
         const originalOnResize = node.onResize?.bind(node);
         node.onResize = function (size) {
@@ -97,6 +161,7 @@ app.registerExtension({
 
             const lines = getWrappedLines(ctx, this, width);
             const boxHeight = INNER_PADDING_Y * 2 + lines.length * LINE_HEIGHT + OUTER_PADDING_Y;
+            this._noticeHitRegions = [];
 
             ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
             ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
@@ -106,9 +171,28 @@ app.registerExtension({
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = "#dddddd";
             lines.forEach((line, index) => {
-                ctx.fillText(line, textX, textY + index * LINE_HEIGHT);
+                const y = textY + index * LINE_HEIGHT;
+                ctx.fillStyle = line.url ? LINK_COLOR : TEXT_COLOR;
+                ctx.fillText(line.text, textX, y);
+
+                if (line.url) {
+                    const metrics = ctx.measureText(line.text);
+                    const linkWidth = metrics.width;
+                    ctx.strokeStyle = LINK_COLOR;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(textX, y + LINE_HEIGHT - 4);
+                    ctx.lineTo(textX + linkWidth, y + LINE_HEIGHT - 4);
+                    ctx.stroke();
+                    this._noticeHitRegions.push({
+                        x: textX,
+                        y,
+                        width: linkWidth,
+                        height: LINE_HEIGHT,
+                        url: line.url,
+                    });
+                }
             });
 
             ctx.restore();

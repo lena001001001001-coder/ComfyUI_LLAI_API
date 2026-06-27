@@ -1,4 +1,4 @@
-import { app } from "../../scripts/app.js";
+﻿import { app } from "../../scripts/app.js";
 
 const VEO_ONLY_WIDGETS = ["enhance_prompt", "enable_HD"];
 
@@ -182,7 +182,7 @@ app.registerExtension({
     name: "RelayAPI.VideoGenerator",
 
     async nodeCreated(node) {
-        if (!["RelayVideoGenerator", "RelayGrokVideo"].includes(node.comfyClass)) return;
+        if (!["RelayVideoGenerator", "RelayGrokVideo", "RelayGrokImagineVideo"].includes(node.comfyClass)) return;
 
         await new Promise(r => setTimeout(r, 200));
 
@@ -190,7 +190,84 @@ app.registerExtension({
         node._lastHasImage = null;
         applyPlatform(node, "Grok", Array.isArray(node.size) ? [...node.size] : null);
 
-        if (["RelayVideoGenerator", "RelayGrokVideo"].includes(node.comfyClass)) {
+        if (node.comfyClass === "RelayGrokImagineVideo") {
+            const apiKeyW = node.widgets?.find(w => w.name === "api_key");
+            const modelW = node.widgets?.find(w => w.name === "model");
+            const resolutionW = node.widgets?.find(w => w.name === "resolution");
+            const aspectRatioW = node.widgets?.find(w => w.name === "aspect_ratio");
+            const durationW = node.widgets?.find(w => w.name === "duration");
+            const afterControlW = node.widgets?.find(w => w.name === "after_control");
+            const apiBaseW = node.widgets?.find(w => w.name === "api_base");
+
+            if (apiKeyW?.inputEl) {
+                apiKeyW.inputEl.type = "text";
+                apiKeyW.inputEl.autocomplete = "off";
+                apiKeyW.inputEl.spellcheck = false;
+            }
+
+            if (apiBaseW) hideWidget(apiBaseW);
+
+            if (apiKeyW && modelW) {
+                const current = node.widgets.indexOf(apiKeyW);
+                const target = node.widgets.indexOf(modelW) + 1;
+                if (current > -1 && current !== target) {
+                    node.widgets.splice(current, 1);
+                    node.widgets.splice(target > current ? target - 1 : target, 0, apiKeyW);
+                }
+            }
+
+            for (const w of [resolutionW, aspectRatioW, durationW, afterControlW]) {
+                if (w) showWidget(w);
+            }
+
+            const imageInputs = (node.inputs || []).filter(i => /^image\d+$/.test(i.name));
+            imageInputs.forEach((input, idx) => {
+                const shouldHide = idx >= 3;
+                if (shouldHide && !input._hidden) {
+                    input._hidden = true;
+                    input._origType = input.type;
+                    input.type = -1;
+                } else if (!shouldHide && input._hidden) {
+                    input._hidden = false;
+                    input.type = input._origType || "IMAGE";
+                }
+            });
+
+            preserveNodeSize(node, Array.isArray(node.size) ? [...node.size] : null);
+        } else if (false && node.comfyClass === "RelayGrokImagineVideo15") {
+            const apiKeyW = node.widgets?.find(w => w.name === "api_key");
+            const apiBaseW = node.widgets?.find(w => w.name === "api_base");
+            const modelW = node.widgets?.find(w => w.name === "model");
+            const imageInputs = (node.inputs || []).filter(i => /^image$/.test(i.name));
+
+            if (apiKeyW?.inputEl) {
+                apiKeyW.inputEl.type = "text";
+                apiKeyW.inputEl.autocomplete = "off";
+                apiKeyW.inputEl.spellcheck = false;
+            }
+            if (apiBaseW) hideWidget(apiBaseW);
+            if (imageInputs.length > 1) {
+                imageInputs.slice(1).forEach(input => {
+                    if (!input._hidden) {
+                        input._hidden = true;
+                        input._origType = input.type;
+                        input.type = -1;
+                    }
+                });
+            }
+            if (apiKeyW && modelW) {
+                const current = node.widgets.indexOf(apiKeyW);
+                const target = node.widgets.indexOf(modelW) + 1;
+                if (current > -1 && current !== target) {
+                    node.widgets.splice(current, 1);
+                    node.widgets.splice(target > current ? target - 1 : target, 0, apiKeyW);
+                }
+            }
+            preserveNodeSize(node, Array.isArray(node.size) ? [...node.size] : null);
+        } else if (["RelayVideoGenerator", "RelayGrokVideo"].includes(node.comfyClass)) {
+            const apiBaseW = node.widgets?.find(w => w.name === "api_base");
+            if (apiBaseW) hideWidget(apiBaseW);
+        } else if (["RelayVideoGenerator", "RelayGrokVideo"].includes(node.comfyClass)) {
             const apiBaseW = node.widgets?.find(w => w.name === "api_base");
             if (apiBaseW) hideWidget(apiBaseW);
             const taskTypeW = node.widgets?.find(w => w.name === "task_type");
@@ -220,7 +297,6 @@ app.registerExtension({
             }
             preserveNodeSize(node, Array.isArray(node.size) ? [...node.size] : null);
         }
-
         setInterval(() => {
             const preferredSize = Array.isArray(node.size) ? [...node.size] : null;
             const plat = getPlatformFromSource(node);
@@ -245,3 +321,5 @@ app.registerExtension({
         }, 500);
     },
 });
+
+

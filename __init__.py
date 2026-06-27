@@ -1,10 +1,29 @@
-from .nodes_api_settings import RelayAPISettings
+﻿from .nodes_api_settings import RelayAPISettings
 from .nodes_video_generator import RelayGrokVideo, RelayVideoGenerator
 from .nodes_image_generator import RelayBanana2ImageGenerator, RelayGPTImage2Generator, RelayImageGenerator
 from .nodes_notice import RelayAPINotice
 from .nodes_sound_generator import RelaySoundGenerator
 from .nodes_suno_direct import RelaySunoDirectGenerator, RelaySunoDirectPlayer
-from .nodes_text_generator import RelayLLMText, RelayTextGenerator
+from .nodes_text_generator import RelayLLMText
+from .nodes_grok_imagine_video import RelayGrokImagineVideo
+
+try:
+    import importlib.util
+    import os
+
+    _text_to_csv_path = os.path.join(os.path.dirname(__file__), "nodes", "Utils", "text_to_csv.py")
+    _text_to_csv_spec = importlib.util.spec_from_file_location(
+        "comfyui_llai_api_text_to_csv",
+        _text_to_csv_path,
+    )
+    _text_to_csv_module = importlib.util.module_from_spec(_text_to_csv_spec)
+    _text_to_csv_spec.loader.exec_module(_text_to_csv_module)
+    TEXT_TO_CSV_NODE_CLASS_MAPPINGS = _text_to_csv_module.NODE_CLASS_MAPPINGS
+    TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS = _text_to_csv_module.NODE_DISPLAY_NAME_MAPPINGS
+except Exception as exc:
+    print(f"[ComfyUI_LLAI_API] Batch Text To CSV 鑺傜偣鍔犺浇澶辫触: {exc}")
+    TEXT_TO_CSV_NODE_CLASS_MAPPINGS = {}
+    TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS = {}
 
 try:
     from .config import register_routes
@@ -13,35 +32,34 @@ except Exception:
     pass
 
 NODE_CLASS_MAPPINGS = {
-    "RelayAPISettings": RelayAPISettings,
     "RelayVideoGenerator": RelayGrokVideo,
-    "RelayGrokVideo": RelayGrokVideo,
-    "RelayImageGenerator": RelayImageGenerator,
     "RelayGPTImage2Generator": RelayGPTImage2Generator,
     "RelayBanana2ImageGenerator": RelayBanana2ImageGenerator,
     "RelayAPINotice": RelayAPINotice,
-    "RelaySoundGenerator": RelaySoundGenerator,
-    "RelaySunoDirectGenerator": RelaySunoDirectGenerator,
     "RelaySunoDirectPlayer": RelaySunoDirectPlayer,
-    "RelayTextGenerator": RelayTextGenerator,
     "RelayLLMText": RelayLLMText,
+    "RelayGrokImagineVideo": RelayGrokImagineVideo,
 }
+NODE_CLASS_MAPPINGS.update(TEXT_TO_CSV_NODE_CLASS_MAPPINGS)
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "RelayAPISettings": "🍐 API Settings",
-    "RelayVideoGenerator": "🍐 Grok Video",
-    "RelayGrokVideo": "🍐 Grok Video",
-    "RelayImageGenerator": "🍐 Image Generator",
-    "RelayGPTImage2Generator": "🍐 GPT-Image2 Generator",
-    "RelayBanana2ImageGenerator": "🍐 Banana-2 Image Generator",
-    "RelayAPINotice": "🍐 API Notice",
-    "RelaySoundGenerator": "🍐 Sound Generator",
-    "RelaySunoDirectGenerator": "🍐 Suno Direct",
-    "RelaySunoDirectPlayer": "🍐 Suno Direct Player",
-    "RelayTextGenerator": "🍐 Text Generator",
-    "RelayLLMText": "🍐 LLM Text",
+    "RelayVideoGenerator": "LL-Grok Video",
+    "RelayGPTImage2Generator": "LL-GPT-Image2 Generator",
+    "RelayBanana2ImageGenerator": "LL-Banana-2 Generator",
+    "RelayAPINotice": "LL-API Notice",
+    "RelaySunoDirectPlayer": "LL-Suno Direct Player",
+    "RelayLLMText": "LL-LLM Text",
+    "RelayGrokImagineVideo": "LL-grok-imagine-video",
 }
+NODE_DISPLAY_NAME_MAPPINGS.update(TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS)
 
 WEB_DIRECTORY = "./js"
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS', 'WEB_DIRECTORY']
+
+
+
+
+
+
+

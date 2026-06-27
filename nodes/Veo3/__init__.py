@@ -1,10 +1,23 @@
-from .veo3 import NODE_CLASS_MAPPINGS as VEO3_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as VEO3_DISPLAY_MAPPINGS
-from .concurrent_processor import NODE_CLASS_MAPPINGS as CONCURRENT_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as CONCURRENT_DISPLAY_MAPPINGS
-from .csv_concurrent_processor import NODE_CLASS_MAPPINGS as CSV_CONCURRENT_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as CSV_CONCURRENT_DISPLAY_MAPPINGS
-from .batch_image_to_csv_task import NODE_CLASS_MAPPINGS as BATCH_IMAGE_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as BATCH_IMAGE_DISPLAY_MAPPINGS
-from .dir_batch_image2video import NODE_CLASS_MAPPINGS as DIR_BATCH_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS as DIR_BATCH_DISPLAY_MAPPINGS
+﻿from .veo3 import (
+    VeoCreateVideo,
+    VeoQueryVideo,
+    VeoCreateAndWait,
+    VeoImage2Video,
+    VeoImage2VideoAndWait,
+)
 
-NODE_CLASS_MAPPINGS = {**VEO3_MAPPINGS, **CONCURRENT_MAPPINGS, **CSV_CONCURRENT_MAPPINGS, **BATCH_IMAGE_MAPPINGS, **DIR_BATCH_MAPPINGS}
-NODE_DISPLAY_NAME_MAPPINGS = {**VEO3_DISPLAY_MAPPINGS, **CONCURRENT_DISPLAY_MAPPINGS, **CSV_CONCURRENT_DISPLAY_MAPPINGS, **BATCH_IMAGE_DISPLAY_MAPPINGS, **DIR_BATCH_DISPLAY_MAPPINGS}
+NODE_CLASS_MAPPINGS = {
+    "VeoCreateVideo": VeoCreateVideo,
+    "VeoQueryVideo": VeoQueryVideo,
+    "VeoCreateAndWait": VeoCreateAndWait,
+    "VeoImage2Video": VeoImage2Video,
+    "VeoImage2VideoAndWait": VeoImage2VideoAndWait,
+}
 
-__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "VeoCreateVideo": "LL Veo 创建视频",
+    "VeoQueryVideo": "LL Veo 查询视频",
+    "VeoCreateAndWait": "LL Veo 一键生成视频",
+    "VeoImage2Video": "LL Veo 图生视频",
+    "VeoImage2VideoAndWait": "LL Veo 图生视频（一键）",
+}

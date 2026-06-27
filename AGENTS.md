@@ -1,1223 +1,542 @@
-# AGENTS.md
+﻿# AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file guides Codex and other AI coding agents when working in this repository.
+
+## Repository Guardrails
+
+- Do not batch-delete files or directories.
+- Never use `del /s`, `rd /s`, `rmdir /s`, `Remove-Item -Recurse`, or `rm -rf`.
+- If one file must be removed, remove only one explicit path at a time, for example `Remove-Item "C:\path\to\file.txt"`.
+- If many files need to be removed, stop and ask the user to delete them manually.
 
 ## Project Overview
 
-**ComfyUI_LLAI_API** is a ComfyUI extension plugin providing AI video generation (Sora2, Veo3) and image generation (Nano Banana/Gemini) capabilities through the kuai.host API. The plugin is designed for Chinese users with full Chinese UI labels and focuses on e-commerce video content creation.
+**ComfyUI_LLAI_API** is a ComfyUI extension for LLAI model relay workflows. It provides video, image, audio, text, upload, batch, and monitoring nodes for Chinese ComfyUI users.
 
-**Key Technologies**: ComfyUI nodes, Pydantic settings, async task polling, PIL image processing, kuai.host API integration
+Primary relay base:
+
+```text
+https://api.llaiapi.host/
+```
+
+Use `doc.kuai.host` only as an interface reference for endpoint paths, request fields, and response shapes. Keep the working relay base on `https://api.llaiapi.host/`.
+
+Branding rule:
+
+- User-facing docs, comments, labels, and new code should use `LLAI`, `llaiapi`, or `llai`.
+- Some existing compatibility identifiers still contain the old `Relay...` naming, especially top-level class names, JavaScript filenames, and `/relayapi/...` local ComfyUI routes. Treat those as compatibility IDs unless you are doing a deliberate migration across Python registration, saved workflows, frontend scripts, and route consumers.
+- Do not introduce new brand text using the old RelayAPI/Relay wording.
 
 ## Development Commands
 
-### Installation & Setup
-```bash
-# Install dependencies
+```powershell
 pip install -r requirements.txt
-
-# Run diagnostics to verify setup
 python diagnose.py
-
-# Configure API key (choose one method)
-export KUAI_API_KEY=your_key_here
-# OR create .env file
-echo "KUAI_API_KEY=your_key_here" > .env
+python test/test_labels.py
+python test/test_csv_nodes.py
+python -m py_compile .\config.py .\__init__.py .\nodes_api_settings.py .\nodes_video_generator.py .\nodes_image_generator.py .\nodes_sound_generator.py .\nodes_text_generator.py
+node --check .\js\relay_api_settings.js
 ```
 
-### Testing
-```bash
-# Test CSV nodes
-python test_csv_nodes.py
+For non-generating connectivity checks, prefer model/list endpoints when available. Avoid running paid generation endpoints unless the user asks for a live API test or provides a test key.
 
-# Test node labels
-python test_labels.py
+## Configuration
 
-# Manual API testing
-curl -H "Authorization: Bearer $KUAI_API_KEY" https://api.kuai.host/v1/models
+Core configuration lives in `config.py`.
+
+Important structures:
+
+- `DEFAULT_API_BASES`: default base URLs. The first and primary base must be `https://api.llaiapi.host/`.
+- `DEFAULT_MODELS`: broad fallback model lists by platform.
+- `FORMAT_MODELS`: model lists scoped by platform and `api_format`.
+- `TASK_PLATFORMS`: maps task types to supported platforms.
+- `VIDEO_API_FORMATS`, `IMAGE_API_FORMATS`, `SOUND_API_FORMATS`, `TEXT_API_FORMATS`: UI/API format options.
+- `API_PATHS`: canonical endpoint path map used by generic nodes.
+- `relay_config.json`: persisted local settings, custom bases, custom models, and per-node API key storage.
+
+Default base list currently includes:
+
+```text
+https://api.llaiapi.host/
+https://www.runninghub.cn/
+https://llm.runninghub.ai/
+https://yunwu.ai/
+https://ai.t8star.cn/
+https://api.bltcy.ai/
 ```
 
-### Development Workflow
-1. Make changes to node files in `nodes/`
-2. Restart ComfyUI to reload nodes (no hot reload)
-3. Check ComfyUI console for `[ComfyUI_LLAI_API]` log messages
-4. Test nodes in ComfyUI UI (Ctrl+Shift+K for quick panel)
+API key handling:
 
-## Architecture
+- Most nodes accept `api_key` or `apikey` parameters.
+- Top-level compatibility nodes can persist masked/real keys per node via `save_node_settings`.
+- Several legacy utility helpers still read `KUAI_API_KEY`; keep this for compatibility unless you migrate every caller.
+- Never print full API keys.
 
-### Node Auto-Registration System
+## Node Registration
 
-The plugin uses a **dynamic node discovery system** (`__init__.py:11-78`) that automatically registers all nodes without manual imports:
+There are two node systems in this repository.
 
-1. **Root-level scan**: Loads `nodes/*.py` files
-2. **Subdirectory scan**: Recursively loads `nodes/*/` directories
-3. **Type detection**: Auto-detects classes with `INPUT_TYPES` and `RETURN_TYPES`
-4. **Mapping registration**: Populates `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS`
+Top-level compatibility nodes are registered in root `__init__.py`:
 
-**Key Pattern**: Each subdirectory has an `__init__.py` that exports:
+- API settings
+- Grok video
+- generic image generator
+- GPT-Image2 generator
+- Banana-2 generator
+- sound generator
+- Suno direct generator/player
+- text generator
+- notice node
+
+These classes still use old compatibility names such as `RelayGrokVideo`. Keep those registered names stable unless you also update saved-workflow compatibility and JavaScript frontend logic.
+
+Category nodes are registered by each `nodes/<Category>/__init__.py`:
+
+```text
+nodes/Sora2
+nodes/Veo3
+nodes/Grok
+nodes/GrokImage
+nodes/GPTImage
+nodes/NanoBanana
+nodes/Gemini
+nodes/Kling
+nodes/WAN
+nodes/Utils
+```
+
+New category nodes should use:
+
 ```python
-NODE_CLASS_MAPPINGS = {"NodeClassName": NodeClass}
-NODE_DISPLAY_NAME_MAPPINGS = {"NodeClassName": "🎬 Display Name"}
+CATEGORY = "LLAI/<Category>"
 ```
 
-### Directory Structure
-```
-nodes/
-├── Sora2/              # Sora2 video generation
-│   ├── __init__.py     # Exports NODE_CLASS_MAPPINGS
-│   ├── sora2.py        # Core video nodes
-│   ├── script_generator.py  # AI script generation
-│   └── kuai_utils.py   # Shared utilities
-├── Veo3/               # Veo3 video generation
-│   ├── __init__.py
-│   └── veo3.py
-├── NanoBanana/         # Gemini image generation
-│   ├── __init__.py
-│   ├── nano_banana.py  # Single/multi-turn image gen
-│   └── batch_processor.py  # CSV batch processing
-└── Utils/              # Utility nodes
-    ├── __init__.py
-    ├── image_upload.py
-    ├── deepseek_ocr.py
-    └── csv_reader.py
-```
+Use Chinese labels in `INPUT_LABELS` and `RETURN_NAMES` where the surrounding node already does.
 
-### Configuration System
+## Endpoint Matrix
 
-Uses **Pydantic Settings** (`config.py`) with `.env` file support:
-```python
-class Settings(BaseSettings):
-    WEBHOOK_BASE_PATH: str = "/webhook"
-    SECRET_TOKEN: str = ""
-    HTTP_TIMEOUT: int = 30
-    HTTP_RETRY: int = 0
+All paths below are relative to the selected `api_base` unless noted otherwise. For LLAI-native nodes, the default full base is `https://api.llaiapi.host/`.
 
-    class Config:
-        env_file = ".env"
-```
+### Generic Video Nodes
 
-**Environment Variables**:
-- `KUAI_API_KEY`: API key (required, can also be passed per-node)
-- `HTTP_TIMEOUT`: Request timeout in seconds (default: 30)
+Files:
 
-### API Integration Patterns
+- `nodes_video_generator.py`
+- `nodes/Grok/grok.py`
+- `nodes/Grok/grok_videos.py`
+- `nodes/Veo3/veo3.py`
+- `nodes/Sora2/sora2.py`
 
-**Base URL**: `https://api.kuai.host`
+Supported formats and paths:
 
-**Authentication**: Bearer token in Authorization header
-```python
-headers = {
-    "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json"
-}
-```
-
-**Common Utilities** (`nodes/Sora2/kuai_utils.py`):
-- `env_or(value, env_name)`: Prioritize parameter over environment variable
-- `to_pil_from_comfy(image_any)`: Convert ComfyUI IMAGE (torch.Tensor/numpy) to PIL.Image
-- `save_image_to_buffer(pil, fmt, quality)`: Save PIL to BytesIO for upload
-- `ensure_list_from_urls(urls_str)`: Parse comma/semicolon/newline separated URLs
-- `http_headers_json(api_key)`: Generate standard JSON headers with auth
-
-### Async Task Pattern
-
-Video generation uses **polling-based async** (`*AndWait` nodes):
-```python
-def create_and_wait(self, ...):
-    # 1. Submit task
-    task_id, status, _ = self.create(...)
-
-    # 2. Poll until complete
-    elapsed = 0
-    while elapsed < max_wait_time:
-        if status in ["completed", "failed"]:
-            break
-        time.sleep(poll_interval)
-        task_id, status, video_url, _ = self.query(task_id, ...)
-        elapsed += poll_interval
-
-    # 3. Return or raise error
-    if status != "completed":
-        raise RuntimeError(f"Task failed: {status}")
-    return (task_id, status, video_url, ...)
-```
-
-**Pattern**: Separate `Create` + `Query` nodes for manual control, `CreateAndWait` for convenience.
-
-### Image Processing Pipeline
-
-```
-ComfyUI IMAGE (torch.Tensor/numpy.ndarray, BHWC format, float32 0-1)
-  ↓ to_pil_from_comfy()
-PIL.Image (RGB, uint8)
-  ↓ save_image_to_buffer()
-io.BytesIO (JPEG/PNG/WebP)
-  ↓ HTTP POST multipart/form-data
-Image URL (kuai.host CDN)
-  ↓ Pass to API
-Video/Image generation task
-```
-
-### Node Structure Convention
-
-All nodes follow this pattern:
-```python
-class MyNode:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "param1": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "param2": ("INT", {"default": 0}),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        """Chinese labels for UI"""
-        return {
-            "param1": "参数1",
-            "param2": "参数2"
-        }
-
-    RETURN_TYPES = ("STRING", "INT")
-    RETURN_NAMES = ("输出1", "输出2")
-    FUNCTION = "execute"
-    CATEGORY = "🍐LLAI/CategoryName"
-
-    def execute(self, param1, param2=0):
-        # Implementation
-        return (result1, result2)
-```
-
-**Important Conventions**:
-- All categories start with `🍐LLAI/`
-- Use Chinese for `RETURN_NAMES` and `INPUT_LABELS`
-- Use emoji prefixes in `NODE_DISPLAY_NAME_MAPPINGS` (🎬 🍐 🍌 📦 🔍 ⚡)
-- Raise `RuntimeError` with user-friendly Chinese error messages
-- Log with `print(f"[ComfyUI_LLAI_API] ...")`
-
-## Key API Endpoints
-
-### Video Generation
-```
+```text
+video_v1/video:
 POST /v1/video/create
+GET  /v1/video/query?id={task_id}
+
+video_v1/videos:
+POST /v1/videos
+GET  /v1/videos/{task_id}
+GET  /v1/videos/{task_id}/content
+
+video_v2/videos:
+POST /v2/videos/generations
+GET  /v2/videos/generations/{task_id}
+```
+
+Platform behavior:
+
+- Grok: text-to-video and image-to-video, usually `grok-video-3-10s`, `grok-video-3`, or `grok-videos`.
+- Veo: text-to-video and image-to-video, usually `veo3.1`, `veo3.1-fast`, `veo_3_1-lite`, `veo_3_1-lite-4K`, or `veo_3_1-fast-4K`.
+- Sora2: direct category nodes use `/v1/video/create` and `/v1/video/query`, plus Sora-specific character/remix endpoints.
+
+Sora-specific paths:
+
+```text
+POST /sora/v1/characters
+POST /v1/videos/{video_id}/remix
+```
+
+RunningHub video format:
+
+```text
+POST /openapi/v2/{model}/text-to-video
+POST /openapi/v2/{model}/image-to-video
+POST /openapi/v2/media/upload/binary
+POST /openapi/v2/query
+```
+
+Use RunningHub bases (`https://www.runninghub.cn/` or `https://llm.runninghub.ai/` depending on task) only for `runninghub-*` formats. Do not send LLAI-native paths to RunningHub bases or RunningHub paths to LLAI bases.
+
+### Image Nodes
+
+Files:
+
+- `nodes_image_generator.py`
+- `nodes/GPTImage/gpt_image.py`
+- `nodes/GPTImage/gpt_image_2_all.py`
+- `nodes/GrokImage/grok_image.py`
+- `nodes/NanoBanana/nano_banana.py`
+- `nodes/NanoBanana/batch_processor.py`
+
+Supported formats and paths:
+
+```text
+image_v1beta/models:
+POST /v1beta/models/{model}:generateContent
+POST /v1beta/models/{model}:streamGenerateContent
+
+image_v1/images:
+POST /v1/images/generations
+POST /v1/images/edits
+
+image_v1/chat/completions:
+POST /v1/chat/completions
+```
+
+Platform behavior:
+
+- `banana-pro`: Gemini/Nano Banana Pro style generation, commonly `gemini-3-pro-image-preview` or `nano-banana-pro`.
+- `banana-2`: Gemini 3.1 Flash image generation, commonly `gemini-3.1-flash-image-preview`.
+- `gpt-image2`: OpenAI Images-compatible generation/editing, commonly `gpt-image-2`; supports multi-image editing and strict size/ratio handling.
+- `GrokImage`: uses OpenAI Images-compatible `/v1/images/generations` and `/v1/images/edits`.
+
+RunningHub image format:
+
+```text
+POST /openapi/v2/{model}/text-to-image
+POST /openapi/v2/{model}/image-to-image
+POST /openapi/v2/media/upload/binary
+POST /openapi/v2/query
+```
+
+### Sound and Suno Nodes
+
+Files:
+
+- `nodes_sound_generator.py`
+- `nodes_suno_direct.py`
+- `nodes/Utils/audio_upload.py`
+
+LLAI Suno format:
+
+```text
+POST /suno/submit/music
+GET  /suno/fetch/{task_id}
+```
+
+Description-mode payload uses fields like:
+
+```json
 {
-  "model": "sora-2" | "veo3.1",
-  "prompt": "...",
-  "images": ["url1", "url2"],  // optional
-  "duration": 10 | 15 | 25,
-  "orientation": "portrait" | "landscape",
-  "aspect_ratio": "16:9" | "9:16"
+  "model": "suno_music_open",
+  "gpt_description_prompt": "song description",
+  "mv": "chirp-crow",
+  "prompt": "",
+  "make_instrumental": true
 }
-→ {"id": "task_id", "status": "pending"}
-
-GET /v1/video/query?task_id={id}
-→ {"id": "...", "status": "completed", "video_url": "..."}
 ```
 
-### Image Generation (Nano Banana)
-```
-POST /v1/images/generate
+Custom-lyrics payload uses fields like:
+
+```json
 {
-  "model": "gemini-3-pro-image-preview" | "gemini-2.5-flash-image",
-  "prompt": "...",
-  "generationConfig": {
-    "seed": 12345,  // INT32, 0 = random
-    "temperature": 1.0,
-    "imageConfig": {
-      "aspectRatio": "1:1",
-      "imageSize": "2K"  // only for gemini-3-pro
-    }
-  },
-  "systemInstruction": "...",  // optional
-  "useSearch": true,  // only for gemini-3-pro
-  "referenceImages": ["url1", "url2"]
-}
-→ {"image_url": "...", "thinking": "...", "grounding_sources": "..."}
-
-POST /v1/chat/images  // Multi-turn chat
-{
-  "model": "...",
-  "messages": [
-    {"role": "user", "content": "...", "image_url": "..."},
-    {"role": "assistant", "content": "...", "image_url": "..."}
-  ],
-  "generationConfig": {...}
+  "model": "suno_music_open",
+  "prompt": "lyrics or full creation prompt",
+  "mv": "chirp-crow",
+  "title": "song title",
+  "tags": "pop, electronic"
 }
 ```
 
-### Utilities
-```
-POST /v1/upload  // Image upload
-Content-Type: multipart/form-data
-→ {"url": "..."}
+Version map:
 
-POST /v1/chat/completions  // AI text generation
-{
-  "model": "deepseek-v3.2-exp",
-  "messages": [{"role": "system", "content": "..."}, ...]
-}
-```
-
-## Complete Node Creation Workflow (10 Steps)
-
-When creating new image generation or video generation nodes, follow this comprehensive workflow to ensure proper integration with CSV batch processing and the plugin ecosystem.
-
-### Workflow Overview
-
-1. **Plan the Node** - Define purpose, API, CSV compatibility, category
-2. **Create Node Implementation** - Write the core generation node
-3. **Register the Node** - Add to category's `__init__.py`
-4. **Update Frontend Panel** - Add category to quick panel (if new)
-5. **Create Documentation** - Write detailed usage guide
-6. **Create Test File** - Write comprehensive test suite
-7. **Run Tests** - Verify registration, execution, CSV compatibility
-8. **Verify Integration** - Test in ComfyUI UI
-9. **Create CSV Batch Processor** - Add batch processing support (for generation nodes)
-   - 9.1: Create batch processor node
-   - 9.2: Register batch processor
-   - 9.3: Create sample CSV files (3+)
-   - 9.4: Create CSV usage guide
-   - 9.5: Create batch processor tests
-   - 9.6: Test batch processing
-10. **Update Main Documentation** - Update README and guides
-
-**Note**: Step 9 (CSV Batch Processor) applies to image/video generation nodes. Skip for utility nodes.
-
----
-
-### Step 1: Plan the Node
-
-Before coding, determine:
-- **Node purpose**: Image generation, video generation, or utility
-- **API endpoint**: Which kuai.host API will be used
-- **CSV compatibility**: What parameters should be configurable via CSV
-- **Category**: Which category folder (Sora2, Veo3, NanoBanana, Utils, or new category)
-
-### Step 2: Create Node Implementation
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/nodes/CategoryName/node_name.py`
-
-**Template for Image/Video Generation Node**:
-```python
-"""节点名称 - 简短描述"""
-
-import os
-import requests
-from ..Sora2.kuai_utils import env_or, http_headers_json, raise_for_bad_status
-
-class MyGenerationNode:
-    """节点类文档字符串"""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "生成提示词"
-                }),
-                "model_name": (["model-1", "model-2"], {
-                    "default": "model-1",
-                    "tooltip": "选择模型"
-                }),
-                "api_key": ("STRING", {
-                    "default": "",
-                    "tooltip": "API密钥（留空使用环境变量 KUAI_API_KEY）"
-                }),
-            },
-            "optional": {
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 2147483647,
-                    "tooltip": "随机种子（0为随机）"
-                }),
-                "system_prompt": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "tooltip": "系统提示词（可选）"
-                }),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        """中文标签"""
-        return {
-            "prompt": "提示词",
-            "model_name": "模型名称",
-            "api_key": "API密钥",
-            "seed": "随机种子",
-            "system_prompt": "系统提示词"
-        }
-
-    RETURN_TYPES = ("IMAGE", "STRING")
-    RETURN_NAMES = ("图像", "元数据")
-    FUNCTION = "generate"
-    CATEGORY = "🍐LLAI/CategoryName"
-
-    def generate(self, prompt, model_name, api_key="", seed=0, system_prompt=""):
-        """执行生成"""
-        # 1. 解析 API key
-        api_key = env_or(api_key, "KUAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("API Key 未配置，请在节点参数或环境变量中设置")
-
-        # 2. 构建请求
-        api_base = "https://api.kuai.host"
-        headers = http_headers_json(api_key)
-
-        payload = {
-            "model": model_name,
-            "prompt": prompt,
-            "seed": seed if seed > 0 else None,
-        }
-
-        if system_prompt:
-            payload["systemInstruction"] = system_prompt
-
-        # 3. 调用 API
-        try:
-            resp = requests.post(
-                f"{api_base}/v1/images/generate",
-                json=payload,
-                headers=headers,
-                timeout=120
-            )
-            raise_for_bad_status(resp, "图像生成失败")
-
-            result = resp.json()
-            image_url = result.get("image_url")
-
-            # 4. 下载图像并转换为 ComfyUI IMAGE 格式
-            # ... (实现图像下载和转换逻辑)
-
-            return (image_tensor, metadata_json)
-
-        except Exception as e:
-            raise RuntimeError(f"生成失败: {str(e)}")
+```text
+V3    -> chirp-v3.0
+V3.5  -> chirp-v3.5
+V4    -> chirp-v4
+V4.5  -> chirp-auk
+V4.5+ -> chirp-bluejay
+V5    -> chirp-crow
+V5.5  -> chirp-fenix
 ```
 
-**CSV Batch Processing Support**:
-For nodes that should support CSV batch processing, ensure all configurable parameters are exposed in `INPUT_TYPES` and can be serialized to/from CSV format.
+RunningHub Suno format:
 
-### Step 3: Register the Node
+```text
+POST /openapi/v2/rhart-audio/suno-v5.5/single
+POST /openapi/v2/rhart-audio/suno-v5.5/custom
+POST /openapi/v2/query
+```
 
-**Location**: `/workspaces/ComfyUI_LLAI_API/nodes/CategoryName/__init__.py`
+### Text and Multimodal Understanding Nodes
+
+Files:
+
+- `nodes_text_generator.py`
+- `nodes/Sora2/script_generator.py`
+- `nodes/Gemini/gemini_understanding.py`
+- `nodes/Utils/deepseek_ocr.py`
+
+Supported paths:
+
+```text
+POST /v1beta/models/{model}:generateContent
+POST /v1/chat/completions
+```
+
+Platform behavior:
+
+- `GeminiText`: supports text, image, video, and audio inputs through `v1beta/models`.
+- `OpenaiText`: supports OpenAI chat-compatible text/image messages through `v1/chat/completions`.
+- `runninghub-/v1`: forces base URL to `https://llm.runninghub.ai/` and uses `/v1/chat/completions`.
+- DeepSeek OCR and Sora prompt generation use chat-completions style requests.
+
+### WAN and Kling Nodes
+
+Files:
+
+- `nodes/WAN/wan.py`
+- `nodes/Kling/kling.py`
+- `nodes/Kling/batch_processor.py`
+
+WAN paths:
+
+```text
+POST /alibailian/api/v1/services/aigc/video-generation/video-synthesis
+GET  /alibailian/api/v1/tasks/{task_id}
+```
+
+Kling nodes use the helpers in `nodes/Kling/kling_utils.py`. Before changing Kling behavior, inspect that helper file and the concrete node payloads together.
+
+### Utility and Batch Nodes
+
+Files:
+
+- `nodes/Utils/csv_reader.py`
+- `nodes/Utils/batch_state.py`
+- `nodes/Utils/batch_logger.py`
+- `nodes/Utils/batch_process_logger.py`
+- `nodes/Utils/batch_monitor.py`
+- `nodes/Utils/realtime_monitor.py`
+- `nodes/Utils/image_upload.py`
+- `nodes/Utils/audio_upload.py`
+- `nodes/Utils/video_download.py`
+- `nodes/Utils/image_urls_to_batch.py`
+- `nodes/Grok/*batch*.py`
+- `nodes/Veo3/*batch*.py`
+- `nodes/Sora2/batch_processor.py`
+- `nodes/NanoBanana/batch_processor.py`
+
+Batch processors usually parse JSON task lists emitted by CSV/helper nodes, submit tasks one by one or concurrently, optionally poll, optionally download output media, and write task metadata/report files.
+
+Do not change CSV column names casually. Existing workflows depend on names like:
+
+```text
+prompt
+image_url
+image_urls
+image_path
+model
+ratio
+size
+duration
+output_prefix
+custom_model
+```
+
+## Response Parsing Rules
+
+LLAI and compatible providers may wrap responses differently. Keep parsing flexible.
+
+Task IDs may appear in:
+
+```text
+task_id
+id
+request_id
+taskId
+data
+data.id
+data.task_id
+data.taskId
+```
+
+Status may appear in:
+
+```text
+status
+state
+data.status
+data.state
+```
+
+Media URLs may appear in:
+
+```text
+url
+image_url
+audio_url
+video_url
+download_url
+output_url
+file_url
+output
+data.url
+data.output
+results[]
+images[]
+clips[]
+```
+
+Failure reasons may appear in:
+
+```text
+fail_reason
+failReason
+last_error
+message
+error.message
+errorMessage
+failedReason
+```
+
+When adding a new model integration, prefer helper methods that unwrap nested `data` objects and support these alternate fields.
+
+## Async Task Pattern
+
+For video/audio APIs and other async endpoints, keep submit, query, and poll logic separate:
 
 ```python
-"""CategoryName 节点集合"""
+def _submit_xxx(...):
+    # POST create endpoint, return task_id and request payload
 
-from .node_name import MyGenerationNode
+def _query_xxx(...):
+    # GET/POST query endpoint, return status, media_url, raw payload
 
-NODE_CLASS_MAPPINGS = {
-    "MyGenerationNode": MyGenerationNode,
-}
-
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "MyGenerationNode": "🎨 My Generation Node",
-}
+def _poll(...):
+    # loop until success/fail/timeout, with bounded retry handling
 ```
 
-**Emoji Conventions**:
-- 🎬 Video generation (Sora2)
-- 🚀 Video generation (Veo3)
-- 🍌 Image generation (Nano Banana)
-- 🎨 Image generation (other)
-- 📦 Batch processing
-- 🔍 Query/status
-- ⚡ One-click/convenience
-- 🛠️ Utilities
-- 📝 Script/text generation
+Terminal success words commonly include:
 
-### Step 4: Update Frontend Panel (if new category)
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/web/kuaipower_panel.js`
-
-If you created a **new category**, add it to the `categoryNameMap` (line 7-15):
-
-```javascript
-const categoryNameMap = {
-  "ScriptGenerator": "📝 脚本生成",
-  "Sora2": "🎬 Sora2 视频生成",
-  "Veo3": "🚀 Veo3.1 视频生成",
-  "NanoBanana": "🍌 Nano Banana 图像生成",
-  "Utils": "🛠️ 工具节点",
-  "YourNewCategory": "🎨 Your Category Name",  // ADD THIS
-};
+```text
+success
+succeed
+completed
+complete
+done
+SUCCESS
+COMPLETED
+DONE
 ```
 
-**Note**: If using an existing category, no changes needed - the panel auto-discovers nodes.
+Terminal failure words commonly include:
 
-### Step 5: Create Documentation
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/docs/NODE_NAME_GUIDE.md`
-
-**Documentation Template**:
-```markdown
-# MyGenerationNode 使用指南
-
-## 概述
-简要描述节点的功能和用途。
-
-## 参数说明
-
-### 必需参数
-- **prompt** (提示词): 描述要生成的内容
-- **model_name** (模型名称): 选择使用的模型
-  - `model-1`: 模型1的特点
-  - `model-2`: 模型2的特点
-
-### 可选参数
-- **seed** (随机种子): 0为随机，固定值可复现结果
-- **system_prompt** (系统提示词): 指导AI的整体风格和行为
-
-## 返回值
-- **图像**: 生成的图像（ComfyUI IMAGE格式）
-- **元数据**: JSON格式的生成信息
-
-## 使用示例
-
-### 基础用法
-1. 添加节点到画布
-2. 输入提示词
-3. 选择模型
-4. 执行生成
-
-### CSV批量处理
-支持通过CSV文件批量生成，CSV格式：
-\`\`\`csv
-task_type,prompt,model_name,seed,system_prompt
-generate,描述1,model-1,12345,风格指导
-generate,描述2,model-2,0,
-\`\`\`
-
-## API说明
-- **端点**: `POST /v1/images/generate`
-- **模型**: model-1, model-2
-- **超时**: 120秒
-
-## 常见问题
-1. **生成失败**: 检查API key和网络连接
-2. **结果不理想**: 调整提示词或尝试不同模型
-
-## 更新日志
-- 2025-XX-XX: 初始版本
+```text
+fail
+failed
+error
+cancel
+FAILED
+ERROR
+CANCELLED
 ```
 
-### Step 6: Create Test File
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/test/test_node_name.py`
-
-**Test Template**:
-```python
-#!/usr/bin/env python3
-"""测试 MyGenerationNode 节点"""
-
-import sys
-import os
-
-# 添加项目根目录到路径
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-def test_node_registration():
-    """测试节点注册"""
-    print("=" * 60)
-    print("测试 1: 节点注册")
-    print("=" * 60)
-
-    try:
-        from nodes.CategoryName import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
-
-        if 'MyGenerationNode' in NODE_CLASS_MAPPINGS:
-            print("✅ MyGenerationNode 已注册")
-            node_class = NODE_CLASS_MAPPINGS['MyGenerationNode']
-            print(f"   分类: {node_class.CATEGORY}")
-            print(f"   显示名称: {NODE_DISPLAY_NAME_MAPPINGS.get('MyGenerationNode')}")
-
-            # 检查必需方法
-            assert hasattr(node_class, 'INPUT_TYPES'), "缺少 INPUT_TYPES"
-            assert hasattr(node_class, 'RETURN_TYPES'), "缺少 RETURN_TYPES"
-            assert hasattr(node_class, 'FUNCTION'), "缺少 FUNCTION"
-
-            input_types = node_class.INPUT_TYPES()
-            print(f"   必需参数: {list(input_types.get('required', {}).keys())}")
-            print(f"   可选参数: {list(input_types.get('optional', {}).keys())}")
-
-            return True
-        else:
-            print("❌ MyGenerationNode 未注册")
-            return False
-
-    except Exception as e:
-        print(f"❌ 测试失败: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-def test_node_execution():
-    """测试节点执行（需要API key）"""
-    print("\n" + "=" * 60)
-    print("测试 2: 节点执行")
-    print("=" * 60)
-
-    api_key = os.environ.get("KUAI_API_KEY", "")
-    if not api_key:
-        print("⚠️  跳过执行测试（未设置 KUAI_API_KEY）")
-        print("   设置方法: export KUAI_API_KEY=your_key_here")
-        return True
-
-    try:
-        from nodes.CategoryName import NODE_CLASS_MAPPINGS
-
-        node_class = NODE_CLASS_MAPPINGS['MyGenerationNode']
-        node = node_class()
-
-        # 执行测试
-        print("🔄 执行生成测试...")
-        result = node.generate(
-            prompt="test prompt",
-            model_name="model-1",
-            api_key=api_key,
-            seed=12345
-        )
-
-        print(f"✅ 生成成功")
-        print(f"   返回类型: {type(result)}")
-        print(f"   返回值数量: {len(result)}")
-
-        return True
-
-    except Exception as e:
-        print(f"❌ 执行测试失败: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-def test_csv_compatibility():
-    """测试CSV批量处理兼容性"""
-    print("\n" + "=" * 60)
-    print("测试 3: CSV批量处理兼容性")
-    print("=" * 60)
-
-    try:
-        from nodes.CategoryName import NODE_CLASS_MAPPINGS
-
-        node_class = NODE_CLASS_MAPPINGS['MyGenerationNode']
-        input_types = node_class.INPUT_TYPES()
-
-        # 检查关键参数
-        required = input_types.get('required', {})
-        optional = input_types.get('optional', {})
-
-        csv_compatible_params = ['prompt', 'model_name', 'seed', 'system_prompt']
-        all_params = {**required, **optional}
-
-        missing = [p for p in csv_compatible_params if p not in all_params]
-
-        if missing:
-            print(f"⚠️  缺少CSV兼容参数: {missing}")
-        else:
-            print("✅ 所有CSV兼容参数都已定义")
-
-        return len(missing) == 0
-
-    except Exception as e:
-        print(f"❌ 测试失败: {e}")
-        return False
-
-if __name__ == "__main__":
-    print("\n🧪 MyGenerationNode 节点测试套件\n")
-
-    results = []
-    results.append(("节点注册", test_node_registration()))
-    results.append(("节点执行", test_node_execution()))
-    results.append(("CSV兼容性", test_csv_compatibility()))
-
-    print("\n" + "=" * 60)
-    print("测试总结")
-    print("=" * 60)
-
-    for name, passed in results:
-        status = "✅ 通过" if passed else "❌ 失败"
-        print(f"{name}: {status}")
-
-    all_passed = all(r[1] for r in results)
-    print("\n" + ("🎉 所有测试通过！" if all_passed else "⚠️  部分测试失败"))
-
-    sys.exit(0 if all_passed else 1)
-```
-
-### Step 7: Run Tests
-
-```bash
-# 1. Test node registration
-python test/test_node_name.py
-
-# 2. Test with actual API (provide API key)
-export KUAI_API_KEY=your_test_key_here
-python test/test_node_name.py
-
-# 3. Run full diagnostics
-python diagnose.py
-```
-
-### Step 8: Verify Integration
-
-1. **Restart ComfyUI** to load the new node
-2. **Check console logs** for `[ComfyUI_LLAI_API]` messages
-3. **Open quick panel** (Ctrl+Shift+K) and verify node appears in correct category
-4. **Test in UI**:
-   - Add node to canvas
-   - Configure parameters
-   - Execute and verify output
-
-### Step 9: Create CSV Batch Processor (for generation nodes)
-
-**Note**: This step applies to image/video generation nodes. Skip for utility nodes.
-
-#### 9.1: Create Batch Processor Node
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/nodes/CategoryName/batch_processor.py`
-
-**Template**:
-```python
-"""CategoryName 批量处理器"""
-
-import json
-import os
-import time
-from ..Sora2.kuai_utils import env_or
-from .node_name import MyGenerationNode
-
-class MyBatchProcessor:
-    """批量处理器"""
-
-    def __init__(self):
-        self.generator = MyGenerationNode()
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "batch_tasks": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "来自 CSV 读取器的批量任务数据"
-                }),
-                "api_key": ("STRING", {
-                    "default": "",
-                    "tooltip": "API 密钥"
-                }),
-                "output_dir": ("STRING", {
-                    "default": "./output/batch",
-                    "tooltip": "输出目录"
-                }),
-                "delay_between_tasks": ("FLOAT", {
-                    "default": 2.0,
-                    "min": 0.0,
-                    "max": 60.0,
-                    "step": 0.5,
-                    "tooltip": "任务间延迟（秒）"
-                }),
-            }
-        }
-
-    @classmethod
-    def INPUT_LABELS(cls):
-        return {
-            "batch_tasks": "批量任务",
-            "api_key": "API密钥",
-            "output_dir": "输出目录",
-            "delay_between_tasks": "任务间延迟",
-        }
-
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("处理结果", "输出目录")
-    FUNCTION = "process_batch"
-    CATEGORY = "🍐LLAI/CategoryName"
-
-    def process_batch(self, batch_tasks, api_key="", output_dir="./output/batch",
-                     delay_between_tasks=2.0):
-        """批量处理任务"""
-        try:
-            # 解析任务数据
-            tasks = json.loads(batch_tasks)
-            if not tasks:
-                raise ValueError("没有任务需要处理")
-
-            # 获取 API Key
-            api_key = env_or(api_key, "KUAI_API_KEY")
-            if not api_key:
-                raise ValueError("未配置 API Key")
-
-            # 创建输出目录
-            os.makedirs(output_dir, exist_ok=True)
-
-            # 处理结果统计
-            results = {
-                "total": len(tasks),
-                "success": 0,
-                "failed": 0,
-                "errors": [],
-                "task_ids": []
-            }
-
-            print(f"\n{'='*60}")
-            print(f"[Batch] 开始批量处理 {len(tasks)} 个任务")
-            print(f"{'='*60}\n")
-
-            # 逐个处理任务
-            for idx, task in enumerate(tasks, start=1):
-                try:
-                    print(f"\n[{idx}/{len(tasks)}] 处理任务 (行 {task.get('_row_number', '?')})")
-
-                    # 处理单个任务
-                    task_info = self._process_single_task(task, idx, api_key, output_dir)
-
-                    results["success"] += 1
-                    results["task_ids"].append(task_info)
-                    print(f"✓ 任务 {idx} 完成")
-
-                except Exception as e:
-                    results["failed"] += 1
-                    error_msg = f"任务 {idx}: {str(e)}"
-                    results["errors"].append(error_msg)
-                    print(f"✗ {error_msg}")
-
-                # 任务间延迟
-                if idx < len(tasks) and delay_between_tasks > 0:
-                    time.sleep(delay_between_tasks)
-
-            # 保存任务列表
-            tasks_file = os.path.join(output_dir, "tasks.json")
-            with open(tasks_file, 'w', encoding='utf-8') as f:
-                json.dump(results["task_ids"], f, ensure_ascii=False, indent=2)
-
-            # 生成结果报告
-            report = self._generate_report(results)
-            print(f"\n{'='*60}")
-            print(report)
-            print(f"{'='*60}\n")
-
-            return (report, output_dir)
-
-        except Exception as e:
-            error_msg = f"批量处理失败: {str(e)}"
-            print(f"[Batch] {error_msg}")
-            raise RuntimeError(error_msg)
-
-    def _process_single_task(self, task, task_idx, api_key, output_dir):
-        """处理单个任务 - 根据实际节点实现"""
-        # 解析任务参数
-        prompt = task.get("prompt", "").strip()
-        if not prompt:
-            raise ValueError("提示词不能为空")
-
-        # 调用生成器
-        result = self.generator.generate(
-            prompt=prompt,
-            api_key=api_key,
-            # ... 其他参数
-        )
-
-        # 保存结果
-        task_info = {
-            "task_id": f"task_{task_idx}",
-            "prompt": prompt,
-            "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-
-        return task_info
-
-    def _generate_report(self, results):
-        """生成处理结果报告"""
-        lines = [
-            "\n批量处理完成",
-            f"总任务数: {results['total']}",
-            f"成功: {results['success']}",
-            f"失败: {results['failed']}",
-        ]
-
-        if results['errors']:
-            lines.append("\n失败任务详情:")
-            for error in results['errors']:
-                lines.append(f"  - {error}")
-
-        return "\n".join(lines)
-
-
-NODE_CLASS_MAPPINGS = {
-    "MyBatchProcessor": MyBatchProcessor,
-}
-
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "MyBatchProcessor": "📦 My Batch Processor",
-}
-```
-
-#### 9.2: Register Batch Processor
-
-Update `nodes/CategoryName/__init__.py`:
-```python
-from .node_name import MyGenerationNode
-from .batch_processor import MyBatchProcessor
-
-NODE_CLASS_MAPPINGS = {
-    "MyGenerationNode": MyGenerationNode,
-    "MyBatchProcessor": MyBatchProcessor,
-}
-
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "MyGenerationNode": "🎨 My Generation Node",
-    "MyBatchProcessor": "📦 My Batch Processor",
-}
-```
-
-#### 9.3: Create Sample CSV Files
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/examples/category_batch_basic.csv`
-
-**Example**:
-```csv
-prompt,model_name,seed,output_prefix
-"Example prompt 1",model-1,12345,example_1
-"Example prompt 2",model-2,0,example_2
-"Example prompt 3",model-1,67890,example_3
-```
-
-Create at least 3 sample CSV files:
-1. `category_batch_basic.csv` - Basic examples
-2. `category_batch_advanced.csv` - Advanced examples with all parameters
-3. `category_batch_template.csv` - Chinese template for users to copy
-
-#### 9.4: Create CSV Usage Guide
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/examples/CATEGORY_CSV_GUIDE.md`
-
-**Template**:
-```markdown
-# CategoryName 批量处理 CSV 使用指南
-
-## CSV 格式
-
-### 必需列
-- `prompt` - 提示词
-
-### 可选列
-- `model_name` - 模型名称（默认：model-1）
-- `seed` - 随机种子（默认：0）
-- `output_prefix` - 输出前缀
-
-## 使用步骤
-
-1. 准备 CSV 文件
-2. 在 ComfyUI 中设置工作流：CSVBatchReader → MyBatchProcessor
-3. 配置参数
-4. 执行处理
-5. 查看结果
-
-## 示范文件
-
-- `category_batch_basic.csv` - 基础示例
-- `category_batch_advanced.csv` - 高级示例
-- `category_batch_template.csv` - 中文模板
-
-## 常见问题
-
-Q: CSV 文件编码问题？
-A: 确保使用 UTF-8 编码保存。
-
-Q: 提示词包含逗号怎么办？
-A: 用双引号包裹整个提示词。
-```
-
-#### 9.5: Create Batch Processor Tests
-
-**Location**: `/workspaces/ComfyUI_LLAI_API/test/test_category_batch.py`
-
-**Template**:
-```python
-#!/usr/bin/env python3
-"""测试 CategoryName 批量处理器"""
-
-import sys
-import os
-import json
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-def test_batch_processor_registration():
-    """测试批量处理器注册"""
-    print("=" * 60)
-    print("测试 1: 批量处理器注册")
-    print("=" * 60)
-
-    try:
-        from nodes.CategoryName import NODE_CLASS_MAPPINGS
-
-        if 'MyBatchProcessor' in NODE_CLASS_MAPPINGS:
-            print("✅ MyBatchProcessor 已注册")
-            return True
-        else:
-            print("❌ MyBatchProcessor 未注册")
-            return False
-
-    except Exception as e:
-        print(f"❌ 测试失败: {e}")
-        return False
-
-def test_batch_processing_with_api():
-    """测试批量处理（实际 API）"""
-    print("\n" + "=" * 60)
-    print("测试 2: 批量处理（实际 API）")
-    print("=" * 60)
-
-    api_key = os.environ.get("KUAI_API_KEY", "")
-    if not api_key:
-        print("⚠️  跳过执行测试（未设置 KUAI_API_KEY）")
-        return True
-
-    try:
-        from nodes.CategoryName import NODE_CLASS_MAPPINGS
-
-        node = NODE_CLASS_MAPPINGS['MyBatchProcessor']()
-
-        # 创建测试任务
-        mock_tasks = [
-            {
-                "_row_number": 2,
-                "prompt": "Test prompt 1",
-                "output_prefix": "test_1"
-            },
-            {
-                "_row_number": 3,
-                "prompt": "Test prompt 2",
-                "output_prefix": "test_2"
-            }
-        ]
-
-        batch_tasks_json = json.dumps(mock_tasks)
-
-        print("🔄 执行批量处理测试...")
-        result, output_dir = node.process_batch(
-            batch_tasks=batch_tasks_json,
-            api_key=api_key,
-            output_dir="./test_output/batch",
-            delay_between_tasks=1.0
-        )
-
-        print(f"✅ 批量处理成功")
-        print(f"   输出目录: {output_dir}")
-
-        return True
-
-    except Exception as e:
-        print(f"❌ 执行测试失败: {e}")
-        return False
-
-if __name__ == "__main__":
-    print("\n🧪 CategoryName 批量处理器测试套件\n")
-
-    results = []
-    results.append(("批量处理器注册", test_batch_processor_registration()))
-    results.append(("批量处理实际 API", test_batch_processing_with_api()))
-
-    print("\n" + "=" * 60)
-    print("测试总结")
-    print("=" * 60)
-
-    for name, passed in results:
-        status = "✅ 通过" if passed else "❌ 失败"
-        print(f"{name}: {status}")
-
-    all_passed = all(r[1] for r in results)
-    print("\n" + ("🎉 所有测试通过！" if all_passed else "⚠️  部分测试失败"))
-
-    sys.exit(0 if all_passed else 1)
-```
-
-#### 9.6: Test Batch Processing
-
-```bash
-# Run batch processor tests
-KUAI_API_KEY=your_key_here python test/test_category_batch.py
-
-# Verify CSV files
-ls -lh examples/category_*.csv
-
-# Check CSV guide
-cat examples/CATEGORY_CSV_GUIDE.md
-```
-
-### Step 10: Update Main Documentation
-
-Add node information to:
-- `/workspaces/ComfyUI_LLAI_API/README.md` - User-facing documentation
-- `/workspaces/ComfyUI_LLAI_API/AGENTS.md` - This file (if architectural changes)
-- Update main node guide to include batch processor information
-
-### Checklist for New Nodes
-
-Before considering a node complete, verify:
-
-#### Core Node (Steps 1-8)
-- [ ] Node file created in correct `nodes/CategoryName/` directory
-- [ ] Node class implements all required methods (INPUT_TYPES, RETURN_TYPES, FUNCTION, CATEGORY)
-- [ ] Chinese labels provided via INPUT_LABELS
-- [ ] Node registered in category's `__init__.py`
-- [ ] Display name uses appropriate emoji prefix
-- [ ] Frontend panel updated (if new category)
-- [ ] Documentation created in `docs/`
-- [ ] Test file created in `test/`
-- [ ] Tests pass (registration, execution, CSV compatibility)
-- [ ] Node appears in ComfyUI UI quick panel
-- [ ] Node executes successfully in ComfyUI
-- [ ] Error messages are user-friendly and in Chinese
-- [ ] Logging uses `[ComfyUI_LLAI_API]` prefix
-
-#### CSV Batch Processing (Step 9 - for generation nodes)
-- [ ] Batch processor node created (`batch_processor.py`)
-- [ ] Batch processor registered in `__init__.py`
-- [ ] At least 3 sample CSV files created in `examples/`
-  - [ ] `category_batch_basic.csv` - Basic examples
-  - [ ] `category_batch_advanced.csv` - Advanced examples (optional)
-  - [ ] `category_batch_template.csv` - Chinese template
-- [ ] CSV usage guide created (`examples/CATEGORY_CSV_GUIDE.md`)
-- [ ] Batch processor test file created (`test/test_category_batch.py`)
-- [ ] Batch processor tests pass (registration, API execution)
-- [ ] CSV files use UTF-8 encoding
-- [ ] CSV format documented with all columns explained
-- [ ] Batch processor appears in ComfyUI UI
-- [ ] Batch processing works with CSVBatchReader node
-
-#### Documentation (Step 10)
-- [ ] Main documentation updated (`README.md`)
-- [ ] AGENTS.md updated (if architectural changes)
-- [ ] Node guide includes batch processor information
-- [ ] Examples directory has README.md explaining CSV files
-
-### Common Patterns for CSV Batch Processing
-
-To make a node CSV-compatible, ensure:
-
-1. **All configurable parameters** are in INPUT_TYPES (not hardcoded)
-2. **Parameter names** match CSV column names
-3. **Default values** are sensible for batch processing
-4. **Optional parameters** have clear defaults
-5. **Image inputs** support file paths (for batch processing)
-
-Example CSV-compatible parameter structure:
-```python
-"required": {
-    "prompt": ("STRING", {"default": ""}),
-    "model_name": (["model-1", "model-2"], {"default": "model-1"}),
-},
-"optional": {
-    "seed": ("INT", {"default": 0, "min": 0, "max": 2147483647}),
-    "system_prompt": ("STRING", {"default": ""}),
-    "image_1": ("IMAGE", {}),  # Optional reference image
-    "output_prefix": ("STRING", {"default": "output"}),
-}
-```
-
-### Testing with User-Provided API Key
-
-When user provides a test API key:
-
-```bash
-# Set API key for testing
-export KUAI_API_KEY=user_provided_key
-
-# Run comprehensive tests
-python test/test_node_name.py
-
-# Test actual generation
-python -c "
-from nodes.CategoryName import NODE_CLASS_MAPPINGS
-node = NODE_CLASS_MAPPINGS['MyGenerationNode']()
-result = node.generate(
-    prompt='test image',
-    model_name='model-1',
-    api_key='$KUAI_API_KEY'
-)
-print('Success:', result)
-"
-```
-
-This workflow ensures consistent, high-quality node development with proper testing, documentation, and integration.
-
-## Important Patterns
-
-### Error Handling
-```python
-# Unified error handling for API responses
-def raise_for_bad_status(resp: requests.Response, context: str = ""):
-    if resp.status_code >= 400:
-        try:
-            err_data = resp.json()
-            msg = err_data.get("error", {}).get("message", resp.text)
-        except:
-            msg = resp.text
-        raise RuntimeError(f"{context}: HTTP {resp.status_code} - {msg}")
-```
-
-### API Key Resolution
-```python
-# Priority: node parameter > environment variable
-api_key = env_or(api_key_param, "KUAI_API_KEY")
-if not api_key:
-    raise RuntimeError("API Key 未配置")
-```
-
-### Model-Specific Configuration
-```python
-# Different models have different capabilities
-if model_name == "gemini-3-pro-image-preview":
-    # Supports imageSize and useSearch
-    config["imageConfig"]["imageSize"] = image_size
-    config["useSearch"] = use_search
-elif model_name == "gemini-2.5-flash-image":
-    # Faster, cheaper, no imageSize/search support
-    pass
-```
-
-### CSV Batch Processing
-The batch processor supports two modes:
-- **Upload mode**: Read from `ComfyUI/input/` directory (dropdown selection)
-- **Path mode**: Direct file path input (cross-platform)
-
-CSV columns: `task_type`, `prompt`, `system_prompt`, `model_name`, `seed`, `aspect_ratio`, `image_size`, `temperature`, `use_search`, `image_1`-`image_6`, `output_prefix`
+## Image and Media Handling
+
+Common conversions:
+
+- ComfyUI image tensors are converted through `utils.tensor2pil` or category-local helpers.
+- OpenAI-compatible image edits usually upload multipart `image[]` fields.
+- Gemini-compatible image/video/audio understanding usually uses inline base64 in `inline_data`.
+- Some video APIs accept `data:image/png;base64,...`; others expect uploaded URLs or multipart files. Match the existing node path before changing payload shape.
+- Downloaded images should be converted back to ComfyUI IMAGE tensors.
+- Downloaded video/audio should use ComfyUI-compatible video/audio wrappers already used in the repository.
 
 ## Frontend Extensions
 
-Located in `web/`:
-- `kuaipower_panel.js`: Quick access panel (Ctrl+Shift+K)
-- `video_preview.js`: Video preview widget
+Frontend files:
 
-## Common Issues
+```text
+js/relay_api_settings.js
+js/relay_video_generator.js
+js/relay_image_generator.js
+js/relay_sound_generator.js
+js/relay_text_generator.js
+js/relay_api_notice.js
+web/kuaipower_panel.js
+web/video_preview.js
+web/realtime_monitor.js
+web/llai_api_badge.js
+```
 
-### Nodes Not Showing
-1. Check dependencies: `pip install -r requirements.txt`
-2. Run diagnostics: `python diagnose.py`
-3. Check ComfyUI console for `[ComfyUI_LLAI_API]` logs
-4. Verify node structure (INPUT_TYPES, RETURN_TYPES, FUNCTION, CATEGORY)
+The `js/relay_*.js` filenames and extension IDs are compatibility artifacts. New visible text should say LLAI/llaiapi/llai. If renaming frontend files or ComfyUI class names, update:
 
-### API Failures
-1. Verify API key: `echo $KUAI_API_KEY`
-2. Test connectivity: `curl -H "Authorization: Bearer $KUAI_API_KEY" https://api.kuai.host/v1/models`
-3. Check timeout settings in config.py
+- root `__init__.py`
+- `NODE_CLASS_MAPPINGS`
+- `NODE_DISPLAY_NAME_MAPPINGS`
+- JavaScript `node.comfyClass` checks
+- local API routes in `config.py`
+- saved workflow compatibility expectations
 
-### Image Upload Issues
-- Supported formats: JPEG, PNG, WebP
-- Adjust quality parameter (80-90 recommended)
-- Check file size limits
+Local settings routes currently use `/relayapi/...` for compatibility. Do not change the route prefix unless you also update every frontend caller and consider migration for users.
 
-## Resources
+## Adding or Removing Features
 
-- **API Service**: https://api.kuai.host/register?aff=z2C8
-- **Video Tutorial**: https://www.bilibili.com/video/BV1umCjBqEpt/
-- **Detailed Docs**: See README.md and docs/ directory
+Before adding a model, platform, or endpoint:
+
+1. Inspect the closest existing node implementation.
+2. Add or update config first: `DEFAULT_MODELS`, `FORMAT_MODELS`, `TASK_PLATFORMS`, relevant `*_API_FORMATS`, and `API_PATHS`.
+3. Implement node logic in the local style for that task type.
+4. Keep API base defaults pointed at `https://api.llaiapi.host/` unless the selected format is explicitly RunningHub.
+5. Add flexible parsing for task IDs, statuses, media URLs, and error messages.
+6. Preserve saved workflow compatibility when changing node class names, input names, or widget order.
+7. Update docs/examples/workflows that mention the changed node or endpoint.
+8. Run syntax checks for touched Python and JavaScript files.
+
+Before removing an old feature:
+
+1. Search for the class name, display name, endpoint, model, and CSV columns with `rg`.
+2. Check workflows, examples, docs, frontend `node.comfyClass` checks, and batch processors.
+3. Remove or deprecate in a coordinated way. Do not leave config dropdowns pointing at removed code paths.
+4. If removal breaks saved workflows, prefer leaving a small compatibility wrapper that raises a clear Chinese error or forwards to the new node.
+
+## Testing and Diagnostics
+
+Useful checks:
+
+```powershell
+python diagnose.py
+python test/test_labels.py
+python test/test_csv_nodes.py
+python test/test_grok_nodes.py
+python test/test_gpt_image_nodes.py
+python -m py_compile .\config.py .\__init__.py .\nodes_video_generator.py .\nodes_image_generator.py .\nodes_sound_generator.py .\nodes_text_generator.py
+node --check .\js\relay_api_settings.js
+node --check .\js\relay_video_generator.js
+node --check .\js\relay_image_generator.js
+node --check .\js\relay_sound_generator.js
+node --check .\js\relay_text_generator.js
+```
+
+ComfyUI must be restarted to reload Python node changes. Watch the ComfyUI console and log for this plugin's messages. Existing logs may still use old compatibility prefixes; new user-facing logs should prefer `[LLAI]` or `[ComfyUI_LLAI_API]`.
+
+Common failure interpretation:
+
+- `API key not found`: API settings did not pass a key downstream or the per-node key was masked and not stored.
+- `401 Unauthorized`: wrong key, expired key, missing model permission, or wrong base URL.
+- `200` with HTML/non-JSON: wrong endpoint path or wrong `api_format` for the selected base.
+- task ID exists but no output: query parser does not match returned response shape, or async task failed after submission.
+- node missing after restart: import error; run `python -m py_compile` and check ComfyUI logs.
+
+## Documentation Rules
+
+When updating docs:
+
+- Use `https://api.llaiapi.host/` as the primary LLAI base.
+- Mention RunningHub bases only for RunningHub-specific formats.
+- Avoid new user-facing RelayAPI/Relay brand wording.
+- Keep code identifiers exact when documenting compatibility behavior.
+- Keep Chinese UI labels and examples accurate for the current node inputs.
+- Update README, docs, examples, and workflow notes when changing public node behavior.

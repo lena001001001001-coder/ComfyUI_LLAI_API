@@ -1,32 +1,32 @@
-import { app } from "../../scripts/app.js";
+﻿import { app } from "../../scripts/app.js";
 
 app.registerExtension({
   name: "KuAi.Panel",
   async setup() {
-    // 分类中文映射
+    // 鍒嗙被涓枃鏄犲皠
     const categoryNameMap = {
-      "ScriptGenerator": "📝 脚本生成",
-      "Sora2": "🎬 Sora2 视频生成",
-      "Veo3": "🚀 Veo3.1 视频生成",
-      "Grok": "🍓 Grok 视频生成",
-      "Kling": "🎞️ 可灵视频生成",
-      "WAN": "💎 WAN 视频生成",
-      "Gemini": "🔍 Gemini 理解",
-      "NanoBanana": "🍌 Nano Banana 图像生成",
-      "GPTImage": "🍐 GPT 图像生成",
-      "GrokImage": "🍐 Grok Image 图像生成",
-      "Utils": "🛠️ 工具节点",
-      "Product": "📝 产品管理",
-      "配套能力": "🛠️ 配套能力",
+      "ScriptGenerator": "馃摑 鑴氭湰鐢熸垚",
+      "Sora2": "馃幀 Sora2 瑙嗛鐢熸垚",
+      "Veo3": "馃殌 Veo3.1 瑙嗛鐢熸垚",
+      "Grok": "馃崜 Grok 瑙嗛鐢熸垚",
+      "Kling": "馃帪锔?鍙伒瑙嗛鐢熸垚",
+      "WAN": "馃拵 WAN 瑙嗛鐢熸垚",
+      "Gemini": "馃攳 Gemini 鐞嗚В",
+      "NanoBanana": "馃崒 Nano Banana 鍥惧儚鐢熸垚",
+      "GPTImage": "馃崘 GPT 鍥惧儚鐢熸垚",
+      "GrokImage": "馃崘 Grok Image 鍥惧儚鐢熸垚",
+      "Utils": "馃洜锔?宸ュ叿鑺傜偣",
+      "Product": "馃摑 浜у搧绠＄悊",
+      "閰嶅鑳藉姏": "馃洜锔?閰嶅鑳藉姏",
     };
 
-    // 自动发现节点
+    // 鑷姩鍙戠幇鑺傜偣
     const discoverNodes = () => {
       const categories = {};
 
       for (const [nodeType, nodeClass] of Object.entries(LiteGraph.registered_node_types)) {
         const category = nodeClass.category;
-        if (category && (category.startsWith("🍐LLAI/") || category.toLowerCase().startsWith("llai/") || category.toLowerCase().startsWith("kuaipower/"))) {
+        if (category && (category.startsWith("馃崘LLAI/") || category.toLowerCase().startsWith("llai/") || category.toLowerCase().startsWith("kuaipower/"))) {
           const categoryName = category.split("/")[1];
           const displayCategory = categoryNameMap[categoryName] || categoryName;
 
@@ -46,7 +46,7 @@ app.registerExtension({
       return categories;
     };
 
-    // 防抖函数
+    // 闃叉姈鍑芥暟
     const debounce = (func, wait) => {
       let timeout;
       return function executedFunction(...args) {
@@ -59,15 +59,14 @@ app.registerExtension({
       };
     };
 
-    // 注册左侧侧边栏按钮
-    app.extensionManager.registerSidebarTab({
+    // 娉ㄥ唽宸︿晶渚ц竟鏍忔寜閽?    app.extensionManager.registerSidebarTab({
       id: "kuaipower-panel",
       icon: "pi pi-cog",
-      title: "LLAI_API 节点",
-      tooltip: "快捷键：Ctrl + Shift + K",
+      title: "LLAI_API 鑺傜偣",
+      tooltip: "蹇嵎閿細Ctrl + Shift + K",
       type: "custom",
       render: (el) => {
-        // 容器样式
+        // 瀹瑰櫒鏍峰紡
         el.style.cssText = `
           padding: 12px;
           background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
@@ -78,8 +77,7 @@ app.registerExtension({
           box-sizing: border-box;
         `;
 
-        // 标题栏
-        const header = document.createElement("div");
+        // 鏍囬鏍?        const header = document.createElement("div");
         header.style.cssText = `
           display: flex;
           justify-content: space-between;
@@ -89,19 +87,18 @@ app.registerExtension({
           border-bottom: 2px solid #4a9eff;
         `;
         header.innerHTML = `
-          <span style="font-size:16px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3);">🔧 LLAI_API</span>
-          <button id="kuai-close" style="background:none;border:none;color:#888;cursor:pointer;font-size:20px;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">×</button>
+          <span style="font-size:16px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3);">馃敡 LLAI_API</span>
+          <button id="kuai-close" style="background:none;border:none;color:#888;cursor:pointer;font-size:20px;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#888'">脳</button>
         `;
         el.appendChild(header);
 
-        // 搜索框
-        const searchContainer = document.createElement("div");
+        // 鎼滅储妗?        const searchContainer = document.createElement("div");
         searchContainer.style.cssText = "margin-bottom:12px;position:relative;";
         searchContainer.innerHTML = `
           <input 
             id="kuai-search" 
             type="text" 
-            placeholder="🔍 搜索节点..." 
+            placeholder="馃攳 鎼滅储鑺傜偣..." 
             style="
               width:100%;
               padding:8px 32px 8px 10px;
@@ -126,29 +123,28 @@ app.registerExtension({
             font-size:16px;
             display:none;
             transition:color 0.2s;
-          " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#666'">×</span>
+          " onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#666'">脳</span>
         `;
         el.appendChild(searchContainer);
 
         const searchInput = searchContainer.querySelector("#kuai-search");
         const clearBtn = searchContainer.querySelector("#kuai-clear");
 
-        // 快捷键提示
-        const shortcutNote = document.createElement("div");
-        shortcutNote.textContent = "快捷键：Ctrl + Shift + K";
+        // 蹇嵎閿彁绀?        const shortcutNote = document.createElement("div");
+        shortcutNote.textContent = "蹇嵎閿細Ctrl + Shift + K";
         shortcutNote.style.cssText = "color:#666;font-size:11px;margin-bottom:10px;text-align:center;";
         el.appendChild(shortcutNote);
 
-        // 节点容器
+        // 鑺傜偣瀹瑰櫒
         const nodesContainer = document.createElement("div");
         nodesContainer.id = "kuai-nodes-container";
         el.appendChild(nodesContainer);
 
-        // 自动发现节点
+        // 鑷姩鍙戠幇鑺傜偣
         const allNodes = discoverNodes();
         let currentFilter = "";
 
-        // 渲染节点列表
+        // 娓叉煋鑺傜偣鍒楄〃
         const renderNodes = (filter = "") => {
           nodesContainer.innerHTML = "";
           let hasResults = false;
@@ -168,7 +164,7 @@ app.registerExtension({
             categoryDiv.style.marginBottom = "8px";
 
             const title = document.createElement("div");
-            title.textContent = `${filter ? '▼' : '▶'} ${category} (${filteredItems.length})`;
+            title.textContent = `${filter ? '鈻? : '鈻?} ${category} (${filteredItems.length})`;
             title.style.cssText = `
               color: #4a9eff;
               font-size: 13px;
@@ -231,7 +227,7 @@ app.registerExtension({
                   app.canvas.selectNode(node);
                   app.graph.setDirtyCanvas(true, true);
 
-                  // 视觉反馈
+                  // 瑙嗚鍙嶉
                   btn.style.background = "#4a9eff";
                   setTimeout(() => {
                     btn.style.background = "linear-gradient(135deg, #252525 0%, #2d2d2d 100%)";
@@ -243,24 +239,21 @@ app.registerExtension({
 
             title.addEventListener("click", () => {
               if (!filter) {
-                // 关闭所有同级
-                nodesContainer.querySelectorAll(".items-container").forEach(c => {
+                // 鍏抽棴鎵€鏈夊悓绾?                nodesContainer.querySelectorAll(".items-container").forEach(c => {
                   if (c !== container) {
                     c.style.display = "none";
                     const t = c.previousSibling;
-                    // 使用更通用的正则，匹配任何 emoji 开头的分类名
-                    const catName = t.textContent.match(/^[▶▼]\s*(.+?)\s*\(/)[1].trim();
-                    t.textContent = `▶ ${catName} ${t.textContent.match(/\(\d+\)/)[0]}`;
+                    // 浣跨敤鏇撮€氱敤鐨勬鍒欙紝鍖归厤浠讳綍 emoji 寮€澶寸殑鍒嗙被鍚?                    const catName = t.textContent.match(/^[鈻垛柤]\s*(.+?)\s*\(/)[1].trim();
+                    t.textContent = `鈻?${catName} ${t.textContent.match(/\(\d+\)/)[0]}`;
                   }
                 });
-                // 切换当前
+                // 鍒囨崲褰撳墠
                 const isOpen = container.style.display === "block";
                 container.style.display = isOpen ? "none" : "block";
-                // 使用更通用的正则，匹配任何 emoji 开头的分类名
-                const catName = title.textContent.match(/^[▶▼]\s*(.+?)\s*\(/)[1].trim();
+                // 浣跨敤鏇撮€氱敤鐨勬鍒欙紝鍖归厤浠讳綍 emoji 寮€澶寸殑鍒嗙被鍚?                const catName = title.textContent.match(/^[鈻垛柤]\s*(.+?)\s*\(/)[1].trim();
                 title.textContent = isOpen
-                  ? `▶ ${catName} ${title.textContent.match(/\(\d+\)/)[0]}`
-                  : `▼ ${catName} ${title.textContent.match(/\(\d+\)/)[0]}`;
+                  ? `鈻?${catName} ${title.textContent.match(/\(\d+\)/)[0]}`
+                  : `鈻?${catName} ${title.textContent.match(/\(\d+\)/)[0]}`;
               }
             });
 
@@ -268,8 +261,7 @@ app.registerExtension({
             nodesContainer.appendChild(categoryDiv);
           });
 
-          // 无结果提示
-          if (!hasResults) {
+          // 鏃犵粨鏋滄彁绀?          if (!hasResults) {
             nodesContainer.innerHTML = `
               <div style="
                 text-align:center;
@@ -277,16 +269,16 @@ app.registerExtension({
                 color:#666;
                 font-size:13px;
               ">
-                😕 未找到匹配的节点
+                馃槙 鏈壘鍒板尮閰嶇殑鑺傜偣
               </div>
             `;
           }
         };
 
-        // 初始渲染
+        // 鍒濆娓叉煋
         renderNodes();
 
-        // 搜索功能（防抖）
+        // 鎼滅储鍔熻兘锛堥槻鎶栵級
         const handleSearch = debounce((value) => {
           currentFilter = value;
           clearBtn.style.display = value ? "block" : "none";
@@ -301,7 +293,7 @@ app.registerExtension({
           renderNodes("");
         });
 
-        // 关闭按钮
+        // 鍏抽棴鎸夐挳
         document.getElementById("kuai-close").addEventListener("click", () => {
           const sidebarButton = document.querySelector('[data-id="kuaipower-panel"]');
           if (sidebarButton) {
@@ -311,7 +303,7 @@ app.registerExtension({
       }
     });
 
-    // 快捷键切换侧边栏 (Ctrl+Shift+K)
+    // 蹇嵎閿垏鎹晶杈规爮 (Ctrl+Shift+K)
     document.addEventListener("keydown", (e) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -324,6 +316,7 @@ app.registerExtension({
       }
     });
 
-    console.log("[LLAI_API] 面板扩展已加载（增强版）");
+    console.log("[LLAI_API] 闈㈡澘鎵╁睍宸插姞杞斤紙澧炲己鐗堬級");
   }
 });
+

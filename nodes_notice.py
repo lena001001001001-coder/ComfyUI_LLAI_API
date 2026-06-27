@@ -1,13 +1,9 @@
 class RelayAPINotice:
     MESSAGE = (
-        "api_format 使用模型需要选择正确的端点名称，参考中转站的API文档\n"
-        "图片: v1beta/models || v1/chat/completions || v1/images\n"
-        "视频: v1/video || v1/videos || v2/videos\n"
-        "声音: suno/submit\n"
-        "文本: v1beta/models || v1/chat/completions\n"
-        "添加模型: 在custom_model里输入模型名称.\n"
-        "添加baseurl:在custom_api_base里输入中转站网址.\n"
-        "删除模型或baseurl: 在对应的自定义字段里输入命令 delete:xxxx.\n"
+        "[低价api地址](https://api.llaiapi.host/register?aff=SXcB)\n"
+        "[低价模型调用方法](https://my.feishu.cn/wiki/PjYZw0u8Pi0HzYkY0UgcjpjAn2b?from=from_copylink)\n"
+        "[PS/ComfyUI/插件/工作流资源免费领取](https://my.feishu.cn/wiki/WdnewJesfiwxRikq9yCcd5WcnZd?from=from_copylink)\n"
+        "[AI工具服务案例与价格](https://my.feishu.cn/wiki/OoA2wpuuyirRtTkAjw4cdNV6ntg?from=from_copylink)\n"
     )
 
     @classmethod
@@ -23,7 +19,7 @@ class RelayAPINotice:
 
     RETURN_TYPES = ()
     FUNCTION = "show"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
     def show(self, message):
         return ()

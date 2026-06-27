@@ -159,7 +159,7 @@ class RelayImageGenerator:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("image", "response", "image_url")
     FUNCTION = "generate_image"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
     def __init__(self):
         self.timeout = 300
@@ -1065,7 +1065,7 @@ class RelayGPTImage2Generator(_RelayCompleteImageGenerator):
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("image", "response", "image_url")
     FUNCTION = "generate_complete_image"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
 
 
 class RelayBanana2ImageGenerator(_RelayCompleteImageGenerator):
@@ -1084,4 +1084,4 @@ class RelayBanana2ImageGenerator(_RelayCompleteImageGenerator):
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("image", "response", "image_url")
     FUNCTION = "generate_complete_image"
-    CATEGORY = "RelayAPI"
+    CATEGORY = "ComfyUI_LLAI_API"
