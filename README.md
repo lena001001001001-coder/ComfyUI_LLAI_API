@@ -47,14 +47,7 @@ ComfyUI/custom_nodes/ComfyUI_LLAI_API/
 
 ## 默认中转站
 
-默认 base 列表以 `https://api.llaiapi.host/` 为首选，其余可用 base 包括：
-
-```text
-https://www.runninghub.cn/
-https://llm.runninghub.ai/
-https://yunwu.ai/
-https://ai.t8star.cn/
-https://api.bltcy.ai/
+默认 base 列表以 `https://api.llaiapi.host/` 
 ```
 
 用户可以在设置节点里添加自定义 base。API Key 会按节点保存，不要把真实 key 提交到仓库。
