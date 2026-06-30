@@ -186,9 +186,10 @@ app.registerExtension({
 
         await new Promise(r => setTimeout(r, 200));
 
-        node._lastPlatform = null;
-        node._lastHasImage = null;
-        applyPlatform(node, "Grok", Array.isArray(node.size) ? [...node.size] : null);
+        const initialPlatform = getPlatformFromSource(node);
+        node._lastPlatform = initialPlatform;
+        node._lastHasImage = hasImageConnected(node);
+        applyPlatform(node, initialPlatform, Array.isArray(node.size) ? [...node.size] : null);
 
         if (node.comfyClass === "RelayGrokImagineVideo") {
             const apiKeyW = node.widgets?.find(w => w.name === "api_key");

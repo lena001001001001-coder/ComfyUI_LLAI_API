@@ -21,7 +21,7 @@ try:
     TEXT_TO_CSV_NODE_CLASS_MAPPINGS = _text_to_csv_module.NODE_CLASS_MAPPINGS
     TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS = _text_to_csv_module.NODE_DISPLAY_NAME_MAPPINGS
 except Exception as exc:
-    print(f"[ComfyUI_LLAI_API] Batch Text To CSV 鑺傜偣鍔犺浇澶辫触: {exc}")
+    print(f"[ComfyUI_LLAI_API] Batch Text To CSV 节点加载失败: {exc}")
     TEXT_TO_CSV_NODE_CLASS_MAPPINGS = {}
     TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS = {}
 

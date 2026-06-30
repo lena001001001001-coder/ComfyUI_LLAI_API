@@ -122,12 +122,14 @@ function applyPlatformOnlyWidgets(node, platform) {
     for (const name of ["quality", "moderation"]) {
         const widget = node.widgets?.find(w => w.name === name);
         if (!widget) continue;
+        const shouldShow = showGptOnly
+            && !(node.comfyClass === "RelayGPTImage2Generator" && name === "moderation");
 
-        if (showGptOnly && isWidgetHidden(widget)) {
+        if (shouldShow && isWidgetHidden(widget)) {
             showWidget(widget);
             changed = true;
         }
-        if (!showGptOnly && !isWidgetHidden(widget)) {
+        if (!shouldShow && !isWidgetHidden(widget)) {
             hideWidget(widget);
             changed = true;
         }
@@ -144,7 +146,8 @@ function setWidgetValue(node, name, value) {
     return true;
 }
 
-function applyPlatform(node, platform, preferredSize) {
+function applyPlatform(node, platform, preferredSize, options = {}) {
+    const resetDefaults = !!options.resetDefaults;
     const maxImg = platform === "gpt-image2"
         ? GPT_IMAGE2_MAX_IMAGES
         : (platform === "banana-2" ? FLASH_MAX_IMAGES : PRO_MAX_IMAGES);
@@ -213,7 +216,7 @@ function applyPlatform(node, platform, preferredSize) {
         }
     }
 
-    if (platform === "gpt-image2") {
+    if (resetDefaults && platform === "gpt-image2") {
         changed = setWidgetValue(node, "size", GPT_IMAGE2_DEFAULTS.size) || changed;
         changed = setWidgetValue(node, "quality", GPT_IMAGE2_DEFAULTS.quality) || changed;
         changed = setWidgetValue(node, "moderation", GPT_IMAGE2_DEFAULTS.moderation) || changed;
@@ -238,10 +241,11 @@ app.registerExtension({
 
         await new Promise(r => setTimeout(r, 200));
 
-        node._lastPlatform = null;
-        node._lastHasImage = null;
+        const initialPlatform = getPlatformFromSource(node);
+        node._lastPlatform = initialPlatform;
+        node._lastHasImage = hasImageConnected(node);
         const initialPreferredSize = Array.isArray(node.size) ? [...node.size] : null;
-        applyPlatform(node, getPlatformFromSource(node), initialPreferredSize);
+        applyPlatform(node, initialPlatform, initialPreferredSize);
         applyDeprecatedWidgets(node, initialPreferredSize);
 
         if (node.comfyClass !== "RelayImageGenerator") {
@@ -273,13 +277,6 @@ app.registerExtension({
                 // 这种情况下必须尊重工作流里保存的 size，不做任何调整。
                 // 只有真正的"用户切平台"才把 banana-pro ↔ banana-2 的 1K 自动升到 2K。
                 // （gpt-image2 ↔ banana 之间的切换由 applyPlatform 里列表变更逻辑负责）
-                if (prevPlat !== null && plat !== "gpt-image2") {
-                    const sizeW = node.widgets?.find(w => w.name === "size");
-                    if (sizeW && sizeW.value === "1K" && sizeW.options.values.includes("2K")) {
-                        sizeW.value = "2K";
-                        app.graph.setDirtyCanvas(true);
-                    }
-                }
             }
 
             const hasImg = hasImageConnected(node);

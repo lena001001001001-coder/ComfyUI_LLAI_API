@@ -24,7 +24,7 @@ class LLAIBatchTextToCSV:
                     "STRING",
                     {
                         "multiline": True,
-                        "default": "鏆楀簳涓婂垎甯冪潃鐧姐€佽摑銆佹鑹茶姳鍗変笌鏋濆彾锛屽憟鐜颁紭闆呭鍙ょ殑鎻掔敾鍗拌姳椋庢牸銆?",
+                        "default": "暗底上分布着白、蓝、橙色花卉与枝叶，呈现优雅复古的插画印花风格。",
                     },
                 ),
                 "filename_prefix": ("STRING", {"default": ""}),
@@ -43,7 +43,7 @@ class LLAIBatchTextToCSV:
                     {
                         "multiline": False,
                         "default": "",
-                        "placeholder": "鍙～杈撳嚭鏂囦欢澶规垨 .csv 鏂囦欢璺緞",
+                        "placeholder": "可填输出文件夹或 .csv 文件路径",
                     },
                 ),
                 "custom_header": (
@@ -52,7 +52,7 @@ class LLAIBatchTextToCSV:
                         "multiline": False,
                         "default": "",
                         "hidden": True,
-                        "placeholder": "鐢ㄨ嫳鏂囬€楀彿鍒嗛殧锛屼緥濡?text",
+                        "placeholder": "用英文逗号分隔，例如 text",
                     },
                 ),
             },
@@ -61,19 +61,26 @@ class LLAIBatchTextToCSV:
     @classmethod
     def INPUT_LABELS(cls):
         return {
-            "text": "鏂囨湰",
-            "filename_prefix": "鏂囦欢鍚嶅墠缂€",
-            "output_mode": "杈撳嚭妯″紡",
-            "include_header": "鍖呭惈琛ㄥご",
-            "output_file_path": "杈撳嚭璺緞",
-            "custom_header": "鑷畾涔夎〃澶?",
+            "text": "文本",
+            "filename_prefix": "文件名前缀",
+            "output_mode": "输出模式",
+            "include_header": "包含表头",
+            "output_file_path": "输出路径",
+            "custom_header": "自定义表头",
         }
 
     RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("CSV璺緞", "CSV棰勮")
+    RETURN_NAMES = ("CSV路径", "CSV预览")
     FUNCTION = "write_csv"
     OUTPUT_NODE = True
     CATEGORY = "ComfyUI_LLAI_API"
+    DESCRIPTION = (
+        "将输入文本保存为 CSV 文件。\n\n"
+        "右侧 2 个输出接口：\n"
+        "- CSV路径：输出刚刚保存出来的 CSV 文件完整路径，可给后续节点继续读取，或用于确认文件保存位置。\n"
+        "- CSV预览：输出本次写入的 CSV 文本内容，可接到 Show Text 等文本显示节点直接预览。\n\n"
+        "如果只是想把文本保存成 CSV 文件，这两个接口都可以不连接，节点执行后会直接保存文件。"
+    )
 
     def write_csv(
         self,
@@ -105,10 +112,10 @@ class LLAIBatchTextToCSV:
 MODE_ALIASES = {
     "鍗曚釜淇濆瓨": "单个保存",
     "鎵归噺鍚堝苟淇濆瓨": "批量合并保存",
-    "single_text_single_csv": "鍗曚釜淇濆瓨",
-    "batch_text_single_csv": "鎵归噺鍚堝苟淇濆瓨",
-    "batch_single_outputs": "鍗曚釜淇濆瓨",
-    "batch_single_csv": "鎵归噺鍚堝苟淇濆瓨",
+    "single_text_single_csv": "单个保存",
+    "batch_text_single_csv": "批量合并保存",
+    "batch_single_outputs": "单个保存",
+    "batch_single_csv": "批量合并保存",
 }
 
 
