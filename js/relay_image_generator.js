@@ -6,14 +6,23 @@ const GPT_IMAGE2_MAX_IMAGES = 16;
 // Ratio lists are platform-specific.
 const IMAGE_RATIOS_BASE = ["auto", "1:1", "2:3", "3:2", "4:3", "3:4", "9:16", "16:9", "9:21", "21:9"];
 const IMAGE_RATIOS_EXTREME = ["1:4", "4:1", "1:8", "8:1"];
+const BANANA_PRO_RATIOS = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"];
 const GPT_IMAGE2_EXTRA_RATIOS = ["1:3", "3:1"];
 const BANANA2_RATIOS = IMAGE_RATIOS_BASE.concat(IMAGE_RATIOS_EXTREME);
 const GPT_IMAGE2_RATIOS = IMAGE_RATIOS_BASE.concat(GPT_IMAGE2_EXTRA_RATIOS);
 const IMAGE_RATIOS = IMAGE_RATIOS_BASE.concat(IMAGE_RATIOS_EXTREME, GPT_IMAGE2_EXTRA_RATIOS);
 const IMAGE_RATIOS_BY_PLATFORM = {
-    "banana-pro": IMAGE_RATIOS_BASE,
+    "banana-pro": BANANA_PRO_RATIOS,
     "banana-2": BANANA2_RATIOS,
     "gpt-image2": GPT_IMAGE2_RATIOS,
+};
+const MODEL_VALUES_BY_PLATFORM = {
+    "banana-pro": ["gemini-3-pro-image-preview"],
+    "banana-2": ["gemini-3.1-flash-image-preview"],
+};
+const MODEL_BY_PLATFORM = {
+    "banana-pro": "gemini-3-pro-image-preview",
+    "banana-2": "gemini-3.1-flash-image-preview",
 };
 const DEFAULT_IMAGE_SIZES = ["1K", "2K", "4K"];
 const GPT_IMAGE2_SIZES = ["1K", "2K", "4K"];
@@ -82,7 +91,10 @@ function showWidget(widget) {
 
 function getPlatformFromSource(node) {
     if (node.comfyClass === "RelayGPTImage2Generator") return "gpt-image2";
-    if (node.comfyClass === "RelayBanana2ImageGenerator") return "banana-2";
+    if (node.comfyClass === "RelayBanana2ImageGenerator") {
+        const pw = node.widgets?.find(w => w.name === "platform");
+        return pw ? pw.value : "banana-2";
+    }
 
     const infoSlot = node.inputs?.find(i => i.name === "info");
     if (!infoSlot || !infoSlot.link) return "banana-pro";
@@ -194,6 +206,23 @@ function applyPlatform(node, platform, preferredSize, options = {}) {
         }
     }
 
+    const modelW = node.widgets?.find(w => w.name === "model");
+    if (modelW) {
+        const values = MODEL_VALUES_BY_PLATFORM[platform];
+        const desired = MODEL_BY_PLATFORM[platform];
+        if (values && !sameValues(modelW.options?.values, values)) {
+            modelW.options.values = values;
+            changed = true;
+        }
+        if (desired && modelW.value !== desired) {
+            modelW.value = desired;
+            changed = true;
+        } else if (values && !values.includes(modelW.value)) {
+            modelW.value = values[0];
+            changed = true;
+        }
+    }
+
     const sizeW = node.widgets?.find(w => w.name === "size");
     if (sizeW) {
         const isGpt = platform === "gpt-image2";
@@ -255,6 +284,17 @@ app.registerExtension({
             if (formatW) {
                 formatW.options.values = [node.comfyClass === "RelayBanana2ImageGenerator" ? "v1beta/models" : "v1/images"];
                 formatW.value = formatW.options.values[0];
+            }
+            const platformW = node.widgets?.find(w => w.name === "platform");
+            if (platformW && node.comfyClass === "RelayBanana2ImageGenerator") {
+                const originalPlatformCb = platformW.callback;
+                platformW.callback = function (value) {
+                    if (originalPlatformCb) originalPlatformCb.call(this, value);
+                    const preferredSize = Array.isArray(node.size) ? [...node.size] : null;
+                    node._lastPlatform = value;
+                    applyPlatform(node, value, preferredSize);
+                    app.graph.setDirtyCanvas(true);
+                };
             }
             const apikeyW = node.widgets?.find(w => w.name === "apikey");
             if (apikeyW?.inputEl) {

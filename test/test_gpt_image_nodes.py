@@ -7,6 +7,7 @@ import io
 import json
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -235,3 +236,37 @@ def test_build_edit_image_files_rejects_empty_image_list():
 
     with pytest.raises(ValueError):
         _build_edit_image_files([])
+
+
+def test_banana2_generator_exposes_banana_pro_platform_and_model():
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    inputs = image_nodes.RelayBanana2ImageGenerator.INPUT_TYPES()
+
+    assert image_nodes.RelayBanana2ImageGenerator.PLATFORM_LIST == ["banana-2", "banana-pro"]
+    assert inputs["required"]["platform"][0] == ["banana-2", "banana-pro"]
+    assert inputs["required"]["model"][0] == ["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"]
+    assert image_nodes.IMAGE_RATIOS_BY_PLATFORM["banana-pro"] == image_nodes.BANANA_PRO_RATIOS
+    assert "4:5" in inputs["required"]["ratio"][0]
+    assert "5:4" in inputs["required"]["ratio"][0]
+
+    info = image_nodes.RelayBanana2ImageGenerator()._build_info(
+        "https://api.llaiapi.host",
+        "gemini-3-pro-image-preview",
+        "",
+        None,
+        "banana-pro",
+        "v1beta/models",
+    )
+    payload = json.loads(info)
+
+    assert payload["platform"] == "banana-pro"
+    assert payload["api_format"] == "v1beta/models"
+    assert payload["model"] == "gemini-3-pro-image-preview"

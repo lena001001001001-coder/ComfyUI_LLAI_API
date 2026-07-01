@@ -66,15 +66,16 @@ def _post_with_timing(label, session_post_kwargs):
     return resp
 
 
-# Platform-specific ratio lists. Banana-2 supports the extra tall/wide ratios.
+# Platform-specific ratio lists.
 IMAGE_RATIOS_BASE = ["auto", "1:1", "2:3", "3:2", "4:3", "3:4", "9:16", "16:9", "9:21", "21:9"]
 IMAGE_RATIOS_EXTREME = ["1:4", "4:1", "1:8", "8:1"]
 GPT_IMAGE2_EXTRA_RATIOS = ["1:3", "3:1"]
 BANANA2_RATIOS = IMAGE_RATIOS_BASE + IMAGE_RATIOS_EXTREME
+BANANA_PRO_RATIOS = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"]
 GPT_IMAGE2_RATIOS = IMAGE_RATIOS_BASE + GPT_IMAGE2_EXTRA_RATIOS
 IMAGE_RATIOS = IMAGE_RATIOS_BASE + IMAGE_RATIOS_EXTREME + GPT_IMAGE2_EXTRA_RATIOS
 IMAGE_RATIOS_BY_PLATFORM = {
-    "banana-pro": IMAGE_RATIOS_BASE,
+    "banana-pro": BANANA_PRO_RATIOS,
     "banana-2": BANANA2_RATIOS,
     "gpt-image2": GPT_IMAGE2_RATIOS,
 }
@@ -127,6 +128,10 @@ BANANA_IMAGE_TIMEOUTS = {
     "2K": 500,
     "4K": 800,
 }
+
+
+def _unique_values(values):
+    return list(dict.fromkeys(values))
 
 PRO_MAX_IMAGES = 14
 FLASH_MAX_IMAGES = 14
@@ -975,10 +980,11 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
     def _input_types(cls):
         api_base_list = get_api_base_list()
         model_list = cls.MODEL_LIST if cls.MODEL_LIST else [cls.MODEL_DEFAULT]
+        platform_list = getattr(cls, "PLATFORM_LIST", None) or [cls.PLATFORM]
 
         required = {
             "task_type": (["image"], {"default": "image"}),
-            "platform": ([cls.PLATFORM], {"default": cls.PLATFORM}),
+            "platform": (platform_list, {"default": cls.PLATFORM}),
             "api_format": ([cls.API_FORMAT], {"default": cls.API_FORMAT}),
             "api_base": (api_base_list, {"default": api_base_list[0]}),
             "model": (model_list, {"default": cls.MODEL_DEFAULT or model_list[0]}),
@@ -1009,7 +1015,7 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
             },
         }
 
-    def _build_info(self, api_base, model, apikey, unique_id):
+    def _build_info(self, api_base, model, apikey, unique_id, platform=None, api_format=None):
         base_url = (api_base or "").strip().rstrip("/") or get_current_base_url()
         plain_key = _plain_api_key(apikey)
 
@@ -1024,8 +1030,8 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
             "apikey": real_key,
             "api_base": base_url,
             "model": model or self.MODEL_DEFAULT,
-            "platform": self.PLATFORM,
-            "api_format": self.API_FORMAT,
+            "platform": platform or self.PLATFORM,
+            "api_format": api_format or self.API_FORMAT,
             "task_type": "image",
         })
 
@@ -1033,7 +1039,7 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
                                 model, apikey, prompt, ratio, size, seed,
                                 quality="medium", moderation="low",
                                 unique_id=None, **kwargs):
-        info = self._build_info(api_base, model, apikey, unique_id)
+        info = self._build_info(api_base, model, apikey, unique_id, platform, api_format)
         if not json.loads(info).get("apikey"):
             self._err("API key not found. Please set apikey on this complete image node.")
         return self.generate_image(
@@ -1072,8 +1078,9 @@ class RelayBanana2ImageGenerator(_RelayCompleteImageGenerator):
     PLATFORM = "banana-2"
     API_FORMAT = "v1beta/models"
     MODEL_DEFAULT = "gemini-3.1-flash-image-preview"
-    MODEL_LIST = _format_models(PLATFORM, API_FORMAT)
-    RATIO_LIST = BANANA2_RATIOS
+    PLATFORM_LIST = ["banana-2", "banana-pro"]
+    MODEL_LIST = _unique_values(["gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"])
+    RATIO_LIST = _unique_values(BANANA2_RATIOS + BANANA_PRO_RATIOS)
     MAX_IMAGES = FLASH_MAX_IMAGES
     INCLUDE_GPT_OPTIONS = False
 

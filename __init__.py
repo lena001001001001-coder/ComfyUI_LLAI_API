@@ -45,7 +45,7 @@ NODE_CLASS_MAPPINGS.update(TEXT_TO_CSV_NODE_CLASS_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS = {
     "RelayVideoGenerator": "LL-Grok Video",
     "RelayGPTImage2Generator": "LL-GPT-Image2 Generator",
-    "RelayBanana2ImageGenerator": "LL-Banana-2 Generator",
+    "RelayBanana2ImageGenerator": "LL-Banana-image",
     "RelayAPINotice": "LL-API Notice",
     "RelaySunoDirectPlayer": "LL-Suno Direct Player",
     "RelayLLMText": "LL-LLM Text",
