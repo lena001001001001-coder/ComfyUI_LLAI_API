@@ -76,6 +76,61 @@ def test_gpt_image_generate_interface_includes_format_and_quality():
     assert labels["quality"] == "图像质量（清晰度等级）"
 
 
+def test_gpt_image_2_c_uses_documented_sizes_and_omits_n():
+    from nodes.GPTImage.gpt_image_2_c import SIZES, build_payload, resolve_endpoint, resolve_size
+
+    assert [resolve_size(label) for label in SIZES] == [
+        "auto",
+        "1024x1024",
+        "1536x1024",
+        "1024x1536",
+        "2048x2048",
+        "2048x1152",
+        "3840x2160",
+        "2160x3840",
+    ]
+    assert build_payload("test", "1024x1024", "png", "auto") == {
+        "model": "gpt-image-2-c",
+        "prompt": "test",
+        "size": "1024x1024",
+    }
+    assert "n" not in build_payload("test", "3840x2160", "jpeg", "high")
+    assert resolve_endpoint("/v1/images/generations") == "https://api.llaiapi.host/v1/images/generations"
+
+
+def test_gpt_image_2_c_interface_matches_model_card():
+    from nodes.GPTImage import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+
+    node_class = NODE_CLASS_MAPPINGS["GPTImage2CLowCost4K"]
+    inputs = node_class.INPUT_TYPES()
+
+    assert NODE_DISPLAY_NAME_MAPPINGS["GPTImage2CLowCost4K"] == "LL-gpt-image-2-c-低价4k"
+    assert list(inputs["required"]) == ["提示词", "分辨率", "图像比例", "生成数量", "API密钥"]
+    assert inputs["required"]["分辨率"][1]["default"] == "1024x1024（1K正方形）"
+    assert inputs["required"]["生成数量"][1]["max"] == 10
+    assert inputs["optional"]["API地址"][1]["default"] == "/v1/images/generations"
+    assert inputs["optional"]["输出格式"][0] == ["png", "jpeg", "webp"]
+    assert inputs["optional"]["图像质量"][0] == ["auto", "low", "medium", "high"]
+    assert node_class.RETURN_TYPES == ("IMAGE", "STRING", "STRING")
+
+
+def test_gpt_image_2_c_rejects_prompt_over_1000_characters():
+    from nodes.GPTImage.gpt_image_2_c import GPTImage2CLowCost4K, K_PROMPT
+
+    with pytest.raises(ValueError, match="1000"):
+        GPTImage2CLowCost4K().generate(**{K_PROMPT: "a" * 1001})
+
+
+def test_extract_image_outputs_accepts_llai_url_and_base64_aliases():
+    from nodes.GPTImage.gpt_image import _extract_image_outputs
+
+    url_outputs = _extract_image_outputs({"data": {"output": {"image_url": "https://example.com/a.png"}}})
+    assert url_outputs[0]["value"] == "https://example.com/a.png"
+
+    b64_outputs = _extract_image_outputs({"images": [{"base64": "YWJj"}]}, fallback_format="jpeg")
+    assert b64_outputs[0]["value"] == "data:image/jpeg;base64,YWJj"
+
+
 def test_gpt_image_generate_includes_experimental_aspect_ratios():
     from nodes.GPTImage import NODE_CLASS_MAPPINGS
     from nodes.GPTImage.gpt_image import _resolve_size
@@ -270,3 +325,238 @@ def test_banana2_generator_exposes_banana_pro_platform_and_model():
     assert payload["platform"] == "banana-pro"
     assert payload["api_format"] == "v1beta/models"
     assert payload["model"] == "gemini-3-pro-image-preview"
+
+
+def test_gemini_generate_retries_text_only_route_until_image(monkeypatch):
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    png_b64 = base64.b64encode(_make_png_bytes()).decode("ascii")
+    responses = [
+        FakeResponse({"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": "wrong chat route"}]}}]}),
+        FakeResponse({"candidates": [{"finishReason": "STOP", "content": {"parts": [{"inlineData": {"mimeType": "image/png", "data": png_b64}}]}}]}),
+    ]
+    monkeypatch.setattr(image_nodes.requests, "post", lambda *args, **kwargs: responses.pop(0))
+    monkeypatch.setattr(image_nodes.time, "sleep", lambda _seconds: None)
+
+    class FakeProgress:
+        def update_absolute(self, _value):
+            pass
+
+    result = image_nodes.RelayImageGenerator()._gemini_generate(
+        "https://api.llaiapi.host",
+        "sk-test",
+        "gemini-3-pro-image-preview",
+        "draw a circle",
+        "1:1",
+        "1K",
+        [],
+        1,
+        FakeProgress(),
+    )
+
+    assert image_nodes.RelayImageGenerator()._response_has_image(result)
+    assert responses == []
+
+
+def test_gemini_generate_raises_after_repeated_text_only_routes(monkeypatch):
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    calls = []
+    text_only = {"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": "wrong chat route"}]}}]}
+    monkeypatch.setattr(
+        image_nodes.requests,
+        "post",
+        lambda *args, **kwargs: calls.append(1) or FakeResponse(text_only),
+    )
+    monkeypatch.setattr(image_nodes.time, "sleep", lambda _seconds: None)
+
+    class FakeProgress:
+        def update_absolute(self, _value):
+            pass
+
+    with pytest.raises(RuntimeError, match="错误路由到聊天渠道"):
+        image_nodes.RelayImageGenerator()._gemini_generate(
+            "https://api.llaiapi.host",
+            "sk-test",
+            "gemini-3-pro-image-preview",
+            "draw a circle",
+            "1:1",
+            "1K",
+            [],
+            1,
+            FakeProgress(),
+        )
+
+    assert len(calls) == image_nodes.BANANA_IMAGE_MAX_ATTEMPTS
+
+
+def test_gpt_image2_retries_http_200_without_image(monkeypatch):
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    responses = [
+        FakeResponse({"message": "channel returned no image"}),
+        FakeResponse({"data": [{"b64_json": base64.b64encode(_make_png_bytes()).decode("ascii")}]}),
+    ]
+    monkeypatch.setattr(
+        image_nodes,
+        "_post_with_timing",
+        lambda _label, _kwargs: responses.pop(0),
+    )
+    monkeypatch.setattr(image_nodes.time, "sleep", lambda _seconds: None)
+
+    class FakeProgress:
+        def update_absolute(self, _value):
+            pass
+
+    result = image_nodes.RelayImageGenerator()._gpt_image2_openai_generate(
+        "https://api.llaiapi.host",
+        "sk-test",
+        "gpt-image-2",
+        "draw a circle",
+        "1:1",
+        "1K",
+        "medium",
+        "low",
+        [],
+        1800,
+        FakeProgress(),
+    )
+
+    assert result["data"][0]["b64_json"]
+    assert responses == []
+
+
+def test_gpt_image2_retries_transient_http_errors(monkeypatch):
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    responses = [
+        FakeResponse({}, status_code=503, text="no distributor"),
+        FakeResponse({"data": [{"url": "https://example.com/result.png"}]}),
+    ]
+    monkeypatch.setattr(
+        image_nodes,
+        "_post_with_timing",
+        lambda _label, _kwargs: responses.pop(0),
+    )
+    monkeypatch.setattr(image_nodes.time, "sleep", lambda _seconds: None)
+
+    class FakeProgress:
+        def update_absolute(self, _value):
+            pass
+
+    result = image_nodes.RelayImageGenerator()._gpt_image2_openai_generate(
+        "https://api.llaiapi.host",
+        "sk-test",
+        "gpt-image-2",
+        "draw a circle",
+        "1:1",
+        "1K",
+        "medium",
+        "low",
+        [],
+        1800,
+        FakeProgress(),
+    )
+
+    assert result["data"][0]["url"].endswith("result.png")
+    assert responses == []
+
+
+def test_complete_gpt_image2_generator_exposes_timeout_after_seed():
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    inputs = image_nodes.RelayGPTImage2Generator.INPUT_TYPES()
+    required_names = list(inputs["required"].keys())
+
+    assert image_nodes.GPT_IMAGE2_DEFAULT_TIMEOUT == 1800
+    assert image_nodes.GPT_IMAGE2_TIMEOUTS == {"1K": 1800, "2K": 1800, "4K": 1800}
+    assert required_names.index("timeout") > required_names.index("seed")
+    assert inputs["required"]["timeout"][1]["default"] == 1800
+    assert inputs["required"]["timeout"][1]["min"] == 30
+    assert inputs["required"]["timeout"][1]["max"] == 9999
+
+
+def test_complete_gpt_image2_generator_passes_timeout(monkeypatch):
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+
+    repo_parent = Path(__file__).resolve().parent.parent.parent
+    if str(repo_parent) not in sys.path:
+        sys.path.insert(0, str(repo_parent))
+
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+
+    captured = {}
+
+    def fake_build_info(self, api_base, model, apikey, unique_id, platform=None, api_format=None):
+        return json.dumps({
+            "apikey": "sk-test",
+            "api_base": api_base,
+            "model": model,
+            "platform": platform,
+            "api_format": api_format,
+            "task_type": "image",
+        })
+
+    def fake_generate_image(self, **kwargs):
+        captured.update(kwargs)
+        return ("image", "response", "")
+
+    monkeypatch.setattr(image_nodes.RelayGPTImage2Generator, "_build_info", fake_build_info)
+    monkeypatch.setattr(image_nodes.RelayImageGenerator, "generate_image", fake_generate_image)
+
+    node = image_nodes.RelayGPTImage2Generator()
+    result = node.generate_complete_image(
+        task_type="image",
+        platform="gpt-image2",
+        api_format="v1/images",
+        api_base="https://api.llaiapi.host",
+        model="gpt-image-2",
+        apikey="sk-test",
+        prompt="一只鸟",
+        ratio="1:1",
+        size="1K",
+        seed=123,
+        quality="medium",
+        moderation="low",
+        timeout=2400,
+        unique_id="node-1",
+    )
+
+    assert result == ("image", "response", "")
+    assert captured["timeout"] == 2400

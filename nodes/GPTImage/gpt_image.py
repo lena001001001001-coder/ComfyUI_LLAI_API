@@ -108,7 +108,7 @@ def _summarize_response(value) -> str:
         if isinstance(item, dict):
             result = {}
             for key, sub_value in item.items():
-                if key == "b64_json" and isinstance(sub_value, str):
+                if key in {"b64_json", "base64", "b64"} and isinstance(sub_value, str):
                     result[key] = f"<base64 omitted, {len(sub_value)} chars>"
                 else:
                     result[key] = sanitize(sub_value)
@@ -149,13 +149,27 @@ def _outputs_from_data_item(item, output_format: str) -> list:
         return []
 
     outputs = []
-    url_output = _output_from_value(item.get("url", ""), output_format)
-    if url_output:
-        outputs.append(url_output)
+    for key in ("url", "image_url", "download_url", "output_url", "file_url"):
+        url_output = _output_from_value(item.get(key, ""), output_format)
+        if url_output:
+            outputs.append(url_output)
 
-    b64_json = _string_or_empty(item.get("b64_json"))
-    if b64_json:
-        outputs.append({"source": "b64_json", "value": _data_url_from_b64(b64_json, output_format), "mime": _mime_for_format(output_format)})
+    for key in ("b64_json", "base64", "b64"):
+        encoded = _string_or_empty(item.get(key))
+        if encoded:
+            outputs.append({"source": key, "value": _data_url_from_b64(encoded, output_format), "mime": _mime_for_format(output_format)})
+
+    for key in ("output", "result"):
+        nested = item.get(key)
+        if isinstance(nested, dict):
+            outputs.extend(_outputs_from_data_item(nested, output_format))
+        elif isinstance(nested, list):
+            for nested_item in nested:
+                outputs.extend(_outputs_from_data_item(nested_item, output_format))
+        else:
+            output = _output_from_value(nested, output_format)
+            if output:
+                outputs.append(output)
 
     return outputs
 
@@ -175,9 +189,14 @@ def _extract_image_outputs(data: dict, fallback_format: str = "png") -> list:
         elif isinstance(data_value, dict):
             outputs.extend(_outputs_from_data_item(data_value, output_format))
 
-        top_level_b64 = _string_or_empty(data.get("b64_json"))
-        if top_level_b64:
-            outputs.append({"source": "b64_json", "value": _data_url_from_b64(top_level_b64, output_format), "mime": _mime_for_format(output_format)})
+        outputs.extend(_outputs_from_data_item(data, output_format))
+        for key in ("results", "images"):
+            items = data.get(key)
+            if isinstance(items, list):
+                for item in items:
+                    outputs.extend(_outputs_from_data_item(item, output_format))
+            elif isinstance(items, dict):
+                outputs.extend(_outputs_from_data_item(items, output_format))
 
         choices = data.get("choices") or []
         if isinstance(choices, list):
@@ -207,7 +226,9 @@ def _output_to_tensor(output: dict, timeout: int) -> torch.Tensor:
             raise RuntimeError(f"响应图像 base64 解码失败: {_truncate_string(str(exc), 200)}") from exc
     else:
         try:
-            resp = requests.get(value, timeout=timeout)
+            session = requests.Session()
+            session.trust_env = False
+            resp = session.get(value, timeout=timeout)
             resp.raise_for_status()
             content = resp.content
         except Exception as exc:

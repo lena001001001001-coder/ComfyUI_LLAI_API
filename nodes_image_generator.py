@@ -6,7 +6,6 @@ import comfy.utils  # type: ignore[reportMissingImports]
 from io import BytesIO
 from PIL import Image
 
-from comfy_execution.graph_utils import ExecutionBlocker  # type: ignore[reportMissingImports]
 from .utils import tensor2pil, pil2tensor
 from .config import (
     FORMAT_MODELS,
@@ -118,16 +117,21 @@ GPT_IMAGE2_FORMATS = ["jpeg", "png", "webp"]
 GPT_IMAGE2_MODERATIONS = ["auto", "low"]
 GPT_IMAGE2_MAX_EDGE = 3840
 GPT_IMAGE2_MAX_PIXELS = 8294400
+GPT_IMAGE2_DEFAULT_TIMEOUT = 1800
 GPT_IMAGE2_TIMEOUTS = {
-    "1K": 300,
-    "2K": 500,
-    "4K": 800,
+    "1K": GPT_IMAGE2_DEFAULT_TIMEOUT,
+    "2K": GPT_IMAGE2_DEFAULT_TIMEOUT,
+    "4K": GPT_IMAGE2_DEFAULT_TIMEOUT,
 }
 BANANA_IMAGE_TIMEOUTS = {
     "1K": 300,
     "2K": 500,
     "4K": 800,
 }
+BANANA_IMAGE_MAX_ATTEMPTS = 4
+BANANA_IMAGE_RETRY_DELAY = 2
+GPT_IMAGE2_MAX_ATTEMPTS = 3
+GPT_IMAGE2_RETRY_DELAY = 3
 
 
 def _unique_values(values):
@@ -148,7 +152,7 @@ class RelayImageGenerator:
         for i in range(1, ALL_MAX_IMAGES + 1):
             optional[f"image{i}"] = ("IMAGE",)
 
-        return {
+        inputs = {
             "required": {
                 "prompt": ("STRING", {"multiline": True}),
                 "ratio": (IMAGE_RATIOS, {"default": "1:1"}),
@@ -160,6 +164,8 @@ class RelayImageGenerator:
             },
             "optional": optional,
         }
+        inputs["required"]["timeout"] = ("INT", {"default": GPT_IMAGE2_DEFAULT_TIMEOUT, "min": 30, "max": 9999})
+        return inputs
 
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("image", "response", "image_url")
@@ -183,9 +189,18 @@ class RelayImageGenerator:
         print(f"[RelayAPI] normalize {name}: {value!r} -> {default!r}")
         return default
 
-    def _image_result_timeout(self, platform, size):
+    def _normalize_timeout(self, timeout, default=GPT_IMAGE2_DEFAULT_TIMEOUT):
+        try:
+            value = int(timeout)
+        except (TypeError, ValueError):
+            return default
+        if value <= 0:
+            return default
+        return max(30, min(value, 9999))
+
+    def _image_result_timeout(self, platform, size, timeout=None):
         if platform == "gpt-image2":
-            return self._gpt_image2_timeout(size)
+            return self._gpt_image2_timeout(size, timeout)
         return self._banana_timeout(size)
 
     def _get_api_key(self, api_key):
@@ -241,15 +256,74 @@ class RelayImageGenerator:
             },
         }
 
-        pbar.update_absolute(40)
-        print(f"[RelayAPI] POST {url} (Gemini native, {len(images)} images, timeout={timeout}s)")
         headers = {"Authorization": f"Bearer {api_key}"}
-        resp = requests.post(url, headers=headers, json=payload, timeout=timeout)
-        pbar.update_absolute(75)
-        print(f"[RelayAPI] -> {resp.status_code}")
-        if resp.status_code != 200:
-            self._err(f"Gemini error: {resp.status_code} - {resp.text[:500]}")
-        return resp.json()
+        last_result = None
+
+        for attempt in range(1, BANANA_IMAGE_MAX_ATTEMPTS + 1):
+            pbar.update_absolute(35 + attempt * 8)
+            print(
+                f"[LLAI] POST {url} (Gemini image, {len(images)} images, "
+                f"attempt={attempt}/{BANANA_IMAGE_MAX_ATTEMPTS}, timeout={timeout}s)"
+            )
+            resp = requests.post(url, headers=headers, json=payload, timeout=timeout)
+            print(f"[LLAI] Gemini image attempt {attempt} -> HTTP {resp.status_code}")
+            if resp.status_code != 200:
+                self._err(f"Gemini error: {resp.status_code} - {resp.text[:500]}")
+
+            try:
+                result = resp.json()
+            except ValueError:
+                self._err(f"Gemini returned non-JSON content: {resp.text[:500]}")
+
+            last_result = result
+            if self._response_has_image(result):
+                return result
+
+            summary = self._gemini_response_summary(result)
+            print(f"[LLAI] Gemini response has no image; retrying route: {summary}")
+            if attempt < BANANA_IMAGE_MAX_ATTEMPTS:
+                time.sleep(BANANA_IMAGE_RETRY_DELAY * attempt)
+
+        self._err(
+            "中转站连续返回了非图片响应，模型可能被错误路由到聊天渠道。"
+            f" 已尝试 {BANANA_IMAGE_MAX_ATTEMPTS} 次；最后响应: "
+            f"{self._gemini_response_summary(last_result)}"
+        )
+
+    def _response_has_image(self, result):
+        if not isinstance(result, dict):
+            return False
+        for candidate in result.get("candidates") or []:
+            if not isinstance(candidate, dict):
+                continue
+            parts = ((candidate.get("content") or {}).get("parts") or [])
+            for part in parts:
+                if not isinstance(part, dict):
+                    continue
+                inline = part.get("inlineData") or part.get("inline_data") or {}
+                if isinstance(inline, dict) and inline.get("data"):
+                    return True
+        return False
+
+    def _gemini_response_summary(self, result):
+        if not isinstance(result, dict):
+            return repr(result)[:300]
+        summaries = []
+        for candidate in result.get("candidates") or []:
+            if not isinstance(candidate, dict):
+                continue
+            finish_reason = candidate.get("finishReason") or candidate.get("finish_reason")
+            if finish_reason:
+                summaries.append(f"finishReason={finish_reason}")
+            for part in ((candidate.get("content") or {}).get("parts") or []):
+                if isinstance(part, dict) and isinstance(part.get("text"), str):
+                    text = " ".join(part["text"].split())
+                    if text:
+                        summaries.append(f"text={text[:160]!r}")
+                        break
+        if summaries:
+            return ", ".join(summaries)[:400]
+        return json.dumps(result, ensure_ascii=False)[:400]
 
     # ══════════════════════════════════════
     #  openai — OpenAI Images 兼容
@@ -336,14 +410,16 @@ class RelayImageGenerator:
         # AUTO 无参考图，或其它未识别值，交给 API 自行决定
         return "auto"
 
-    def _gpt_image2_timeout(self, size):
+    def _gpt_image2_timeout(self, size, timeout=None):
+        if timeout is not None:
+            return self._normalize_timeout(timeout)
         return GPT_IMAGE2_TIMEOUTS.get(size, self.timeout)
 
     def _gpt_image2_generate(self, base_url, api_key, model, prompt, ratio, size,
-                             quality, moderation, images, pbar):
+                             quality, moderation, images, timeout, pbar):
         paths = API_PATHS.get("image_v1/images", {})
         image_size = self._gpt_image2_size(ratio, size, images)
-        timeout = self._gpt_image2_timeout(size)
+        timeout = self._gpt_image2_timeout(size, timeout)
         headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
         print(
             f"[RelayAPI] gpt-image2 params | ratio={ratio} | ui_size={size} | "
@@ -407,10 +483,10 @@ class RelayImageGenerator:
         return resp.json()
 
     def _gpt_image2_openai_generate(self, base_url, api_key, model, prompt, ratio, size,
-                                    quality, moderation, images, pbar):
+                                    quality, moderation, images, timeout, pbar):
         paths = API_PATHS.get("image_v1/images", {})
         image_size = self._gpt_image2_size(ratio, size, images)
-        timeout = self._gpt_image2_timeout(size)
+        timeout = self._gpt_image2_timeout(size, timeout)
         headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
         print(
             f"[RelayAPI] gpt-image2 params | ratio={ratio} | ui_size={size} | "
@@ -438,12 +514,12 @@ class RelayImageGenerator:
                     ("image[]", (f"image_{i+1}.png", BytesIO(img_bytes), "image/png"))
                 )
 
-            pbar.update_absolute(40)
-            print(f"[RelayAPI] POST {url} (gpt-image2 openai edit, {len(files_list)} images, size={image_size}, timeout={timeout}s)")
-            resp = _post_with_timing("gpt-image2 openai edit", {
-                "url": url, "headers": headers, "data": data_dict,
+            request_label = "gpt-image2 openai edit"
+            request_kwargs = {
+                "headers": headers, "data": data_dict,
                 "files": files_list, "timeout": timeout,
-            })
+            }
+            request_description = f"edit, {len(files_list)} images"
         else:
             url = f"{base_url}{paths.get('generate', '/v1/images/generations')}"
             # 显式要 b64_json，理由见上方 _gpt_image2_generate 的注释
@@ -456,18 +532,97 @@ class RelayImageGenerator:
                 "moderation": moderation,
             }
 
-            pbar.update_absolute(40)
-            print(f"[RelayAPI] POST {url} (gpt-image2 openai create, size={image_size}, timeout={timeout}s)")
-            resp = _post_with_timing("gpt-image2 openai create", {
-                "url": url, "headers": headers, "json": payload,
+            request_label = "gpt-image2 openai create"
+            request_kwargs = {
+                "headers": headers, "json": payload,
                 "timeout": timeout,
-            })
+            }
+            request_description = "create"
 
-        pbar.update_absolute(75)
-        print(f"[RelayAPI] -> {resp.status_code}")
-        if resp.status_code != 200:
-            self._err(f"gpt-image2 openai error: {resp.status_code} - {resp.text[:500]}")
-        return resp.json()
+        last_result = None
+        last_error = ""
+        for attempt in range(1, GPT_IMAGE2_MAX_ATTEMPTS + 1):
+            pbar.update_absolute(35 + attempt * 10)
+            print(
+                f"[LLAI] POST {url} (gpt-image2 {request_description}, size={image_size}, "
+                f"attempt={attempt}/{GPT_IMAGE2_MAX_ATTEMPTS}, timeout={timeout}s)"
+            )
+            resp = _post_with_timing(
+                f"{request_label} attempt {attempt}",
+                {"url": url, **request_kwargs},
+            )
+            print(f"[LLAI] gpt-image2 attempt {attempt} -> HTTP {resp.status_code}")
+
+            if resp.status_code != 200:
+                last_error = f"HTTP {resp.status_code}: {resp.text[:500]}"
+                if resp.status_code not in {408, 409, 425, 429, 500, 502, 503, 504}:
+                    self._err(f"gpt-image2 error: {last_error}")
+            else:
+                try:
+                    result = resp.json()
+                except ValueError:
+                    result = None
+                    last_error = f"返回内容不是 JSON: {resp.text[:500]}"
+                if isinstance(result, dict):
+                    last_result = result
+                    if self._response_has_openai_image(result):
+                        return result
+                    last_error = self._openai_image_response_summary(result)
+
+            if attempt < GPT_IMAGE2_MAX_ATTEMPTS:
+                print(f"[LLAI] gpt-image2 response has no usable image; retrying: {last_error}")
+                time.sleep(GPT_IMAGE2_RETRY_DELAY * attempt)
+
+        self._err(
+            "GPT-Image2 连续没有返回可用图片，可能是中转站渠道错误或临时不可用。"
+            f" 已尝试 {GPT_IMAGE2_MAX_ATTEMPTS} 次；最后响应: "
+            f"{self._openai_image_response_summary(last_result) if last_result else last_error}"
+        )
+
+    def _response_has_openai_image(self, result):
+        if not isinstance(result, dict):
+            return False
+        data = result.get("data")
+        if isinstance(data, dict):
+            data = data.get("data") or data.get("images") or [data]
+        if isinstance(data, list):
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                image_url = item.get("image_url")
+                nested_url = image_url.get("url") if isinstance(image_url, dict) else image_url
+                if item.get("b64_json") or item.get("url") or nested_url or item.get("output_url") or item.get("download_url"):
+                    return True
+        for candidate in result.get("candidates") or []:
+            for part in ((candidate.get("content") or {}).get("parts") or []):
+                inline = part.get("inlineData") or part.get("inline_data") or {}
+                if isinstance(inline, dict) and inline.get("data"):
+                    return True
+        for choice in result.get("choices") or []:
+            content = (choice.get("message") or {}).get("content")
+            if isinstance(content, str) and ("data:image/" in content or "http" in content):
+                return True
+            if isinstance(content, list):
+                for part in content:
+                    if not isinstance(part, dict):
+                        continue
+                    image_url = part.get("image_url")
+                    if image_url or (isinstance(part.get("text"), str) and "data:image/" in part["text"]):
+                        return True
+        return False
+
+    def _openai_image_response_summary(self, result):
+        if not isinstance(result, dict):
+            return repr(result)[:400]
+        error = result.get("error")
+        if isinstance(error, dict):
+            message = error.get("message") or error.get("error")
+            if message:
+                return f"error={str(message)[:350]}"
+        for key in ("message", "detail", "status", "code"):
+            if result.get(key) not in (None, ""):
+                return f"{key}={str(result[key])[:350]}"
+        return json.dumps(result, ensure_ascii=False)[:400]
 
     def _openai_text2img(self, base_url, api_key, model, prompt, ratio, size, seed, pbar):
         paths = API_PATHS.get("image_v1/images", {})
@@ -576,6 +731,8 @@ class RelayImageGenerator:
         优先使用 b64_json；如果中转只返回 url，则下载 url。
         """
         data_list = result.get("data", [])
+        if isinstance(data_list, dict):
+            data_list = data_list.get("data") or data_list.get("images") or [data_list]
         if data_list:
             item = data_list[0]
             # 先找 b64_json：中间有时
@@ -587,10 +744,11 @@ class RelayImageGenerator:
                 return "base64", b64
 
             if not b64_only:
-                img_url = (item.get("url")
-                           or (item.get("image_url") or {}).get("url", "")
-                           or item.get("output_url")
-                           or item.get("download_url"))
+                image_url = item.get("image_url")
+                if isinstance(image_url, dict):
+                    image_url = image_url.get("url", "")
+                img_url = (item.get("url") or image_url
+                           or item.get("output_url") or item.get("download_url"))
                 if img_url:
                     return "url", img_url
 
@@ -840,6 +998,7 @@ class RelayImageGenerator:
     #  主入口
     # ══════════════════════════════════════
     def generate_image(self, prompt, ratio, size, quality, format, moderation, seed,
+                       timeout=GPT_IMAGE2_DEFAULT_TIMEOUT,
                        info="", **kwargs):
         parsed = {}
         if info and info.strip():
@@ -867,6 +1026,7 @@ class RelayImageGenerator:
             size = self._normalize_choice("size", size, IMAGE_SIZES, "2K")
             quality = self._normalize_choice("quality", quality, GPT_IMAGE2_QUALITIES, "medium")
             moderation = self._normalize_choice("moderation", moderation, GPT_IMAGE2_MODERATIONS, "low")
+            request_timeout = self._normalize_timeout(timeout)
             print(f"[RelayAPI] image | {platform} | {api_format} | {base_url} | {model}")
 
             images = []
@@ -901,7 +1061,7 @@ class RelayImageGenerator:
             elif platform == "gpt-image2":
                 result = self._gpt_image2_openai_generate(
                     base_url, api_key, model, prompt, ratio, size, quality, moderation,
-                    images, pbar,
+                    images, request_timeout, pbar,
                 )
             elif api_format == "v1beta/models":
                 result = self._gemini_generate(
@@ -934,7 +1094,7 @@ class RelayImageGenerator:
                 t_dec0 = time.time()
                 img_tensor = self._download_image(
                     img_data,
-                    timeout=max(60, self._image_result_timeout(platform, size)),
+                    timeout=max(60, self._image_result_timeout(platform, size, request_timeout)),
                 )
                 t_dec = time.time() - t_dec0
                 pbar.update_absolute(100)
@@ -951,8 +1111,8 @@ class RelayImageGenerator:
                 return (img_tensor, resp_json, "")
 
         except Exception as e:
-            error_resp = json.dumps({"code": "error", "message": str(e)}, ensure_ascii=False)
-            return (ExecutionBlocker(None), error_resp, "")
+            print(f"[LLAI] image generation failed: {e}")
+            raise
 
 
 def _format_models(platform, api_format):
@@ -1002,6 +1162,8 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
             "max": 0xffffffffffffffff,
             "control_after_generate": True,
         })
+        if cls.INCLUDE_GPT_OPTIONS:
+            required["timeout"] = ("INT", {"default": GPT_IMAGE2_DEFAULT_TIMEOUT, "min": 30, "max": 9999})
 
         optional = {}
         for i in range(1, cls.MAX_IMAGES + 1):
@@ -1038,6 +1200,7 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
     def generate_complete_image(self, task_type, platform, api_format, api_base,
                                 model, apikey, prompt, ratio, size, seed,
                                 quality="medium", moderation="low",
+                                timeout=GPT_IMAGE2_DEFAULT_TIMEOUT,
                                 unique_id=None, **kwargs):
         info = self._build_info(api_base, model, apikey, unique_id, platform, api_format)
         if not json.loads(info).get("apikey"):
@@ -1050,6 +1213,7 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
             format="jpeg",
             moderation=moderation,
             seed=seed,
+            timeout=timeout,
             info=info,
             **kwargs,
         )

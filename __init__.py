@@ -6,6 +6,7 @@ from .nodes_sound_generator import RelaySoundGenerator
 from .nodes_suno_direct import RelaySunoDirectGenerator, RelaySunoDirectPlayer
 from .nodes_text_generator import RelayLLMText
 from .nodes_grok_imagine_video import RelayGrokImagineVideo
+from .nodes.GPTImage import GPTImage2CLowCost4K
 
 try:
     import importlib.util
@@ -39,6 +40,7 @@ NODE_CLASS_MAPPINGS = {
     "RelaySunoDirectPlayer": RelaySunoDirectPlayer,
     "RelayLLMText": RelayLLMText,
     "RelayGrokImagineVideo": RelayGrokImagineVideo,
+    "GPTImage2CLowCost4K": GPTImage2CLowCost4K,
 }
 NODE_CLASS_MAPPINGS.update(TEXT_TO_CSV_NODE_CLASS_MAPPINGS)
 
@@ -50,6 +52,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RelaySunoDirectPlayer": "LL-Suno Direct Player",
     "RelayLLMText": "LL-LLM Text",
     "RelayGrokImagineVideo": "LL-grok-imagine-video",
+    "GPTImage2CLowCost4K": "LL-gpt-image-2-c-低价4k",
 }
 NODE_DISPLAY_NAME_MAPPINGS.update(TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS)
 
