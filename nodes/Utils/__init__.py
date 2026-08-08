@@ -30,6 +30,7 @@ for _module_name in (
     "deepseek_ocr",
     "video_download",
     "csv_reader",
+    "excel_csv_lord",
     "show_text",
     "text_to_csv",
     "batch_process_logger",

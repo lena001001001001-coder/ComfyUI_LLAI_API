@@ -441,3 +441,71 @@ class RelayLLMText(RelayTextGenerator):
             prompt_template=prompt_template,
             **kwargs,
         )
+
+
+class RelayLLMTextBatch(RelayLLMText):
+    """Batch variant: run the existing LLM text request once per prompt item."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        schema = super().INPUT_TYPES()
+        schema["required"].pop("prompt", None)
+        # Keep the template as an explicit multiline widget for batch prompts.
+        # It is intentionally optional/blank so the node can pass each item as-is.
+        schema["required"]["prompt_template"] = ("STRING", {
+            "default": "You are an assistant...",
+            "multiline": True,
+            "tooltip": "可选：使用 {prompt} 插入每条列表内容；留空则直接发送原列表项",
+        })
+        schema["required"]["prompt_context"] = ("STRING", {
+            "default": "prompt",
+            "multiline": True,
+            "tooltip": "可选：追加到每条列表提示词后的公共说明",
+        })
+        schema["required"]["prompt_list"] = ("LIST", {"forceInput": True})
+        return schema
+
+    @classmethod
+    def INPUT_LABELS(cls):
+        labels = dict(super().INPUT_LABELS()) if hasattr(super(), "INPUT_LABELS") else {}
+        labels["prompt_template"] = "提示词模板（可选）"
+        labels["prompt_context"] = "附加提示词（可选）"
+        labels["prompt_list"] = "提示词列表"
+        return labels
+
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("text", "response")
+    OUTPUT_IS_LIST = (True, True)
+    FUNCTION = "generate_llm_text_batch"
+
+    def generate_llm_text_batch(self, task_type, platform, api_format, api_base, model,
+                                apikey, prompt_template, prompt_context, prompt_list, seed,
+                                unique_id=None, video=None, audio=None, **kwargs):
+        if isinstance(prompt_list, str):
+            prompts = [prompt_list]
+        elif isinstance(prompt_list, (list, tuple)):
+            prompts = [str(item) for item in prompt_list if str(item).strip()]
+        else:
+            raise ValueError("prompt_list 必须是字符串列表")
+        info = self._build_info(api_base, model, apikey, unique_id)
+        if not json.loads(info).get("apikey"):
+            self._err("API key not found. Please set apikey on Relay LLM Text Batch.")
+
+        texts, responses = [], []
+        for index, item in enumerate(prompts, start=1):
+            print(f"[LLAI] LLM batch item {index}/{len(prompts)}")
+            batch_prompt = item
+            if prompt_context and prompt_context.strip():
+                batch_prompt = f"{item}\n\n{prompt_context.strip()}"
+            text, response = self.generate_text(
+                prompt=batch_prompt,
+                seed=seed,
+                info=info,
+                video=video,
+                audio=audio,
+                prompt_template=prompt_template,
+                **kwargs,
+            )
+            texts.append(text)
+            responses.append(response)
+        return (texts, responses)

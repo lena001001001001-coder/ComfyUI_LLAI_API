@@ -15,6 +15,10 @@ https://api.llaiapi.host/
 | LLAI API Settings | 统一配置任务类型、平台、api_format、base、模型和 API Key |
 | LLAI Text Generator | 文本生成、多模态理解 |
 | LLAI Image Generator | 文生图、图像编辑 |
+| LL-doubao-seedream-4.5-文生图 | Doubao Seedream 4.5 文生图，支持 2K、4K 和官方像素范围内的常用尺寸 |
+| LL-doubao-seedream-4.0-文生图 | Doubao Seedream 4.0 文生图，节点提供 2K、4K 档位，宽高比按官方要求写入提示词 |
+| LL-doubao-seedream-4.0-文生图-批量 | 在 Seedream 4.0 相同参数下按顺序批量生成 1-2000 次 |
+| LL-doubao-seedream-5.0pro-文生图 | Doubao Seedream 5.0 Pro 文生图，使用 1K、1.5K、2K 官方档位和独立比例映射 |
 | LLAI Video Generator | Grok / Veo 视频生成 |
 | LLAI Sound Generator | Suno 音乐生成 |
 | LLAI Notice | 通知与状态提示 |
@@ -25,6 +29,7 @@ https://api.llaiapi.host/
 LLAI/Grok
 LLAI/GrokImage
 LLAI/GPTImage
+LLAI/Doubao
 LLAI/NanoBanana
 LLAI/Gemini
 LLAI/Kling
@@ -97,6 +102,9 @@ ComfyUI/custom_nodes/ComfyUI_LLAI_API/
 - banana-pro: `nano-banana-pro`
 - banana-2: `gemini-3.1-flash-image-preview`
 - gpt-image2: `gpt-image-2`
+- Doubao: `doubao-seedream-4-5-251128`
+- Doubao Seedream 4.0: `doubao-seedream-4-0-250828`
+- Doubao Seedream 5.0 Pro: `doubao-seedream-5-0-pro-260628`
 
 ### 音频
 

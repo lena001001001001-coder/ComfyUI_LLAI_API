@@ -4,9 +4,19 @@ from .nodes_image_generator import RelayBanana2ImageGenerator, RelayGPTImage2Gen
 from .nodes_notice import RelayAPINotice
 from .nodes_sound_generator import RelaySoundGenerator
 from .nodes_suno_direct import RelaySunoDirectGenerator, RelaySunoDirectPlayer
-from .nodes_text_generator import RelayLLMText
+from .nodes_text_generator import RelayLLMText, RelayLLMTextBatch
 from .nodes_grok_imagine_video import RelayGrokImagineVideo
 from .nodes.GPTImage import GPTImage2CLowCost4K
+from .nodes.Doubao import (
+    LLDoubaoSeedream40BatchTextToImage,
+    LLDoubaoSeedream40TextToImage,
+    LLDoubaoSeedream45TextToImage,
+    LLDoubaoSeedream50ProTextToImage,
+    LLDoubaoSeedream40ImageToImage,
+    LLDoubaoSeedream45ImageToImage,
+    LLDoubaoSeedream50ProImageToImage,
+)
+from .nodes.Utils.excel_csv_lord import LLExcelCSVLord
 
 try:
     import importlib.util
@@ -39,8 +49,17 @@ NODE_CLASS_MAPPINGS = {
     "RelayAPINotice": RelayAPINotice,
     "RelaySunoDirectPlayer": RelaySunoDirectPlayer,
     "RelayLLMText": RelayLLMText,
+    "RelayLLMTextBatch": RelayLLMTextBatch,
     "RelayGrokImagineVideo": RelayGrokImagineVideo,
     "GPTImage2CLowCost4K": GPTImage2CLowCost4K,
+    "LLDoubaoSeedream45TextToImage": LLDoubaoSeedream45TextToImage,
+    "LLDoubaoSeedream40TextToImage": LLDoubaoSeedream40TextToImage,
+    "LLDoubaoSeedream40BatchTextToImage": LLDoubaoSeedream40BatchTextToImage,
+    "LLDoubaoSeedream50ProTextToImage": LLDoubaoSeedream50ProTextToImage,
+    "LLDoubaoSeedream40ImageToImage": LLDoubaoSeedream40ImageToImage,
+    "LLDoubaoSeedream45ImageToImage": LLDoubaoSeedream45ImageToImage,
+    "LLDoubaoSeedream50ProImageToImage": LLDoubaoSeedream50ProImageToImage,
+    "LL-Excel-CSV-Lord": LLExcelCSVLord,
 }
 NODE_CLASS_MAPPINGS.update(TEXT_TO_CSV_NODE_CLASS_MAPPINGS)
 
@@ -51,8 +70,17 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RelayAPINotice": "LL-API Notice",
     "RelaySunoDirectPlayer": "LL-Suno Direct Player",
     "RelayLLMText": "LL-LLM Text",
+    "RelayLLMTextBatch": "LL-LLM Text Batch",
     "RelayGrokImagineVideo": "LL-grok-imagine-video",
     "GPTImage2CLowCost4K": "LL-gpt-image-2-c-低价4k",
+    "LLDoubaoSeedream45TextToImage": "LL-doubao-seedream-4.5-文生图",
+    "LLDoubaoSeedream40TextToImage": "LL-doubao-seedream-4.0-文生图",
+    "LLDoubaoSeedream40BatchTextToImage": "LL-doubao-seedream-4.0-文生图-批量",
+    "LLDoubaoSeedream50ProTextToImage": "LL-doubao-seedream-5.0pro-文生图",
+    "LLDoubaoSeedream40ImageToImage": "LL-doubao-seedream-4.0-图生图",
+    "LLDoubaoSeedream45ImageToImage": "LL-doubao-seedream-4.5-图生图(慢)",
+    "LLDoubaoSeedream50ProImageToImage": "LL-doubao-seedream-5.0pro-图生图",
+    "LL-Excel-CSV-Lord": "LL-Excel-CSV-Lord",
 }
 NODE_DISPLAY_NAME_MAPPINGS.update(TEXT_TO_CSV_NODE_DISPLAY_NAME_MAPPINGS)
 
