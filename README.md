@@ -8,8 +8,6 @@
 https://api.llaiapi.host/
 ```
 
-`doc.kuai.host` 只作为接口结构参考，不作为本项目默认运行地址。
-
 ## 主要节点
 
 | 节点 | 用途 |
@@ -147,12 +145,5 @@ python -m py_compile .\config.py .\__init__.py .\nodes_api_settings.py .\nodes_v
 node --check .\js\relay_api_settings.js
 ```
 
-## 说明
-
-- 新增文档、注释和界面文案请使用 `LLAI`、`llaiapi` 或 `llai`
-- 旧的 `Relay...` 名称属于兼容标识，尽量不要继续扩展新的旧品牌命名
-- 真实 API Key 不要写进仓库文件
-
-## License
 
 MIT
