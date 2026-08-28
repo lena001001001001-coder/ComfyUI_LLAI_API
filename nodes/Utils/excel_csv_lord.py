@@ -1,8 +1,13 @@
 """Read the first two columns of Excel/CSV files as prompt strings."""
 
 import csv
+import html
+import json
 import os
 import posixpath
+import re
+import tempfile
+import urllib.parse
 import zipfile
 import xml.etree.ElementTree as ET
 from typing import List, Tuple
@@ -14,6 +19,7 @@ except ImportError:  # Allows syntax/import checks outside ComfyUI.
 
 
 SUPPORTED_EXTENSIONS = (".xlsx", ".xls", ".csv")
+REMOTE_SCHEMES = ("http://", "https://")
 
 
 def _input_files() -> List[str]:
@@ -48,12 +54,82 @@ def _resolve_path(file_name: str, file_path: str) -> str:
 
     if file_path and file_path.strip():
         candidate = file_path.strip()
+        if candidate.lower().startswith(REMOTE_SCHEMES):
+            return candidate
         if not os.path.isabs(candidate) and folder_paths is not None:
             candidate = os.path.join(folder_paths.get_input_directory(), candidate)
         if os.path.isfile(candidate):
             return candidate
         raise FileNotFoundError(f"文件不存在：{file_path}")
     raise ValueError("请选择或输入一个 .xlsx、.xls 或 .csv 文件")
+
+
+def _download_remote(source: str) -> str:
+    try:
+        import requests
+    except ImportError as exc:
+        raise RuntimeError("读取在线表格需要 requests，请先安装 requirements.txt") from exc
+    try:
+        response = requests.get(source, headers={"User-Agent": "ComfyUI_LLAI_API/1.0"}, timeout=60, allow_redirects=True)
+        response.raise_for_status()
+    except Exception as exc:
+        raise RuntimeError(f"在线表格下载失败：{exc}") from exc
+    content_type = (response.headers.get("content-type") or "").lower()
+    name = os.path.basename(urllib.parse.urlparse(response.url).path)
+    disposition = response.headers.get("content-disposition") or ""
+    for token in disposition.split(";"):
+        if "filename=" in token.lower():
+            name = token.split("=", 1)[1].strip().strip('"')
+            break
+    ext = os.path.splitext(name)[1].lower()
+    if ext not in SUPPORTED_EXTENSIONS:
+        if "spreadsheetml" in content_type or "excel" in content_type:
+            ext = ".xlsx"
+        elif "csv" in content_type or "text/plain" in content_type:
+            ext = ".csv"
+        else:
+            if "docs.qq.com" in urllib.parse.urlparse(source).netloc:
+                return _read_tencent_page_to_csv(response.text)
+            raise RuntimeError("URL 返回的是网页而不是可下载的 Excel/CSV 文件。请提供公开导出 CSV/XLSX 的链接。")
+    handle = tempfile.NamedTemporaryFile(prefix="llai_sheet_", suffix=ext, delete=False)
+    try:
+        handle.write(response.content)
+        return handle.name
+    finally:
+        handle.close()
+
+
+def _read_tencent_page_to_csv(page: str) -> str:
+    """Extract the public first two columns embedded in a Tencent Docs sheet page."""
+    decoded = page
+    for _ in range(2):
+        decoded = urllib.parse.unquote(decoded)
+    decoded = html.unescape(decoded)
+    marker = re.search(r'(?:(?:\\")|")texts(?:(?:\\")|")\s*:\s*', decoded)
+    if not marker:
+        raise RuntimeError("腾讯文档页面未提供公开表格数据，请确认已允许查看和导出。")
+    start = decoded.find("[", marker.end())
+    if start < 0:
+        raise RuntimeError("腾讯文档数据格式无法识别。")
+    try:
+        values, _ = json.JSONDecoder().raw_decode(decoded[start:])
+    except Exception as exc:
+        raise RuntimeError("腾讯文档表格数据解析失败。") from exc
+    rows = []
+    for index in range(len(values) - 1):
+        word = str(values[index]).strip()
+        meaning = str(values[index + 1]).strip()
+        if re.fullmatch(r"[A-Za-z][A-Za-z' -]*", word) and re.search(r"[\u3400-\u9fff]", meaning):
+            rows.append((word, meaning))
+    if not rows:
+        raise RuntimeError("腾讯文档未提取到前两列词汇，请确认分享链接可公开访问。")
+    handle = tempfile.NamedTemporaryFile(prefix="llai_tencent_", suffix=".csv", mode="w", encoding="utf-8", newline="", delete=False)
+    try:
+        writer = csv.writer(handle)
+        writer.writerows(rows)
+        return handle.name
+    finally:
+        handle.close()
 
 
 def _read_rows(path: str) -> List[Tuple[str, str]]:
@@ -163,13 +239,15 @@ class LLExcelCSVLord:
     def INPUT_LABELS(cls):
         return {
             "excel_csv_file": "Excel/CSV 文件",
-            "file_path": "文件路径（可选）",
+            "file_path": "文件路径或在线表格 URL（可选）",
             "skip_header": "跳过首行表头",
             "separator": "单词与释义分隔符",
         }
 
     @classmethod
     def IS_CHANGED(cls, excel_csv_file="", file_path="", skip_header=False, separator=","):
+        if file_path and file_path.strip().lower().startswith(REMOTE_SCHEMES):
+            return (file_path.strip(), skip_header, separator)
         try:
             path = _resolve_path(excel_csv_file, file_path)
             return (os.path.getmtime(path), os.path.getsize(path), skip_header, separator)
@@ -178,7 +256,18 @@ class LLExcelCSVLord:
 
     def load_prompts(self, excel_csv_file="", file_path="", skip_header=False, separator=","):
         path = _resolve_path(excel_csv_file, file_path)
-        rows = _read_rows(path)
+        temporary_path = None
+        if path.lower().startswith(REMOTE_SCHEMES):
+            temporary_path = _download_remote(path)
+            path = temporary_path
+        try:
+            rows = _read_rows(path)
+        finally:
+            if temporary_path:
+                try:
+                    os.remove(temporary_path)
+                except OSError:
+                    pass
         if skip_header and rows:
             rows = rows[1:]
 

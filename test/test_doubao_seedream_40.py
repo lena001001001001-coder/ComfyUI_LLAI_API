@@ -18,10 +18,12 @@ def test_seedream_40_payload_and_documented_sizes():
         RATIO_OPTIONS_2K,
         RATIO_OPTIONS_4K,
         SIZE_LEVELS,
+        LLDoubaoSeedream40TextToImage,
         build_payload,
     )
 
-    assert SIZE_LEVELS == ["2K", "4K"]
+    assert SIZE_LEVELS == ["1K", "2K", "4K"]
+    assert LLDoubaoSeedream40TextToImage.INPUT_TYPES()["required"]["size"][0] == SIZE_LEVELS
 
     payload = build_payload("星际列车", "2K", "1728x2304（3:4 竖图）", False, "url")
     assert payload["model"] == MODEL
@@ -47,3 +49,17 @@ def test_seedream_40_payload_and_documented_sizes():
         "1024x1024", "1152x864", "864x1152", "1280x720",
         "720x1280", "1248x832", "832x1248", "1512x648",
     ]
+
+
+def test_seedream_40_image_to_image_exposes_1k_size():
+    from nodes.Doubao.doubao_seedream_40_i2i import (
+        LLDoubaoSeedream40ImageToImage,
+        RATIO_LABELS,
+        SIZE_LEVELS,
+        _size_value,
+    )
+
+    inputs = LLDoubaoSeedream40ImageToImage.INPUT_TYPES()
+    assert SIZE_LEVELS == ["1K", "2K", "4K"]
+    assert inputs["required"]["size"][0] == SIZE_LEVELS
+    assert _size_value("1K", RATIO_LABELS["1K"][0]) == "1024x1024"

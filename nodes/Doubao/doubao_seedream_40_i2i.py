@@ -10,7 +10,7 @@ from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_sta
 
 MODEL = "doubao-seedream-4-0-250828"
 ENDPOINT = "https://api.llaiapi.host/v1/images/generations"
-SIZE_LEVELS = ["2K", "4K"]
+SIZE_LEVELS = ["1K", "2K", "4K"]
 SUPPORTED_SIZE_LEVELS = ["1K", "2K", "4K"]
 RATIOS = {
     "1K": ["1024x1024", "1152x864", "864x1152", "1280x720", "720x1280", "1248x832", "832x1248", "1512x648"],
@@ -53,7 +53,7 @@ class LLDoubaoSeedream40ImageToImage:
         return {"required": {
             "参考图1": ("IMAGE", {"tooltip": "必填，支持最多 14 张参考图"}),
             "prompt": ("STRING", {"multiline": True, "default": ""}),
-            "size": (SIZE_LEVELS, {"default": "2K"}),
+            "size": (SIZE_LEVELS, {"default": "2K", "tooltip": "节点提供 1K、2K、4K 分辨率档位"}),
             "ratio": (RATIO_LABELS["2K"], {"default": RATIO_LABELS["2K"][0]}),
             "watermark": ("BOOLEAN", {"default": False}),
             "response_format": (["url", "b64_json"], {"default": "url"}),

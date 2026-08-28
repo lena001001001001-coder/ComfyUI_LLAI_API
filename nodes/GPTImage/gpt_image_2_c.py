@@ -4,9 +4,17 @@ import json
 import time
 
 import requests
+from PIL import Image
 
-from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_status
-from .gpt_image import _extract_image_outputs, _outputs_to_tensor_and_refs, _summarize_response
+from ..Sora2.kuai_utils import env_or, http_headers_auth_only, http_headers_multipart, raise_for_bad_status
+from .gpt_image import (
+    MAX_EDIT_IMAGES,
+    _collect_edit_images,
+    _extract_image_outputs,
+    _outputs_to_tensor_and_refs,
+    _summarize_response,
+)
+from ..Sora2.kuai_utils import save_image_to_buffer
 
 
 MODEL = "gpt-image-2-c"
@@ -15,30 +23,91 @@ DEFAULT_ENDPOINT = "/v1/images/generations"
 
 # Exact values documented by the OpenAI-compatible image generation endpoint.
 SIZES = [
-    "auto（默认）",
-    "1024x1024（1K正方形）",
-    "1536x1024（1K横版）",
-    "1024x1536（1K竖版）",
-    "2048x2048（2K正方形）",
-    "2048x1152（2K横版）",
-    "3840x2160（4K横版）",
-    "2160x3840（4K竖版）",
+    "auto",
+    "1024x1024（1:1）",
+    "1536x1024（3:2）",
+    "1024x1536（2:3）",
+    "2048x2048（1:1）",
+    "2048x1152（16:9）",
+    "3840x2160（16:9）",
+    "2160x3840（9:16）",
 ]
-LEGACY_RESOLUTIONS = ["1K（标准）", "2K（高清）", "4K（超清）"]
-RESOLUTION_OPTIONS = SIZES + LEGACY_RESOLUTIONS
-SIZE_VALUES = {label: label.split("（", 1)[0] for label in SIZES}
+LEGACY_RESOLUTIONS = ["1K", "2K", "4K"]
+# Pixel-size choices shown by the 图像比例 widget. 1K/2K/4K belong only to
+# the separate 分辨率 widget and are intentionally not listed here.
+RESOLUTION_OPTIONS = SIZES
+SIZE_VALUES = {
+    "auto": "auto",
+    "1024x1024（1:1）": "1024x1024",
+    "1536x1024（3:2）": "1536x1024",
+    "1024x1536（2:3）": "1024x1536",
+    "2048x2048（1:1）": "2048x2048",
+    "2048x1152（16:9）": "2048x1152",
+    "3840x2160（16:9）": "3840x2160",
+    "2160x3840（9:16）": "2160x3840",
+}
+SIZE_BY_RESOLUTION = {
+    "1K": {"1024x1024": "1024x1024", "1536x1024": "1536x1024", "1024x1536": "1024x1536"},
+    "2K": {"1024x1024": "2048x2048", "1536x1024": "2048x1152", "2048x2048": "2048x2048", "2048x1152": "2048x1152"},
+    "4K": {"1024x1024": "3840x2160", "1536x1024": "3840x2160", "1024x1536": "2160x3840", "3840x2160": "3840x2160", "2160x3840": "2160x3840"},
+}
+# Additional proportions exposed only by the full-size node.  Each entry is
+# the exact pixel size sent for the selected 1K/2K/4K resolution tier.
+FULL_SIZE_RATIO_SIZES = {
+    "1:1": {"1K": "1024x1024", "2K": "1920x1920", "4K": "2880x2880"},
+    "2:3": {"1K": "1024x1536", "2K": "1536x2304", "4K": "2336x3504"},
+    "3:2": {"1K": "1536x1024", "2K": "2304x1536", "4K": "3504x2336"},
+    "4:3": {"1K": "1536x1152", "2K": "2048x1536", "4K": "3264x2448"},
+    "3:4": {"1K": "1152x1536", "2K": "1536x2048", "4K": "2448x3264"},
+    "9:16": {"1K": "864x1536", "2K": "1440x2560", "4K": "2016x3584"},
+    "16:9": {"1K": "1536x864", "2K": "2560x1440", "4K": "3584x2016"},
+    "9:21": {"1K": "864x2016", "2K": "1152x2688", "4K": "1632x3808"},
+    "21:9": {"1K": "2016x864", "2K": "2688x1152", "4K": "3808x1632"},
+    "1:3": {"1K": "1024x3072", "2K": "1920x5760", "4K": "2880x8640"},
+    "3:1": {"1K": "3072x1024", "2K": "5760x1920", "4K": "8640x2880"},
+}
+FULL_SIZE_RATIO_OPTIONS = ["auto", *FULL_SIZE_RATIO_SIZES]
 FORMATS = ["png", "jpeg", "webp"]
 QUALITIES = ["auto", "low", "medium", "high"]
 
 K_PROMPT = "提示词"
+K_RATIO = "图像比例"
 K_RESOLUTION = "分辨率"
 K_ASPECT_RATIO = "图像比例"
-K_N = "生成数量"
 K_API_KEY = "API密钥"
 K_API_BASE = "API地址"
 K_TIMEOUT = "超时秒数"
 K_FORMAT = "输出格式"
 K_QUALITY = "图像质量"
+K_SEED = "seed"
+EDIT_IMAGE_KEYS = [f"参考图{idx}" for idx in range(1, MAX_EDIT_IMAGES + 1)]
+MAX_REFERENCE_DIMENSION = 2048
+REFERENCE_JPEG_QUALITY = 85
+
+
+def _build_compact_edit_image_files(images):
+    """Encode references compactly so a 15-image multipart request is not dropped in transit."""
+    files = []
+    total_bytes = 0
+    for index, pil in enumerate(images, start=1):
+        image = pil.convert("RGB")
+        width, height = image.size
+        scale = min(1.0, MAX_REFERENCE_DIMENSION / max(width, height))
+        if scale < 1.0:
+            image = image.resize(
+                (max(1, round(width * scale)), max(1, round(height * scale))),
+                Image.Resampling.LANCZOS,
+            )
+        buffer = save_image_to_buffer(image, fmt="jpeg", quality=REFERENCE_JPEG_QUALITY)
+        total_bytes += len(buffer.getvalue())
+        files.append(("image[]", (f"reference_{index:02d}.jpg", buffer, "image/jpeg")))
+    # This is a guardrail for proxies that reject unusually large multipart bodies.
+    if total_bytes > 45 * 1024 * 1024:
+        raise RuntimeError(
+            f"15张参考图压缩后仍有 {total_bytes / 1024 / 1024:.1f}MB，超过安全上传大小；"
+            "请先降低输入图分辨率或分批处理。"
+        )
+    return files
 
 
 LEGACY_ASPECT_RATIOS = [
@@ -62,7 +131,21 @@ LEGACY_SIZE_TABLE = {
 
 def resolve_size(size, aspect_ratio="由尺寸决定"):
     """Return an API size and accept labels saved by earlier node versions."""
-    if size == "auto（默认）":
+    legacy_size_names = {"1K": "1K（标准）", "2K": "2K（高清）", "4K": "4K（超清）"}
+    size = legacy_size_names.get(size, size)
+    if size in FULL_SIZE_RATIO_SIZES and aspect_ratio in LEGACY_RESOLUTIONS:
+        return FULL_SIZE_RATIO_SIZES[size][aspect_ratio]
+    if size == "auto" and aspect_ratio in LEGACY_RESOLUTIONS:
+        return "auto"
+    # New UI: the pixel-size selector is named 比例 and the 1K/2K/4K
+    # selector is named 分辨率. Explicit pixel sizes take precedence.
+    if size in SIZE_VALUES:
+        # The UI now supplies 比例 first and 分辨率 second. Keep the
+        # selected proportion while scaling it to the chosen resolution.
+        return SIZE_BY_RESOLUTION.get(aspect_ratio, {}).get(size, SIZE_VALUES[size])
+    if size == "auto" and aspect_ratio in {"1K", "2K", "4K"}:
+        return aspect_ratio
+    if size in {"auto", "auto（默认）"}:
         return "auto"
     if size in {"1K（标准）", "2K（高清）", "4K（超清）"}:
         try:
@@ -117,6 +200,10 @@ def check_model_access(session, endpoint, headers):
 class GPTImage2CLowCost4K:
     @classmethod
     def INPUT_TYPES(cls):
+        optional_images = {
+            key: ("IMAGE", {"tooltip": f"连接后切换为图生图；参考图{idx}，最多15张"})
+            for idx, key in enumerate(EDIT_IMAGE_KEYS, start=1)
+        }
         return {
             "required": {
                 K_PROMPT: (
@@ -128,28 +215,17 @@ class GPTImage2CLowCost4K:
                     },
                 ),
                 K_RESOLUTION: (
+                    LEGACY_RESOLUTIONS,
+                    {
+                        "default": "1K",
+                        "tooltip": "选择分辨率档位：1K、2K、4K",
+                    },
+                ),
+                K_RATIO: (
                     RESOLUTION_OPTIONS,
                     {
-                        "default": "1024x1024（1K正方形）",
-                        "tooltip": "模型说明：普通线路支持 1K；gpt-绘图分组支持 1K、2K、4K",
-                    },
-                ),
-                K_ASPECT_RATIO: (
-                    LEGACY_ASPECT_RATIOS,
-                    {
-                        "default": "由尺寸决定",
-                        "advanced": True,
-                        "tooltip": "兼容旧工作流；新尺寸选项已包含比例，无需修改",
-                    },
-                ),
-                K_N: (
-                    "INT",
-                    {
-                        "default": 1,
-                        "min": 1,
-                        "max": 10,
-                        "advanced": True,
-                        "tooltip": "仅兼容旧工作流；该值会被忽略，API 请求不会发送 n",
+                        "default": "1024x1024（1:1）",
+                        "tooltip": "选择输出比例；切换分辨率后将按对应档位生成",
                     },
                 ),
                 K_API_KEY: (
@@ -158,6 +234,7 @@ class GPTImage2CLowCost4K:
                 ),
             },
             "optional": {
+                **optional_images,
                 K_API_BASE: (
                     "STRING",
                     {"default": DEFAULT_ENDPOINT, "tooltip": "OpenAI 绘图端点"},
@@ -172,7 +249,7 @@ class GPTImage2CLowCost4K:
                 ),
                 K_QUALITY: (
                     QUALITIES,
-                    {"default": "auto", "tooltip": "文档支持 auto、low、medium、high"},
+                    {"default": "medium", "tooltip": "文档支持 auto、low、medium、high"},
                 ),
             },
         }
@@ -192,12 +269,14 @@ class GPTImage2CLowCost4K:
         if not api_key:
             raise RuntimeError("API Key 未配置")
 
-        size_label = kwargs.get(K_RESOLUTION, "1024x1024（1K正方形）")
-        aspect_ratio = kwargs.get(K_ASPECT_RATIO, "由尺寸决定")
-        size = resolve_size(size_label, aspect_ratio)
+        ratio_label = kwargs.get(K_RATIO)
+        size_label = kwargs.get(K_RESOLUTION, "1K")
+        # Accept old workflows where 分辨率 carried the pixel-size value.
+        if ratio_label is None and size_label in RESOLUTION_OPTIONS:
+            ratio_label, size_label = size_label, "1K"
+        size = resolve_size(ratio_label or "1024x1024（1:1）", size_label)
         output_format = kwargs.get(K_FORMAT, "png")
         quality = kwargs.get(K_QUALITY, "auto")
-        payload = build_payload(prompt, size, output_format, quality)
         endpoint = resolve_endpoint(kwargs.get(K_API_BASE, DEFAULT_ENDPOINT))
         timeout = int(kwargs.get(K_TIMEOUT, 1800))
 
@@ -208,6 +287,39 @@ class GPTImage2CLowCost4K:
             "Accept": "application/json",
             "Content-Type": "application/json",
         })
+
+        # 有任意参考图时自动切换到 OpenAI 兼容图片编辑接口；未连接参考图则保持文生图。
+        connected = [(key, kwargs.get(key)) for key in EDIT_IMAGE_KEYS if kwargs.get(key) is not None]
+        if connected:
+            named_images = [(key, value) for key, value in connected if value is not None]
+            images = _collect_edit_images(named_images)
+            files = _build_compact_edit_image_files([pil for _, pil in images])
+            form_data = {"model": MODEL, "prompt": prompt, "size": size}
+            if output_format != "png":
+                form_data["format"] = output_format
+            if quality != "auto":
+                form_data["quality"] = quality
+            try:
+                response = session.post(
+                    f"{endpoint.rsplit('/v1/images/generations', 1)[0]}/v1/images/edits",
+                    files=files,
+                    data=form_data,
+                    headers=http_headers_multipart(api_key),
+                    timeout=(30, timeout),
+                )
+            except requests.exceptions.ConnectionError as exc:
+                raise RuntimeError("LLAI 图像编辑后端在返回 HTTP 响应前断开连接；请确认 gpt-image-2-c 渠道支持图生图。") from exc
+            raise_for_bad_status(response, "gpt-image-2-c 图生图失败")
+            data = response.json()
+            outputs = _extract_image_outputs(data, fallback_format=output_format)
+            image, _ = _outputs_to_tensor_and_refs(outputs, timeout)
+            info = json.dumps({"model": MODEL, "mode": "image-to-image", "size": size,
+                               "format": output_format, "quality": quality,
+                               "input_image_count": len(images), "image_count": len(outputs)},
+                              ensure_ascii=False, indent=2)
+            return image, info, _summarize_response(data)
+
+        payload = build_payload(prompt, size, output_format, quality)
 
         started_at = time.monotonic()
         try:
@@ -254,3 +366,29 @@ class GPTImage2CLowCost4K:
             indent=2,
         )
         return image, info, _summarize_response(data)
+
+
+class GPTImage2CFullSize(GPTImage2CLowCost4K):
+    """与低价节点功能完全相同的独立全尺寸节点。"""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        inputs = super().INPUT_TYPES()
+        # This is a ComfyUI execution/cache seed.  The gpt-image-2-c relay
+        # does not document a seed request field, so it is intentionally not
+        # sent to the API; changing it forces a fresh node execution.
+        inputs["required"][K_SEED] = (
+            "INT",
+            {
+                "default": 0,
+                "min": 0,
+                "max": 0xFFFFFFFFFFFFFFFF,
+                "control_after_generate": True,
+                "tooltip": "仅控制 ComfyUI 重新执行；接口请求不会发送 seed 字段",
+            },
+        )
+        inputs["required"][K_RATIO] = (
+            FULL_SIZE_RATIO_OPTIONS,
+            {"default": "1:1", "tooltip": "全尺寸比例，按 1K/2K/4K 分辨率生成"},
+        )
+        return inputs

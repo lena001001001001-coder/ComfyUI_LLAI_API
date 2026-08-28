@@ -50,6 +50,16 @@ const RATIOS_50_PRO_2K = [
     "2816x1584（16:9 横图）", "1584x2816（9:16 竖图）", "2496x1664（3:2 横图）",
     "1664x2496（2:3 竖图）", "3136x1344（21:9 超宽图）",
 ];
+const RATIOS_50_LITE_2K = [
+    "2048x2048（1:1 方图）", "2304x1728（4:3 横图）", "1728x2304（3:4 竖图）",
+    "2848x1600（16:9 横图）", "1600x2848（9:16 竖图）", "2496x1664（3:2 横图）",
+    "1664x2496（2:3 竖图）", "3136x1344（21:9 超宽图）",
+];
+const RATIOS_50_LITE_3K = [
+    "3072x3072（1:1 方图）", "3456x2592（4:3 横图）", "2592x3456（3:4 竖图）",
+    "4096x2304（16:9 横图）", "2304x4096（9:16 竖图）", "3744x2496（3:2 横图）",
+    "2496x3744（2:3 竖图）", "4704x2016（21:9 超宽图）",
+];
 const LEGACY_RATIOS_40 = new Map([
     ["1536x1024（3:2 横图）", "1248x832（3:2 横图）"],
     ["1024x1536（2:3 竖图）", "832x1248（2:3 竖图）"],
@@ -132,7 +142,7 @@ app.registerExtension({
     name: "LLAI.DoubaoSeedream",
 
     async nodeCreated(node) {
-        if (!["LLDoubaoSeedream45TextToImage", "LLDoubaoSeedream40TextToImage", "LLDoubaoSeedream40BatchTextToImage", "LLDoubaoSeedream50ProTextToImage", "LLDoubaoSeedream40ImageToImage", "LLDoubaoSeedream45ImageToImage", "LLDoubaoSeedream50ProImageToImage"].includes(node.comfyClass)) return;
+        if (!["LLDoubaoSeedream40TextToImage", "LLDoubaoSeedream40", "LLDoubaoSeedream45", "LLDoubaoSeedream50Pro", "LLDoubaoSeedream50Lite"].includes(node.comfyClass)) return;
 
         await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -151,9 +161,27 @@ app.registerExtension({
 
         const sizeWidget = node.widgets?.find(widget => widget.name === "size");
         const ratioWidget = node.widgets?.find(widget => widget.name === "ratio");
-        const is40 = ["LLDoubaoSeedream40TextToImage", "LLDoubaoSeedream40BatchTextToImage", "LLDoubaoSeedream40ImageToImage"].includes(node.comfyClass);
-        const is50Pro = ["LLDoubaoSeedream50ProTextToImage", "LLDoubaoSeedream50ProImageToImage"].includes(node.comfyClass);
-        if (is50Pro) {
+        const is40 = ["LLDoubaoSeedream40TextToImage", "LLDoubaoSeedream40"].includes(node.comfyClass);
+        const is50Pro = ["LLDoubaoSeedream50Pro"].includes(node.comfyClass);
+        const is50Lite = node.comfyClass === "LLDoubaoSeedream50Lite";
+        if (is50Lite) {
+            const updateLite = () => {
+                const values = sizeWidget.value === "3K" ? RATIOS_50_LITE_3K : RATIOS_50_LITE_2K;
+                ratioWidget.options.values = values;
+                if (!values.includes(ratioWidget.value)) ratioWidget.value = values[0];
+                ratioWidget.callback?.(ratioWidget.value);
+            };
+            updateLite();
+            if (sizeWidget) {
+                const originalLiteCallback = sizeWidget.callback;
+                sizeWidget.callback = function (value) {
+                    sizeWidget.value = value;
+                    originalLiteCallback?.call(this, value);
+                    updateLite();
+                    app.graph.setDirtyCanvas(true);
+                };
+            }
+        } else if (is50Pro) {
             const proSizeWidget = sizeWidget;
             const proRatioWidget = ratioWidget;
             const updatePro = () => {

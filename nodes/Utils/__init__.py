@@ -31,11 +31,13 @@ for _module_name in (
     "video_download",
     "csv_reader",
     "excel_csv_lord",
+    "read_excel",
     "show_text",
     "text_to_csv",
     "batch_process_logger",
     "batch_monitor",
     "realtime_monitor",
+    "prompt_list",
 ):
     _merge_node_module(_module_name)
 

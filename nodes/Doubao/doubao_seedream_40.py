@@ -18,7 +18,7 @@ MAX_PIXELS = 4096 * 4096
 MIN_ASPECT_RATIO = 1 / 16
 MAX_ASPECT_RATIO = 16
 
-SIZE_LEVELS = ["2K", "4K"]
+SIZE_LEVELS = ["1K", "2K", "4K"]
 SUPPORTED_SIZE_LEVELS = ["1K", "2K", "4K"]
 RATIO_OPTIONS_1K = [
     "1024x1024（1:1 方图）", "1152x864（4:3 横图）", "864x1152（3:4 竖图）",
@@ -136,7 +136,7 @@ class LLDoubaoSeedream40TextToImage:
                 ),
                 "size": (
                     SIZE_LEVELS,
-                    {"default": "2K", "tooltip": "节点提供 2K、4K 分辨率档位"},
+                    {"default": "2K", "tooltip": "节点提供 1K、2K、4K 分辨率档位"},
                 ),
                 "watermark": (
                     "BOOLEAN",

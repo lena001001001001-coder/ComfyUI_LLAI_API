@@ -22,6 +22,14 @@ const PLATFORM_API_FORMATS = {
     "OpenaiText": ["runninghub-/v1", "v1/chat/completions"],
 };
 
+// Keep the API model IDs unchanged while presenting friendlier names in the
+// low-cost API model dropdown.  The underlying option values remain the
+// original IDs, so saved workflows and requests are unaffected.
+const MODEL_DISPLAY_NAMES = {
+    "gemini-3.1-flash-image-preview": "gemini-3.1-flash香蕉2",
+    "gemini-3-pro-image-preview": "gemini-3-pro香蕉pro",
+};
+
 app.registerExtension({
     name: "RelayAPI.Settings",
 
@@ -37,6 +45,22 @@ app.registerExtension({
 
         const { task_type, platform, api_format, api_base, model, custom_api_base, custom_model, apikey } = w;
         if (!task_type || !platform || !api_base || !model) return;
+
+        function refreshModelDisplayNames() {
+            const options = model.inputEl?.options;
+            if (!options) return;
+            for (const option of options) {
+                const rawValue = option.value;
+                option.text = MODEL_DISPLAY_NAMES[rawValue] || rawValue;
+            }
+        }
+
+        function setModelValues(values) {
+            model.options.values = values;
+            // LiteGraph rebuilds the select asynchronously after values change.
+            refreshModelDisplayNames();
+            setTimeout(refreshModelDisplayNames, 0);
+        }
 
         if (apikey && apikey.inputEl) {
             apikey.inputEl.type = "text";
@@ -148,7 +172,7 @@ app.registerExtension({
                 if (!resp.ok) return;
                 const list = await resp.json();
                 if (Array.isArray(list) && list.length > 0) {
-                    model.options.values = list;
+                    setModelValues(list);
                     if (!list.includes(model.value)) model.value = list[0];
                     app.graph.setDirtyCanvas(true);
                 }
@@ -171,7 +195,7 @@ app.registerExtension({
                     if (!resp.ok) return;
                     const r = await resp.json();
                     if (r.success && Array.isArray(r.list)) {
-                        model.options.values = r.list;
+                        setModelValues(r.list);
                         if (!r.list.includes(model.value)) model.value = r.list[0];
                         if (custom_model) custom_model.value = "";
                         app.graph.setDirtyCanvas(true);
@@ -187,7 +211,7 @@ app.registerExtension({
                 if (!resp.ok) return;
                 const r = await resp.json();
                 if (r.success && Array.isArray(r.list)) {
-                    model.options.values = r.list;
+                    setModelValues(r.list);
                     model.value = raw;
                     if (custom_model) custom_model.value = "";
                     app.graph.setDirtyCanvas(true);

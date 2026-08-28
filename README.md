@@ -8,6 +8,8 @@
 https://api.llaiapi.host/
 ```
 
+`doc.kuai.host` 只作为接口结构参考，不作为本项目默认运行地址。
+
 ## 主要节点
 
 | 节点 | 用途 |
@@ -16,9 +18,13 @@ https://api.llaiapi.host/
 | LLAI Text Generator | 文本生成、多模态理解 |
 | LLAI Image Generator | 文生图、图像编辑 |
 | LL-doubao-seedream-4.5-文生图 | Doubao Seedream 4.5 文生图，支持 2K、4K 和官方像素范围内的常用尺寸 |
-| LL-doubao-seedream-4.0-文生图 | Doubao Seedream 4.0 文生图，节点提供 2K、4K 档位，宽高比按官方要求写入提示词 |
+| LL-doubao-seedream-4.5 | Doubao Seedream 4.5 文生图与图生图合并节点；不连接参考图时文生图，连接参考图时图生图，最多支持 14 张参考图 |
+| LL-doubao-seedream-4.0-文生图 | Doubao Seedream 4.0 文生图，节点提供 1K、2K、4K 档位，宽高比按官方要求写入提示词 |
+| LL-doubao-seedream-4.0 | Doubao Seedream 4.0 文生图与图生图合并节点；不连接参考图时文生图，连接参考图时图生图，最多支持 14 张参考图 |
 | LL-doubao-seedream-4.0-文生图-批量 | 在 Seedream 4.0 相同参数下按顺序批量生成 1-2000 次 |
 | LL-doubao-seedream-5.0pro-文生图 | Doubao Seedream 5.0 Pro 文生图，使用 1K、1.5K、2K 官方档位和独立比例映射 |
+| LL-doubao-seedream-5.0pro | Doubao Seedream 5.0 Pro 文生图与图生图合并节点；不连接参考图时文生图，连接参考图时图生图，最多支持 10 张参考图 |
+| LL-doubao-seedream-5.0lite | Doubao Seedream 5.0 Lite 文生图与图生图合并节点；支持 2K、3K，不连接参考图时文生图，连接参考图时图生图，最多支持 14 张参考图 |
 | LLAI Video Generator | Grok / Veo 视频生成 |
 | LLAI Sound Generator | Suno 音乐生成 |
 | LLAI Notice | 通知与状态提示 |
@@ -105,6 +111,7 @@ ComfyUI/custom_nodes/ComfyUI_LLAI_API/
 - Doubao: `doubao-seedream-4-5-251128`
 - Doubao Seedream 4.0: `doubao-seedream-4-0-250828`
 - Doubao Seedream 5.0 Pro: `doubao-seedream-5-0-pro-260628`
+- Doubao Seedream 5.0 Lite: `doubao-seedream-5-0-260128`
 
 ### 音频
 
@@ -153,5 +160,12 @@ python -m py_compile .\config.py .\__init__.py .\nodes_api_settings.py .\nodes_v
 node --check .\js\relay_api_settings.js
 ```
 
+## 说明
+
+- 新增文档、注释和界面文案请使用 `LLAI`、`llaiapi` 或 `llai`
+- 旧的 `Relay...` 名称属于兼容标识，尽量不要继续扩展新的旧品牌命名
+- 真实 API Key 不要写进仓库文件
+
+## License
 
 MIT

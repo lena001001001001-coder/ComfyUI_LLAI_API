@@ -104,10 +104,10 @@ def test_gpt_image_2_c_interface_matches_model_card():
     node_class = NODE_CLASS_MAPPINGS["GPTImage2CLowCost4K"]
     inputs = node_class.INPUT_TYPES()
 
-    assert NODE_DISPLAY_NAME_MAPPINGS["GPTImage2CLowCost4K"] == "LL-gpt-image-2-c-低价4k"
-    assert list(inputs["required"]) == ["提示词", "分辨率", "图像比例", "生成数量", "API密钥"]
-    assert inputs["required"]["分辨率"][1]["default"] == "1024x1024（1K正方形）"
-    assert inputs["required"]["生成数量"][1]["max"] == 10
+    assert NODE_DISPLAY_NAME_MAPPINGS["GPTImage2CLowCost4K"] == "LL-gpt image-2-c低价"
+    assert list(inputs["required"]) == ["提示词", "分辨率", "图像比例", "API密钥"]
+    assert inputs["required"]["图像比例"][1]["default"] == "1024x1024（1:1）"
+    assert inputs["required"]["分辨率"][1]["default"] == "1K"
     assert inputs["optional"]["API地址"][1]["default"] == "/v1/images/generations"
     assert inputs["optional"]["输出格式"][0] == ["png", "jpeg", "webp"]
     assert inputs["optional"]["图像质量"][0] == ["auto", "low", "medium", "high"]
