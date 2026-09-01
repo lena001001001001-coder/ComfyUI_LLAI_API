@@ -43,8 +43,9 @@ class LLAIPromptList:
             **{f"prompt_{index}": f"提示词 {index}" for index in range(11, 51)},
         }
 
-    RETURN_TYPES = ("LIST",)
-    RETURN_NAMES = ("prompt_strings",)
+    RETURN_TYPES = ("LIST", "STRING")
+    RETURN_NAMES = ("prompt_list", "prompt_strings")
+    OUTPUT_IS_LIST = (False, True)
     FUNCTION = "build_prompt_list"
     CATEGORY = "LLAI/Utils"
 
@@ -69,7 +70,7 @@ class LLAIPromptList:
              *(kwargs.get(f"prompt_{index}", "") for index in range(11, 51)))
         )
         prompts = [item for item in prompts if isinstance(item, str) and item.strip()]
-        return (prompts,)
+        return (prompts, prompts)
 
 
 NODE_CLASS_MAPPINGS = {

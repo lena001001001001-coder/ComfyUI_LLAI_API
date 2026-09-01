@@ -1,5 +1,6 @@
 from .doubao_seedream import LLDoubaoSeedream45TextToImage
 from .doubao_seedream_40 import LLDoubaoSeedream40TextToImage
+from .doubao_seedream_40_batch import LLDoubaoSeedream40BatchTextToImage
 from .doubao_seedream_50_pro import LLDoubaoSeedream50ProTextToImage
 from .doubao_seedream_40_i2i import LLDoubaoSeedream40ImageToImage
 from .doubao_seedream_45_i2i import LLDoubaoSeedream45ImageToImage
