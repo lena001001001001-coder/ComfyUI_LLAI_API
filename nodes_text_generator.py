@@ -512,7 +512,7 @@ class RelayLLMTextBatch(RelayLLMText):
         },
         "OpenAI": {
             "api_format": "v1/chat/completions",
-            "models": ["gpt-5.6-sol", "gpt-5-pro", "gpt-4o-mini"],
+            "models": ["gpt-5.6-sol", "gpt-5.6-luna-2026-07-09", "gpt-5-pro", "gpt-4o-mini"],
         },
         "Anthropic": {
             "api_format": "v1/chat/completions",

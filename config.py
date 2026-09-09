@@ -7,11 +7,7 @@ CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'relay_c
 
 DEFAULT_API_BASES = [
     "https://api.llaiapi.host",
-    "https://www.runninghub.cn",
-    "https://llm.runninghub.ai",
-    "https://yunwu.ai",
-    "https://ai.t8star.cn",
-    "https://api.bltcy.ai",
+    "https://cn.llai.xin",
 ]
 
 TASK_TYPES = ["image", "video", "sound", "text"]

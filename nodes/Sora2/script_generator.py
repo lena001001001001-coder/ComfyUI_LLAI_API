@@ -400,7 +400,7 @@ class SoraPromptFromProduct:
 
     def generate(self, product_name, product_features="", video_type="商品介绍", duration="15秒", language="简体中文",
                  reference_image_url="", reference_image_description="", system_prompt=DEFAULT_SYSTEM_PROMPT, user_prompt_template=DEFAULT_USER_PROMPT,
-                 api_base="https://api.llaiapi.host", api_key="", model="deepseek-v3.2-exp", 
+                 api_base="https://api.llaiapi.host", api_key="", model="deepseek-v3.2-exp",
                  temperature=0.7, max_tokens=2000, timeout=150):
         
         if not product_name or not str(product_name).strip():

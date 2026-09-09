@@ -279,7 +279,11 @@ app.registerExtension({
 
         if (node.comfyClass !== "RelayImageGenerator") {
             const apiBaseW = node.widgets?.find(w => w.name === "api_base");
-            if (apiBaseW) hideWidget(apiBaseW);
+            // Keep the API base visible so users can choose between the LLAI relay sites.
+            // The Volcengine/Ark node is separate and is not handled by this extension.
+            if (apiBaseW && node.comfyClass !== "RelayGPTImage2Generator" && node.comfyClass !== "RelayBanana2ImageGenerator") {
+                hideWidget(apiBaseW);
+            }
             const formatW = node.widgets?.find(w => w.name === "api_format");
             if (formatW) {
                 formatW.options.values = [node.comfyClass === "RelayBanana2ImageGenerator" ? "v1beta/models" : "v1/images"];

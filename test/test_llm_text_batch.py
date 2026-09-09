@@ -74,6 +74,7 @@ def test_llm_text_batch_offers_separate_model_platforms():
         "grok-4.5",
         "grok-4-1-fast-reasoning",
         "gpt-5.6-sol",
+        "gpt-5.6-luna-2026-07-09",
         "gpt-5-pro",
         "gpt-4o-mini",
         "claude-fable-5",

@@ -4,6 +4,7 @@ const BATCH_TEXT_PLATFORMS = {
     GeminiText: {
         apiFormat: "v1beta/models",
         models: ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.6-flash"],
+        hiddenModels: ["gemini-3.6-flash"],
         supportsImages: true,
         supportsVideo: true,
         supportsAudio: true,
@@ -11,13 +12,15 @@ const BATCH_TEXT_PLATFORMS = {
     xAI: {
         apiFormat: "v1/chat/completions",
         models: ["grok-4.5", "grok-4-1-fast-reasoning"],
+        hiddenModels: ["grok-4.5", "grok-4-1-fast-reasoning"],
         imageModels: ["grok-4.5"],
         supportsVideo: false,
         supportsAudio: false,
     },
     OpenAI: {
         apiFormat: "v1/chat/completions",
-        models: ["gpt-5.6-sol", "gpt-5-pro", "gpt-4o-mini"],
+        models: ["gpt-5.6-sol", "gpt-5.6-luna-2026-07-09", "gpt-5-pro", "gpt-4o-mini"],
+        hiddenModels: ["gpt-5-pro"],
         supportsImages: true,
         supportsVideo: false,
         supportsAudio: false,
@@ -58,11 +61,17 @@ const BATCH_TEXT_PLATFORMS = {
             "doubao-seed-1-8-251228",
             "doubao-seed-1-6-vision-250815",
         ],
-        hiddenModels: ["doubao-seed-2-1-pro-260628"],
+        hiddenModels: ["doubao-seed-2-1-pro-260628", "doubao-seed-1-6-vision-250815"],
         supportsImages: true,
         videoModels: ["doubao-seed-2-0-lite-260428"],
         audioModels: ["doubao-seed-2-0-lite-260428"],
     },
+};
+
+const HIDDEN_BATCH_PLATFORMS = new Set(["xAI", "Anthropic", "智谱", "通义千问", "DeepSeek"]);
+
+const BATCH_MODEL_DISPLAY_NAMES = {
+    "gpt-5.6-luna-2026-07-09": "gpt-5.6-luna",
 };
 
 function isWidgetHidden(widget) {
@@ -112,6 +121,10 @@ app.registerExtension({
             const apiFormatW = node.widgets?.find(w => w.name === "api_format");
             const modelW = node.widgets?.find(w => w.name === "model");
             const apiBaseW = node.widgets?.find(w => w.name === "api_base");
+
+            const displayModelName = model => BATCH_MODEL_DISPLAY_NAMES[model] || model;
+            const actualModelName = model => Object.entries(BATCH_MODEL_DISPLAY_NAMES)
+                .find(([, display]) => display === model)?.[0] || model;
 
             // Keep these compatibility inputs in the workflow payload while hiding
             // implementation details that are fixed/derived for the batch node.
@@ -167,7 +180,9 @@ app.registerExtension({
             };
 
             const applyBatchPlatform = (platform) => {
-                const selectedPlatform = BATCH_TEXT_PLATFORMS[platform] ? platform : "GeminiText";
+                const selectedPlatform = BATCH_TEXT_PLATFORMS[platform] && !HIDDEN_BATCH_PLATFORMS.has(platform)
+                    ? platform
+                    : "GeminiText";
                 const config = BATCH_TEXT_PLATFORMS[selectedPlatform];
                 const visibleModels = config.models.filter(
                     model => !config.hiddenModels?.includes(model)
@@ -179,15 +194,19 @@ app.registerExtension({
                     apiFormatW.value = config.apiFormat;
                 }
                 if (modelW) {
-                    modelW.options.values = visibleModels;
-                    if (!visibleModels.includes(modelW.value)) modelW.value = visibleModels[0];
+                    const currentModel = actualModelName(modelW._llaiActualValue ?? modelW.value);
+                    const selectedModel = visibleModels.includes(currentModel) ? currentModel : visibleModels[0];
+                    modelW.options.values = visibleModels.map(displayModelName);
+                    modelW._llaiActualValue = selectedModel;
+                    modelW.value = displayModelName(selectedModel);
                 }
-                applyInputCapabilities(config, modelW?.value || visibleModels[0]);
+                applyInputCapabilities(config, modelW?._llaiActualValue || visibleModels[0]);
                 app.graph.setDirtyCanvas(true);
             };
 
             if (platformW) {
-                platformW.options.values = Object.keys(BATCH_TEXT_PLATFORMS);
+                platformW.options.values = Object.keys(BATCH_TEXT_PLATFORMS)
+                    .filter(platform => !HIDDEN_BATCH_PLATFORMS.has(platform));
                 const originalPlatformCallback = platformW.callback;
                 platformW.callback = function(value) {
                     if (originalPlatformCallback) originalPlatformCallback.call(this, value);
@@ -197,11 +216,21 @@ app.registerExtension({
             }
 
             if (modelW) {
+                modelW._llaiActualValue = actualModelName(modelW.value);
+                if (typeof modelW.serializeValue !== "function" || !modelW._llaiSerializePatched) {
+                    modelW.serializeValue = function() {
+                        const actual = this._llaiActualValue || actualModelName(this.value);
+                        return actual;
+                    };
+                    modelW._llaiSerializePatched = true;
+                }
                 const originalModelCallback = modelW.callback;
                 modelW.callback = function(value) {
-                    if (originalModelCallback) originalModelCallback.call(this, value);
+                    const actualValue = actualModelName(value);
+                    this._llaiActualValue = actualValue;
+                    if (originalModelCallback) originalModelCallback.call(this, actualValue);
                     const config = BATCH_TEXT_PLATFORMS[platformW?.value || "GeminiText"];
-                    if (config) applyInputCapabilities(config, value);
+                    if (config) applyInputCapabilities(config, actualValue);
                     app.graph.setDirtyCanvas(true);
                 };
             }

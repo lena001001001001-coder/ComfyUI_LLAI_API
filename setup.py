@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="KuaiPower",
-    version="0.1.0",
+    version="1.4.2",
     packages=find_packages(),
     install_requires=[
         "requests>=2.28.0",

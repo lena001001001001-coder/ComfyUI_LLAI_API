@@ -1,4 +1,4 @@
-﻿import json
+import json
 import time
 import requests
 from ..Sora2.kuai_utils import (env_or, ensure_list_from_urls,
@@ -88,9 +88,9 @@ class VeoText2Video:
                     "veo3.1-4k",
                     "veo3.1-pro-4k",
                 ], {"default": "veo_3_1-lite", "tooltip": "妯″瀷閫夋嫨"}),
-                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "瑙嗛瀹介珮姣?}),
+                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "视频宽高比"}),
                 "enhance_prompt": ("BOOLEAN", {"default": True, "tooltip": "鑷姩灏嗕腑鏂囨彁绀鸿瘝浼樺寲骞剁炕璇戜负鑻辨枃"}),
-                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "鍚敤瓒呭垎浠ユ彁鍗囪棰戣川閲?}),
+                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "启用超分以提升视频质量"}),
             },
             "optional": {
                 "api_base": ("STRING", {"default": "https://api.llaiapi.host", "tooltip": "API绔偣鍦板潃"}),
@@ -101,7 +101,7 @@ class VeoText2Video:
         }
 
     RETURN_TYPES = ("STRING", "STRING", "INT")
-    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "鐘舵€佹洿鏂版椂闂?)
+    RETURN_NAMES = ("任务 ID", "状态", "状态更新时间")
     FUNCTION = "create"
     CATEGORY = "馃崘LLAI/Veo3"
 
@@ -163,9 +163,9 @@ class VeoImage2Video:
                     "veo3.1-4k",
                     "veo3.1-pro-4k",
                 ], {"default": "veo_3_1-lite", "tooltip": "妯″瀷閫夋嫨"}),
-                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "瑙嗛瀹介珮姣?}),
+                "aspect_ratio": (["16:9", "9:16"], {"default": "9:16", "tooltip": "视频宽高比"}),
                 "enhance_prompt": ("BOOLEAN", {"default": True, "tooltip": "鑷姩灏嗕腑鏂囨彁绀鸿瘝浼樺寲骞剁炕璇戜负鑻辨枃"}),
-                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "鍚敤瓒呭垎浠ユ彁鍗囪棰戣川閲?}),
+                "enable_upsample": ("BOOLEAN", {"default": True, "tooltip": "启用超分以提升视频质量"}),
             },
             "optional": {
                 "image_1": ("STRING", {"default": "", "multiline": False, "tooltip": "鍙傝€冨浘1 URL (棣栧抚)"}),
@@ -179,7 +179,7 @@ class VeoImage2Video:
         }
 
     RETURN_TYPES = ("STRING", "STRING", "INT")
-    RETURN_NAMES = ("浠诲姟ID", "鐘舵€?, "鐘舵€佹洿鏂版椂闂?)
+    RETURN_NAMES = ("任务 ID", "状态", "状态更新时间")
     FUNCTION = "create"
     CATEGORY = "馃崘LLAI/Veo3"
 
@@ -248,7 +248,7 @@ class VeoQueryTask:
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("鐘舵€?, "瑙嗛URL", "澧炲己鍚庢彁绀鸿瘝", "鍘熷鍝嶅簲JSON")
+    RETURN_NAMES = ("状态", "视频 URL", "增强后提示词", "原始响应 JSON")
     FUNCTION = "query"
     CATEGORY = "馃崘LLAI/Veo3"
 
@@ -303,7 +303,7 @@ class VeoQueryTask:
         if not wait:
             return once()
 
-        print(f"[VeoQueryTask] 寮€濮嬭疆璇换鍔?{task_id}锛岃秴鏃?{timeout_sec} 绉掞紝闂撮殧 {poll_interval_sec} 绉?)
+        print(f"[VeoQueryTask] 开始轮询任务 {task_id}，超时 {timeout_sec} 秒，间隔 {poll_interval_sec} 秒")
         deadline = time.time() + int(timeout_sec)
         last_raw = ""
         poll_count = 0
@@ -335,7 +335,7 @@ class VeoText2VideoAndWait:
         return inputs
     
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("鐘舵€?, "瑙嗛URL", "澧炲己鍚庢彁绀鸿瘝", "浠诲姟ID")
+    RETURN_NAMES = ("状态", "视频 URL", "增强后提示词", "任务 ID")
     FUNCTION = "run"
     CATEGORY = "馃崘LLAI/Veo3"
     
@@ -368,7 +368,7 @@ class VeoImage2VideoAndWait:
         return inputs
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("鐘舵€?, "瑙嗛URL", "澧炲己鍚庢彁绀鸿瘝", "浠诲姟ID")
+    RETURN_NAMES = ("状态", "视频 URL", "增强后提示词", "任务 ID")
     FUNCTION = "run"
     CATEGORY = "馃崘LLAI/Veo3"
 
@@ -407,7 +407,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "VeoText2Video": "馃幀 Veo 鏂囩敓瑙嗛",
     "VeoImage2Video": "馃崘 Veo 鍥剧敓瑙嗛",
     "VeoQueryTask": "馃攳 Veo 鏌ヨ浠诲姟",
-    "VeoText2VideoAndWait": "鈿?Veo 涓€閿枃鐢熻棰?,
-    "VeoImage2VideoAndWait": "鈿?Veo 涓€閿浘鐢熻棰?,
+    "VeoText2VideoAndWait": "LL Veo 一键文生视频",
+    "VeoImage2VideoAndWait": "LL Veo 一键图生视频",
 }
 
