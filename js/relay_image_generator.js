@@ -11,18 +11,29 @@ const GPT_IMAGE2_EXTRA_RATIOS = ["1:3", "3:1"];
 const BANANA2_RATIOS = IMAGE_RATIOS_BASE.concat(IMAGE_RATIOS_EXTREME);
 const GPT_IMAGE2_RATIOS = IMAGE_RATIOS_BASE.concat(GPT_IMAGE2_EXTRA_RATIOS);
 const IMAGE_RATIOS = IMAGE_RATIOS_BASE.concat(IMAGE_RATIOS_EXTREME, GPT_IMAGE2_EXTRA_RATIOS);
+const GPT_IMAGE25_MODELS = [
+    "gpt-image-2.5-sunburst",
+    "gpt-image-2.5-flare",
+    "gpt-image-2.5-sunburst-c",
+    "gpt-image-2.5-flare-c",
+];
+const GPT_IMAGE25_QUALITIES = ["low", "medium", "high", "xhigh", "max", "auto"];
+const GPT_IMAGE25_C_QUALITIES = ["low", "medium", "high", "auto"];
 const IMAGE_RATIOS_BY_PLATFORM = {
     "banana-pro": BANANA_PRO_RATIOS,
     "banana-2": BANANA2_RATIOS,
     "gpt-image2": GPT_IMAGE2_RATIOS,
+    "gpt-image2.5": GPT_IMAGE2_RATIOS,
 };
 const MODEL_VALUES_BY_PLATFORM = {
     "banana-pro": ["gemini-3-pro-image-preview"],
     "banana-2": ["gemini-3.1-flash-image-preview"],
+    "gpt-image2.5": GPT_IMAGE25_MODELS,
 };
 const MODEL_BY_PLATFORM = {
     "banana-pro": "gemini-3-pro-image-preview",
     "banana-2": "gemini-3.1-flash-image-preview",
+    "gpt-image2.5": "gpt-image-2.5-sunburst",
 };
 const DEFAULT_IMAGE_SIZES = ["1K", "2K", "4K"];
 const GPT_IMAGE2_SIZES = ["1K", "2K", "4K"];
@@ -91,6 +102,7 @@ function showWidget(widget) {
 
 function getPlatformFromSource(node) {
     if (node.comfyClass === "RelayGPTImage2Generator") return "gpt-image2";
+    if (node.comfyClass === "LLGPTImage25Generator") return "gpt-image2.5";
     if (node.comfyClass === "RelayBanana2ImageGenerator") {
         const pw = node.widgets?.find(w => w.name === "platform");
         return pw ? pw.value : "banana-2";
@@ -127,8 +139,25 @@ function applyDeprecatedWidgets(node, preferredSize) {
     }
 }
 
+function applyFixedImage25Widgets(node, preferredSize) {
+    if (node.comfyClass !== "LLGPTImage25Generator") return;
+
+    let changed = false;
+    for (const name of ["task_type", "platform", "api_format"]) {
+        const widget = node.widgets?.find(w => w.name === name);
+        if (!widget || isWidgetHidden(widget)) continue;
+        hideWidget(widget);
+        changed = true;
+    }
+
+    if (changed) {
+        preserveNodeSize(node, preferredSize);
+        app.graph.setDirtyCanvas(true);
+    }
+}
+
 function applyPlatformOnlyWidgets(node, platform) {
-    const showGptOnly = platform === "gpt-image2";
+    const showGptOnly = ["gpt-image2", "gpt-image2.5"].includes(platform);
     let changed = false;
 
     for (const name of ["quality", "moderation"]) {
@@ -160,7 +189,7 @@ function setWidgetValue(node, name, value) {
 
 function applyPlatform(node, platform, preferredSize, options = {}) {
     const resetDefaults = !!options.resetDefaults;
-    const maxImg = platform === "gpt-image2"
+    const maxImg = ["gpt-image2", "gpt-image2.5"].includes(platform)
         ? GPT_IMAGE2_MAX_IMAGES
         : (platform === "banana-2" ? FLASH_MAX_IMAGES : PRO_MAX_IMAGES);
     let changed = false;
@@ -214,7 +243,7 @@ function applyPlatform(node, platform, preferredSize, options = {}) {
             modelW.options.values = values;
             changed = true;
         }
-        if (desired && modelW.value !== desired) {
+        if (desired && node.comfyClass !== "LLGPTImage25Generator" && modelW.value !== desired) {
             modelW.value = desired;
             changed = true;
         } else if (values && !values.includes(modelW.value)) {
@@ -223,9 +252,24 @@ function applyPlatform(node, platform, preferredSize, options = {}) {
         }
     }
 
+    const qualityW = node.widgets?.find(w => w.name === "quality");
+    if (qualityW && platform === "gpt-image2.5") {
+        const values = (modelW?.value || "").endsWith("-c")
+            ? GPT_IMAGE25_C_QUALITIES
+            : GPT_IMAGE25_QUALITIES;
+        if (!sameValues(qualityW.options?.values, values)) {
+            qualityW.options.values = values;
+            changed = true;
+        }
+        if (!values.includes(qualityW.value)) {
+            qualityW.value = "medium";
+            changed = true;
+        }
+    }
+
     const sizeW = node.widgets?.find(w => w.name === "size");
     if (sizeW) {
-        const isGpt = platform === "gpt-image2";
+        const isGpt = ["gpt-image2", "gpt-image2.5"].includes(platform);
         const values = isGpt ? GPT_IMAGE2_SIZES : DEFAULT_IMAGE_SIZES;
         // 各平台的默认档位：gpt-image2 只有 1K；banana-pro / banana-2 默认 2K
         const defaultSize = "2K";
@@ -265,6 +309,7 @@ app.registerExtension({
             "RelayImageGenerator",
             "RelayGPTImage2Generator",
             "RelayBanana2ImageGenerator",
+            "LLGPTImage25Generator",
         ].includes(node.comfyClass);
         if (!isImageNode) return;
 
@@ -276,18 +321,29 @@ app.registerExtension({
         const initialPreferredSize = Array.isArray(node.size) ? [...node.size] : null;
         applyPlatform(node, initialPlatform, initialPreferredSize);
         applyDeprecatedWidgets(node, initialPreferredSize);
+        applyFixedImage25Widgets(node, initialPreferredSize);
 
         if (node.comfyClass !== "RelayImageGenerator") {
             const apiBaseW = node.widgets?.find(w => w.name === "api_base");
             // Keep the API base visible so users can choose between the LLAI relay sites.
             // The Volcengine/Ark node is separate and is not handled by this extension.
-            if (apiBaseW && node.comfyClass !== "RelayGPTImage2Generator" && node.comfyClass !== "RelayBanana2ImageGenerator") {
+            if (apiBaseW && node.comfyClass !== "RelayGPTImage2Generator" && node.comfyClass !== "RelayBanana2ImageGenerator" && node.comfyClass !== "LLGPTImage25Generator") {
                 hideWidget(apiBaseW);
             }
             const formatW = node.widgets?.find(w => w.name === "api_format");
             if (formatW) {
                 formatW.options.values = [node.comfyClass === "RelayBanana2ImageGenerator" ? "v1beta/models" : "v1/images"];
                 formatW.value = formatW.options.values[0];
+            }
+            const modelW = node.widgets?.find(w => w.name === "model");
+            if (modelW && node.comfyClass === "LLGPTImage25Generator") {
+                const originalModelCb = modelW.callback;
+                modelW.callback = function (value) {
+                    if (originalModelCb) originalModelCb.call(this, value);
+                    const preferredSize = Array.isArray(node.size) ? [...node.size] : null;
+                    applyPlatform(node, "gpt-image2.5", preferredSize);
+                    app.graph.setDirtyCanvas(true);
+                };
             }
             const platformW = node.widgets?.find(w => w.name === "platform");
             if (platformW && node.comfyClass === "RelayBanana2ImageGenerator") {
@@ -322,6 +378,8 @@ app.registerExtension({
                 // 只有真正的"用户切平台"才把 banana-pro ↔ banana-2 的 1K 自动升到 2K。
                 // （gpt-image2 ↔ banana 之间的切换由 applyPlatform 里列表变更逻辑负责）
             }
+
+            applyFixedImage25Widgets(node, preferredSize);
 
             const hasImg = hasImageConnected(node);
             if (hasImg !== node._lastHasImage) {

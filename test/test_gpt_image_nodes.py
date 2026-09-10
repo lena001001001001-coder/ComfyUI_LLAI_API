@@ -58,6 +58,19 @@ def _make_png_data_url():
     return "data:image/png;base64," + base64.b64encode(_make_png_bytes()).decode("utf-8")
 
 
+def _import_image_generator_package():
+    """Load the package as ComfyUI does, including its ComfyUI dependency path."""
+    comfy_root = Path(__file__).resolve().parent.parent.parent.parent
+    custom_nodes_root = comfy_root / "custom_nodes"
+    for path in (comfy_root, custom_nodes_root):
+        if str(path) not in sys.path:
+            sys.path.insert(0, str(path))
+    pytest.importorskip("comfy")
+    pytest.importorskip("comfy_execution")
+    from ComfyUI_LLAI_API import nodes_image_generator as image_nodes
+    return image_nodes
+
+
 def test_gpt_image_generate_interface_includes_format_and_quality():
     from nodes.GPTImage import NODE_CLASS_MAPPINGS
 
@@ -74,6 +87,143 @@ def test_gpt_image_generate_interface_includes_format_and_quality():
     labels = node_class.INPUT_LABELS()
     assert labels["format"] == "输出格式（png/jpeg/webp）"
     assert labels["quality"] == "图像质量（清晰度等级）"
+
+
+def test_gpt_image_25_node_is_fixed_to_cn_llai_and_exposes_two_models():
+    image_nodes = _import_image_generator_package()
+    from ComfyUI_LLAI_API import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+
+    LLGPTImage25Generator = image_nodes.LLGPTImage25Generator
+    assert NODE_CLASS_MAPPINGS["LLGPTImage25Generator"] is LLGPTImage25Generator
+    assert NODE_DISPLAY_NAME_MAPPINGS["LLGPTImage25Generator"] == "LL GPT Image 2.5 Generator"
+    assert LLGPTImage25Generator.MODEL_LIST == [
+        "gpt-image-2.5-sunburst",
+        "gpt-image-2.5-flare",
+        "gpt-image-2.5-sunburst-c",
+        "gpt-image-2.5-flare-c",
+    ]
+    inputs = LLGPTImage25Generator.INPUT_TYPES()
+    assert "api_base" not in inputs["required"]
+    assert "api_base" not in inputs["optional"]
+    assert inputs["required"]["model"][0] == LLGPTImage25Generator.MODEL_LIST
+    assert inputs["required"]["platform"][0] == ["gpt-image2.5"]
+    assert inputs["required"]["quality"][0] == ["low", "medium", "high", "xhigh", "max", "auto"]
+    assert inputs["required"]["quality"][1]["default"] == "medium"
+    assert "image16" in inputs["optional"]
+    assert "image17" not in inputs["optional"]
+    assert "moderation" not in inputs["required"]
+    assert LLGPTImage25Generator.FIXED_API_BASE == "https://cn.llai.xin"
+    node = LLGPTImage25Generator()
+    assert node._gpt_image2_size("1:1", "1K", []) == "1248x1248"
+    assert node._gpt_image2_size("16:9", "4K", []) == "3840x2160"
+
+
+def test_gpt_image_25_c_quality_is_normalized_without_xhigh_or_max(monkeypatch):
+    image_25 = _import_image_generator_package()
+    node = image_25.LLGPTImage25Generator()
+    captured = {}
+
+    def fake_generate(*args):
+        captured["quality"] = args[6]
+        return {"data": [{"url": "https://example.test/out.png"}]}
+
+    monkeypatch.setattr(node, "_gpt_image2_openai_generate", fake_generate)
+    monkeypatch.setattr(node, "_download_image", lambda *_args, **_kwargs: "image")
+    monkeypatch.setattr(image_25.comfy.utils, "ProgressBar", lambda _value: type("P", (), {"update_absolute": lambda _self, _value: None})())
+    monkeypatch.setattr(image_25, "save_node_settings", lambda *_args, **_kwargs: None)
+
+    node.generate_complete_image(
+        task_type="image",
+        platform="gpt-image2.5",
+        api_format="v1/images",
+        model="gpt-image-2.5-sunburst-c",
+        apikey="sk-test",
+        prompt="a cat",
+        ratio="1:1",
+        size="1K",
+        seed=0,
+        quality="xhigh",
+        timeout=30,
+        unique_id="test-node-c",
+    )
+
+    assert captured["quality"] == "medium"
+
+
+def test_gpt_image_25_text_to_image_uses_fixed_endpoint(monkeypatch):
+    image_25 = _import_image_generator_package()
+
+    captured = {}
+
+    def fake_post_with_timing(_label, request_kwargs):
+        captured["url"] = request_kwargs["url"]
+        captured["json"] = request_kwargs.get("json")
+        return FakeResponse({"data": [{"url": "https://example.test/out.png"}]})
+
+    monkeypatch.setattr(image_25, "_post_with_timing", fake_post_with_timing)
+    monkeypatch.setattr(image_25, "save_node_settings", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(image_25.LLGPTImage25Generator, "_response_has_openai_image", lambda _self, _data: True)
+    monkeypatch.setattr(image_25.LLGPTImage25Generator, "_extract_image", lambda _self, _data: ("url", "https://example.test/out.png"))
+    monkeypatch.setattr(image_25.LLGPTImage25Generator, "_download_image", lambda _self, _url, timeout=60: "image")
+    monkeypatch.setattr(image_25.comfy.utils, "ProgressBar", lambda _value: type("P", (), {"update_absolute": lambda _self, _value: None})())
+
+    result = image_25.LLGPTImage25Generator().generate_complete_image(
+        task_type="image",
+        platform="gpt-image2.5",
+        api_format="v1/images",
+        model="gpt-image-2.5-sunburst",
+        apikey="sk-test",
+        prompt="a cat",
+        ratio="1:1",
+        size="1K",
+        seed=0,
+        quality="auto",
+        timeout=30,
+        unique_id="test-node",
+    )
+
+    assert result[0] == "image"
+    assert captured["url"] == "https://cn.llai.xin/v1/images/generations"
+    assert captured["json"]["model"] == "gpt-image-2.5-sunburst"
+
+
+def test_gpt_image_25_reference_image_uses_edit_endpoint(monkeypatch):
+    image_25 = _import_image_generator_package()
+
+    captured = {}
+
+    def fake_post_with_timing(_label, request_kwargs):
+        captured["url"] = request_kwargs["url"]
+        captured["data"] = request_kwargs.get("data")
+        captured["files"] = request_kwargs.get("files")
+        return FakeResponse({"data": [{"url": "https://example.test/edited.png"}]})
+
+    monkeypatch.setattr(image_25, "_post_with_timing", fake_post_with_timing)
+    monkeypatch.setattr(image_25, "save_node_settings", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(image_25.LLGPTImage25Generator, "_image_to_bytes", lambda *_args: b"png")
+    monkeypatch.setattr(image_25.LLGPTImage25Generator, "_download_image", lambda *_args, **_kwargs: "image")
+    monkeypatch.setattr(image_25.comfy.utils, "ProgressBar", lambda _value: type("P", (), {"update_absolute": lambda _self, _value: None})())
+
+    result = image_25.LLGPTImage25Generator().generate_complete_image(
+        task_type="image",
+        platform="gpt-image2.5",
+        api_format="v1/images",
+        model="gpt-image-2.5-flare",
+        apikey="sk-test",
+        prompt="edit this",
+        ratio="1:1",
+        size="2K",
+        seed=0,
+        quality="high",
+        timeout=30,
+        unique_id="test-node-edit",
+        image1="fake-image",
+    )
+
+    assert result[0] == "image"
+    assert captured["url"] == "https://cn.llai.xin/v1/images/edits"
+    assert captured["data"]["model"] == "gpt-image-2.5-flare"
+    assert captured["files"][0][0] == "image[]"
 
 
 def test_gpt_image_2_c_uses_documented_sizes_and_omits_n():

@@ -77,6 +77,7 @@ IMAGE_RATIOS_BY_PLATFORM = {
     "banana-pro": BANANA_PRO_RATIOS,
     "banana-2": BANANA2_RATIOS,
     "gpt-image2": GPT_IMAGE2_RATIOS,
+    "gpt-image2.5": GPT_IMAGE2_RATIOS,
 }
 
 # gpt-image2 尺寸规则：最大边 <= 3840，宽高都是 16 的倍数，总像素 <= 8294400。
@@ -112,6 +113,8 @@ GPT_IMAGE2_SIZE_TARGET_PIXELS = {
 }
 IMAGE_SIZES = ["1K", "2K", "4K"]
 GPT_IMAGE2_QUALITIES = ["low", "medium", "high", "auto"]
+GPT_IMAGE25_QUALITIES = ["low", "medium", "high", "xhigh", "max", "auto"]
+GPT_IMAGE25_C_QUALITIES = ["low", "medium", "high", "auto"]
 # Deprecated internal slot. Kept to avoid shifting saved workflow widget values.
 GPT_IMAGE2_FORMATS = ["jpeg", "png", "webp"]
 GPT_IMAGE2_MODERATIONS = ["auto", "low"]
@@ -199,7 +202,7 @@ class RelayImageGenerator:
         return max(30, min(value, 9999))
 
     def _image_result_timeout(self, platform, size, timeout=None):
-        if platform == "gpt-image2":
+        if platform in {"gpt-image2", "gpt-image2.5"}:
             return self._gpt_image2_timeout(size, timeout)
         return self._banana_timeout(size)
 
@@ -1024,7 +1027,12 @@ class RelayImageGenerator:
             allowed_ratios = IMAGE_RATIOS_BY_PLATFORM.get(platform, IMAGE_RATIOS_BASE)
             ratio = self._normalize_choice("ratio", ratio, allowed_ratios, "1:1")
             size = self._normalize_choice("size", size, IMAGE_SIZES, "2K")
-            quality = self._normalize_choice("quality", quality, GPT_IMAGE2_QUALITIES, "medium")
+            if platform == "gpt-image2.5":
+                quality_options = GPT_IMAGE25_C_QUALITIES if model.endswith("-c") else GPT_IMAGE25_QUALITIES
+            else:
+                quality_options = GPT_IMAGE2_QUALITIES
+            quality_default = "medium"
+            quality = self._normalize_choice("quality", quality, quality_options, quality_default)
             moderation = self._normalize_choice("moderation", moderation, GPT_IMAGE2_MODERATIONS, "low")
             request_timeout = self._normalize_timeout(timeout)
             print(f"[RelayAPI] image | {platform} | {api_format} | {base_url} | {model}")
@@ -1058,7 +1066,7 @@ class RelayImageGenerator:
                 print(f"[RelayAPI] TIMING total={time.time()-t_total_start:.1f}s api={t_api:.1f}s")
                 return (img_tensor, resp_json, img_url)
 
-            elif platform == "gpt-image2":
+            elif platform in {"gpt-image2", "gpt-image2.5"}:
                 result = self._gpt_image2_openai_generate(
                     base_url, api_key, model, prompt, ratio, size, quality, moderation,
                     images, request_timeout, pbar,
@@ -1236,6 +1244,83 @@ class RelayGPTImage2Generator(_RelayCompleteImageGenerator):
     RETURN_NAMES = ("image", "response", "image_url")
     FUNCTION = "generate_complete_image"
     CATEGORY = "ComfyUI_LLAI_API"
+
+
+class LLGPTImage25Generator(_RelayCompleteImageGenerator):
+    """GPT Image 2.5 完整节点，固定调用 cn.llai.xin 且隐藏 API 地址。"""
+
+    PLATFORM = "gpt-image2.5"
+    API_FORMAT = "v1/images"
+    MODEL_DEFAULT = "gpt-image-2.5-sunburst"
+    MODEL_LIST = [
+        "gpt-image-2.5-sunburst",
+        "gpt-image-2.5-flare",
+        "gpt-image-2.5-sunburst-c",
+        "gpt-image-2.5-flare-c",
+    ]
+    RATIO_LIST = GPT_IMAGE2_RATIOS
+    MAX_IMAGES = GPT_IMAGE2_MAX_IMAGES
+    INCLUDE_GPT_OPTIONS = True
+    FIXED_API_BASE = "https://cn.llai.xin"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        inputs = cls._input_types()
+        # The endpoint is fixed by this node; do not expose the generic base
+        # selector that is present on the legacy complete image node.
+        inputs["required"].pop("api_base", None)
+        inputs["required"]["quality"] = (GPT_IMAGE25_QUALITIES, {"default": "medium"})
+        # GPT Image 2.5 uses the service defaults for moderation and the
+        # screenshot-style node does not expose a separate moderation widget.
+        inputs["required"].pop("moderation", None)
+        return inputs
+
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING")
+    RETURN_NAMES = ("image", "response", "image_url")
+    FUNCTION = "generate_complete_image"
+    CATEGORY = "ComfyUI_LLAI_API"
+
+    def generate_complete_image(
+        self,
+        task_type,
+        platform,
+        api_format,
+        model,
+        apikey,
+        prompt,
+        ratio,
+        size,
+        seed,
+        quality="medium",
+        timeout=GPT_IMAGE2_DEFAULT_TIMEOUT,
+        unique_id=None,
+        **kwargs,
+    ):
+        _ = task_type
+        _ = platform
+        _ = api_format
+        info = self._build_info(
+            self.FIXED_API_BASE,
+            model,
+            apikey,
+            unique_id,
+            self.PLATFORM,
+            self.API_FORMAT,
+        )
+        if not json.loads(info).get("apikey"):
+            self._err("API key not found. Please set apikey on this complete image node.")
+        return self.generate_image(
+            prompt=prompt,
+            ratio=ratio,
+            size=size,
+            quality=quality,
+            format="jpeg",
+            moderation="low",
+            seed=seed,
+            timeout=timeout,
+            info=info,
+            **kwargs,
+        )
 
 
 class RelayBanana2ImageGenerator(_RelayCompleteImageGenerator):

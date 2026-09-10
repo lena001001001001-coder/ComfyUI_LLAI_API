@@ -99,6 +99,9 @@ ComfyUI/custom_nodes/ComfyUI_LLAI_API/
 - banana-pro: `nano-banana-pro`
 - banana-2: `gemini-3.1-flash-image-preview`
 - gpt-image2: `gpt-image-2`
+- GPT Image 2.5 专用节点：`gpt-image-2.5-sunburst`、`gpt-image-2.5-flare`、`gpt-image-2.5-sunburst-c`、`gpt-image-2.5-flare-c`
+
+`LL GPT Image 2.5 Generator` 固定调用 `https://cn.llai.xin/`，不显示 API 地址下拉框；支持文生图和连接参考图后的图生图，并按 GPT Image 2.5 文档提供比例、1K/2K/4K 分辨率和质量选项。普通模型支持 `low`、`medium`、`high`、`xhigh`、`max`、`auto`；两个 `-c` 模型支持 `low`、`medium`、`high`、`auto`。
 
 ### 音频
 

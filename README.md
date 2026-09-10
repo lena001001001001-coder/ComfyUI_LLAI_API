@@ -17,6 +17,7 @@ https://api.llaiapi.host/
 | LLAI API Settings | 统一配置任务类型、平台、api_format、base、模型和 API Key |
 | LLAI Text Generator | 文本生成、多模态理解 |
 | LLAI Image Generator | 文生图、图像编辑 |
+| LL GPT Image 2.5 Generator | 固定调用 `https://cn.llai.xin/`，支持 `gpt-image-2.5-sunburst`、`gpt-image-2.5-flare`、`gpt-image-2.5-sunburst-c`、`gpt-image-2.5-flare-c`，以及文生图和图生图 |
 | LL-doubao-seedream-4.5-文生图 | Doubao Seedream 4.5 文生图，支持 2K、4K 和官方像素范围内的常用尺寸 |
 | LL-doubao-seedream-4.5 | Doubao Seedream 4.5 文生图与图生图合并节点；不连接参考图时文生图，连接参考图时图生图，最多支持 14 张参考图 |
 | LL-doubao-seedream-4.0-文生图 | Doubao Seedream 4.0 文生图，节点提供 1K、2K、4K 档位，宽高比按官方要求写入提示词 |

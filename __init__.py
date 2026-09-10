@@ -1,6 +1,11 @@
 ﻿from .nodes_api_settings import RelayAPISettings
 from .nodes_video_generator import RelayGrokVideo, RelayVideoGenerator
-from .nodes_image_generator import RelayBanana2ImageGenerator, RelayGPTImage2Generator, RelayImageGenerator
+from .nodes_image_generator import (
+    RelayBanana2ImageGenerator,
+    RelayGPTImage2Generator,
+    LLGPTImage25Generator,
+    RelayImageGenerator,
+)
 from .nodes_notice import RelayAPINotice
 from .nodes_sound_generator import RelaySoundGenerator
 from .nodes_suno_direct import RelaySunoDirectGenerator, RelaySunoDirectPlayer
@@ -60,6 +65,7 @@ NODE_CLASS_MAPPINGS = {
     "RelayGrokImagineVideo": RelayGrokImagineVideo,
     "GPTImage2CLowCost4K": GPTImage2CLowCost4K,
     "GPTImage2CFullSize": GPTImage2CFullSize,
+    "LLGPTImage25Generator": LLGPTImage25Generator,
     "LLDoubaoSeedream45TextToImage": LLDoubaoSeedream45TextToImage,
     "LLDoubaoSeedream40TextToImage": LLDoubaoSeedream40TextToImage,
     "LLDoubaoSeedream40BatchTextToImage": LLDoubaoSeedream40BatchTextToImage,
@@ -89,6 +95,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RelayGrokImagineVideo": "LL-grok-imagine-video",
     "GPTImage2CLowCost4K": "LL-gpt-image-2-c-低价4k",
     "GPTImage2CFullSize": "LL-gpt-image-2-c低价",
+    "LLGPTImage25Generator": "LL GPT Image 2.5 Generator",
     "LLDoubaoSeedream45TextToImage": "LL-doubao-seedream-4.5-文生图",
     "LLDoubaoSeedream40TextToImage": "LL-doubao-seedream-4.0-文生图",
     "LLDoubaoSeedream40BatchTextToImage": "LL-doubao-seedream-4.0-文生图-批量",

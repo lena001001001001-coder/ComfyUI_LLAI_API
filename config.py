@@ -22,6 +22,7 @@ DEFAULT_MODELS = {
     "banana-pro": ["nano-banana-pro"],
     "banana-2": ["gemini-3.1-flash-image-preview"],
     "gpt-image2": ["gpt-image-2"],
+    "gpt-image2.5": ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2.5-sunburst-c", "gpt-image-2.5-flare-c"],
     "Suno": ["suno_music_open", "suno_music"],
     "GeminiText": ["gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-3.1-pro-preview"],
     "OpenaiText": ["claude-opus-4-6", "grok-4.1"],
@@ -58,6 +59,9 @@ FORMAT_MODELS = {
         "v1/images": ["gpt-image-2"],
         "runninghub-/openapi/v2": ["rhart-image-g-2", "rhart-image-g-2-official"],
     },
+    "gpt-image2.5": {
+        "v1/images": ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2.5-sunburst-c", "gpt-image-2.5-flare-c"],
+    },
     "Suno": {
         "suno/submit": ["suno_music_open", "suno_music"],
         "runninghub-/openapi/v2": ["rhart-audio-suno-v5.5"],
@@ -77,7 +81,7 @@ TASK_PLATFORMS = {
     "video": ["Grok", "Veo"],
     "grok_imagine_video": ["GrokImagineVideo"],
     "grok_imagine_video_15": ["GrokImagineVideo15"],
-    "image": ["banana-pro", "banana-2", "gpt-image2"],
+    "image": ["banana-pro", "banana-2", "gpt-image2", "gpt-image2.5"],
     "sound": ["Suno"],
     "text": ["GeminiText", "OpenaiText"],
     "other": [],
