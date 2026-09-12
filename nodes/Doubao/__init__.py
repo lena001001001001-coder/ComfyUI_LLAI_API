@@ -12,13 +12,6 @@ from .doubao_seedream_50_lite import LLDoubaoSeedream50Lite
 
 
 NODE_CLASS_MAPPINGS = {
-    "LLDoubaoSeedream45TextToImage": LLDoubaoSeedream45TextToImage,
-    "LLDoubaoSeedream40TextToImage": LLDoubaoSeedream40TextToImage,
-    "LLDoubaoSeedream40BatchTextToImage": LLDoubaoSeedream40BatchTextToImage,
-    "LLDoubaoSeedream50ProTextToImage": LLDoubaoSeedream50ProTextToImage,
-    "LLDoubaoSeedream40ImageToImage": LLDoubaoSeedream40ImageToImage,
-    "LLDoubaoSeedream45ImageToImage": LLDoubaoSeedream45ImageToImage,
-    "LLDoubaoSeedream50ProImageToImage": LLDoubaoSeedream50ProImageToImage,
     "LLDoubaoSeedream40": LLDoubaoSeedream40,
     "LLDoubaoSeedream45": LLDoubaoSeedream45,
     "LLDoubaoSeedream50Pro": LLDoubaoSeedream50Pro,
@@ -26,13 +19,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LLDoubaoSeedream45TextToImage": "LL-doubao-seedream-4.5-文生图",
-    "LLDoubaoSeedream40TextToImage": "LL-doubao-seedream-4.0-文生图",
-    "LLDoubaoSeedream40BatchTextToImage": "LL-doubao-seedream-4.0-文生图-批量",
-    "LLDoubaoSeedream50ProTextToImage": "LL-doubao-seedream-5.0pro-文生图",
-    "LLDoubaoSeedream40ImageToImage": "LL-doubao-seedream-4.0-图生图",
-    "LLDoubaoSeedream45ImageToImage": "LL-doubao-seedream-4.5-图生图(慢)",
-    "LLDoubaoSeedream50ProImageToImage": "LL-doubao-seedream-5.0pro-图生图",
     "LLDoubaoSeedream40": "LL-doubao-seedream-4.0",
     "LLDoubaoSeedream45": "LL-doubao-seedream-4.5",
     "LLDoubaoSeedream50Pro": "LL-doubao-seedream-5.0pro",

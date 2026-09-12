@@ -3,6 +3,7 @@ from .nodes_video_generator import RelayGrokVideo, RelayVideoGenerator
 from .nodes_image_generator import (
     RelayBanana2ImageGenerator,
     RelayGPTImage2Generator,
+    LLGPTImage2TransparentGenerator,
     LLGPTImage25Generator,
     RelayImageGenerator,
 )
@@ -11,7 +12,7 @@ from .nodes_sound_generator import RelaySoundGenerator
 from .nodes_suno_direct import RelaySunoDirectGenerator, RelaySunoDirectPlayer
 from .nodes_text_generator import RelayLLMText, RelayLLMTextBatch
 from .nodes_grok_imagine_video import RelayGrokImagineVideo
-from .nodes.GPTImage import GPTImage2CLowCost4K, GPTImage2CFullSize
+from .nodes.GPTImage import GPTImage2CFullSize
 from .nodes.Doubao import (
     LLDoubaoSeedream40,
     LLDoubaoSeedream40BatchTextToImage,
@@ -57,22 +58,15 @@ except Exception:
 NODE_CLASS_MAPPINGS = {
     "RelayVideoGenerator": RelayGrokVideo,
     "RelayGPTImage2Generator": RelayGPTImage2Generator,
+    "LLGPTImage2TransparentGenerator": LLGPTImage2TransparentGenerator,
     "RelayBanana2ImageGenerator": RelayBanana2ImageGenerator,
     "RelayAPINotice": RelayAPINotice,
     "RelaySunoDirectPlayer": RelaySunoDirectPlayer,
     "RelayLLMText": RelayLLMText,
     "RelayLLMTextBatch": RelayLLMTextBatch,
     "RelayGrokImagineVideo": RelayGrokImagineVideo,
-    "GPTImage2CLowCost4K": GPTImage2CLowCost4K,
     "GPTImage2CFullSize": GPTImage2CFullSize,
     "LLGPTImage25Generator": LLGPTImage25Generator,
-    "LLDoubaoSeedream45TextToImage": LLDoubaoSeedream45TextToImage,
-    "LLDoubaoSeedream40TextToImage": LLDoubaoSeedream40TextToImage,
-    "LLDoubaoSeedream40BatchTextToImage": LLDoubaoSeedream40BatchTextToImage,
-    "LLDoubaoSeedream50ProTextToImage": LLDoubaoSeedream50ProTextToImage,
-    "LLDoubaoSeedream40ImageToImage": LLDoubaoSeedream40ImageToImage,
-    "LLDoubaoSeedream45ImageToImage": LLDoubaoSeedream45ImageToImage,
-    "LLDoubaoSeedream50ProImageToImage": LLDoubaoSeedream50ProImageToImage,
     "LLDoubaoSeedream40": LLDoubaoSeedream40,
     "LLDoubaoSeedream45": LLDoubaoSeedream45,
     "LLDoubaoSeedream50Pro": LLDoubaoSeedream50Pro,
@@ -87,22 +81,15 @@ NODE_CLASS_MAPPINGS.update(TEXT_TO_CSV_NODE_CLASS_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS = {
     "RelayVideoGenerator": "LL-Grok Video",
     "RelayGPTImage2Generator": "LL-GPT-Image2 Generator",
+    "LLGPTImage2TransparentGenerator": "image2-transparent",
     "RelayBanana2ImageGenerator": "LL-Banana-image",
     "RelayAPINotice": "LL-API Notice",
     "RelaySunoDirectPlayer": "LL-Suno Direct Player",
     "RelayLLMText": "LL-LLM Text",
     "RelayLLMTextBatch": "LL-LLM Text Batch",
     "RelayGrokImagineVideo": "LL-grok-imagine-video",
-    "GPTImage2CLowCost4K": "LL-gpt-image-2-c-低价4k",
     "GPTImage2CFullSize": "LL-gpt-image-2-c低价",
     "LLGPTImage25Generator": "LL GPT Image 2.5 Generator",
-    "LLDoubaoSeedream45TextToImage": "LL-doubao-seedream-4.5-文生图",
-    "LLDoubaoSeedream40TextToImage": "LL-doubao-seedream-4.0-文生图",
-    "LLDoubaoSeedream40BatchTextToImage": "LL-doubao-seedream-4.0-文生图-批量",
-    "LLDoubaoSeedream50ProTextToImage": "LL-doubao-seedream-5.0pro-文生图",
-    "LLDoubaoSeedream40ImageToImage": "LL-doubao-seedream-4.0-图生图",
-    "LLDoubaoSeedream45ImageToImage": "LL-doubao-seedream-4.5-图生图(慢)",
-    "LLDoubaoSeedream50ProImageToImage": "LL-doubao-seedream-5.0pro-图生图",
     "LLDoubaoSeedream40": "LL-doubao-seedream-4.0",
     "LLDoubaoSeedream45": "LL-doubao-seedream-4.5",
     "LLDoubaoSeedream50Pro": "LL-doubao-seedream-5.0pro",

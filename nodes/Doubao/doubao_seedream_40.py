@@ -11,7 +11,9 @@ from ..GPTImage.gpt_image import (
 )
 from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_status
 MODEL = "doubao-seedream-4-0-250828"
-ENDPOINT = "https://api.llaiapi.host/v1/images/generations"
+DEFAULT_API_BASE = "https://api.llaiapi.host"
+API_BASES = ["https://cn.llai.xin", DEFAULT_API_BASE]
+ENDPOINT = f"{DEFAULT_API_BASE}/v1/images/generations"
 RESPONSE_FORMATS = ["url", "b64_json"]
 MIN_PIXELS = 1280 * 720
 MAX_PIXELS = 4096 * 4096
@@ -150,12 +152,13 @@ class LLDoubaoSeedream40TextToImage:
                     "STRING",
                     {"default": "", "tooltip": "LLAI API 密钥；留空时读取环境变量 KUAI_API_KEY"},
                 ),
+                "api_base": (API_BASES, {"default": API_BASES[0], "tooltip": "图片生成接口地址"}),
                 "seed": (
                     "INT",
                     {
                         "default": 0,
                         "min": 0,
-                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "max": 0xFFFFFFFF,
                         "control_after_generate": True,
                         "tooltip": "用于控制 ComfyUI 是否重新执行生成；接口请求不发送 seed 字段",
                     },
@@ -178,7 +181,7 @@ class LLDoubaoSeedream40TextToImage:
     FUNCTION = "generate"
     CATEGORY = "LLAI/Doubao"
 
-    def generate(self, prompt, size, watermark, response_format, api_key, seed, timeout=1800, ratio=None):
+    def generate(self, prompt, size, watermark, response_format, api_key, seed, timeout=1800, ratio=None, api_base=API_BASES[0]):
         _ = seed
         prompt = str(prompt or "").strip()
         if not prompt:
@@ -198,7 +201,7 @@ class LLDoubaoSeedream40TextToImage:
         session = requests.Session()
         session.trust_env = False
         try:
-            response = session.post(ENDPOINT, json=payload, headers=headers, timeout=(30, int(timeout)))
+            response = session.post(f"{str(api_base or DEFAULT_API_BASE).rstrip('/')}/v1/images/generations", json=payload, headers=headers, timeout=(30, int(timeout)))
         except requests.RequestException as exc:
             raise RuntimeError(f"[LLAI] Doubao Seedream 4.0 请求失败：{exc}") from exc
 

@@ -8,6 +8,7 @@ from .doubao_seedream_50_pro import (
     LLDoubaoSeedream50ProTextToImage,
 )
 from .doubao_seedream_50_pro_i2i import MAX_IMAGES, LLDoubaoSeedream50ProImageToImage
+API_BASES = ["https://cn.llai.xin", "https://api.llaiapi.host"]
 
 
 REFERENCE_IMAGE_KEYS = [f"参考图{i}" for i in range(1, MAX_IMAGES + 1)]
@@ -59,7 +60,7 @@ class LLDoubaoSeedream50Pro:
                     {
                         "default": 0,
                         "min": 0,
-                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "max": 0xFFFFFFFF,
                         "control_after_generate": True,
                         "tooltip": "用于控制 ComfyUI 是否重新执行生成；接口请求不发送 seed 字段",
                     },
@@ -71,6 +72,7 @@ class LLDoubaoSeedream50Pro:
             },
             "optional": {
                 **optional_images,
+                "api_base": (API_BASES, {"default": API_BASES[0], "tooltip": "图片生成接口地址"}),
                 "timeout": (
                     "INT",
                     {"default": 1800, "min": 30, "max": 9999, "tooltip": "等待接口响应的最长秒数"},
@@ -91,6 +93,7 @@ class LLDoubaoSeedream50Pro:
         response_format,
         api_key,
         seed,
+        api_base=API_BASES[0],
         ratio=None,
         timeout=1800,
         **kwargs,
@@ -109,6 +112,7 @@ class LLDoubaoSeedream50Pro:
                 watermark=watermark,
                 response_format=response_format,
                 api_key=api_key,
+                api_base=api_base,
                 seed=seed,
                 ratio=selected_ratio,
                 timeout=timeout,
@@ -128,6 +132,7 @@ class LLDoubaoSeedream50Pro:
             watermark=watermark,
             response_format=response_format,
             api_key=api_key,
+            api_base=api_base,
             seed=seed,
             timeout=timeout,
             **remaining,

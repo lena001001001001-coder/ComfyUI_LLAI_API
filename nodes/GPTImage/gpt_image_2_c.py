@@ -19,6 +19,7 @@ from ..Sora2.kuai_utils import save_image_to_buffer
 
 MODEL = "gpt-image-2-c"
 DEFAULT_API_BASE = "https://api.llaiapi.host"
+SUPPORTED_API_BASES = ["https://cn.llai.xin", DEFAULT_API_BASE]
 DEFAULT_ENDPOINT = "/v1/images/generations"
 
 # Exact values documented by the OpenAI-compatible image generation endpoint.
@@ -158,13 +159,18 @@ def resolve_size(size, aspect_ratio="由尺寸决定"):
     return value
 
 
-def build_payload(prompt, size, output_format, quality):
+def build_payload(prompt, size, output_format, quality, seed=None, background="auto", transparent=False):
     # The gpt-image-2-c model page says this model currently does not support n.
     payload = {"model": MODEL, "prompt": prompt, "size": size}
+    if seed is not None:
+        payload["seed"] = int(seed)
     if output_format != "png":
         payload["format"] = output_format
     if quality != "auto":
         payload["quality"] = quality
+    if transparent:
+        payload["background"] = "transparent"
+        payload["output_format"] = "png"
     return payload
 
 
@@ -236,8 +242,8 @@ class GPTImage2CLowCost4K:
             "optional": {
                 **optional_images,
                 K_API_BASE: (
-                    "STRING",
-                    {"default": DEFAULT_ENDPOINT, "tooltip": "OpenAI 绘图端点"},
+                    SUPPORTED_API_BASES,
+                    {"default": SUPPORTED_API_BASES[0], "tooltip": "选择图像生成 API 地址"},
                 ),
                 K_TIMEOUT: (
                     "INT",
@@ -251,6 +257,7 @@ class GPTImage2CLowCost4K:
                     QUALITIES,
                     {"default": "medium", "tooltip": "文档支持 auto、low、medium、high"},
                 ),
+                "透明底开关": ("BOOLEAN", {"default": False, "tooltip": "开启后请求透明 PNG 背景"}),
             },
         }
 
@@ -277,6 +284,10 @@ class GPTImage2CLowCost4K:
         size = resolve_size(ratio_label or "1024x1024（1:1）", size_label)
         output_format = kwargs.get(K_FORMAT, "png")
         quality = kwargs.get(K_QUALITY, "auto")
+        transparent = kwargs.pop("透明底开关", kwargs.pop("transparent", False))
+        seed = kwargs.get(K_SEED)
+        if seed is not None:
+            seed = int(seed)
         endpoint = resolve_endpoint(kwargs.get(K_API_BASE, DEFAULT_ENDPOINT))
         timeout = int(kwargs.get(K_TIMEOUT, 1800))
 
@@ -295,10 +306,15 @@ class GPTImage2CLowCost4K:
             images = _collect_edit_images(named_images)
             files = _build_compact_edit_image_files([pil for _, pil in images])
             form_data = {"model": MODEL, "prompt": prompt, "size": size}
+            if seed is not None:
+                form_data["seed"] = str(seed)
             if output_format != "png":
                 form_data["format"] = output_format
             if quality != "auto":
                 form_data["quality"] = quality
+            if transparent:
+                form_data["background"] = "transparent"
+                form_data["output_format"] = "png"
             try:
                 response = session.post(
                     f"{endpoint.rsplit('/v1/images/generations', 1)[0]}/v1/images/edits",
@@ -312,14 +328,15 @@ class GPTImage2CLowCost4K:
             raise_for_bad_status(response, "gpt-image-2-c 图生图失败")
             data = response.json()
             outputs = _extract_image_outputs(data, fallback_format=output_format)
-            image, _ = _outputs_to_tensor_and_refs(outputs, timeout)
+            image, _ = _outputs_to_tensor_and_refs(outputs, timeout, preserve_alpha=transparent)
             info = json.dumps({"model": MODEL, "mode": "image-to-image", "size": size,
                                "format": output_format, "quality": quality,
+                               "seed": seed,
                                "input_image_count": len(images), "image_count": len(outputs)},
                               ensure_ascii=False, indent=2)
             return image, info, _summarize_response(data)
 
-        payload = build_payload(prompt, size, output_format, quality)
+        payload = build_payload(prompt, size, output_format, quality, seed, transparent=transparent)
 
         started_at = time.monotonic()
         try:
@@ -347,7 +364,7 @@ class GPTImage2CLowCost4K:
         raise_for_bad_status(response, "gpt-image-2-c 生图失败")
         data = response.json()
         outputs = _extract_image_outputs(data, fallback_format=output_format)
-        image, _ = _outputs_to_tensor_and_refs(outputs, timeout)
+        image, _ = _outputs_to_tensor_and_refs(outputs, timeout, preserve_alpha=transparent)
         output_refs = [
             output["value"] if output["source"] == "url" else f"<{output['source']} omitted>"
             for output in outputs
@@ -359,6 +376,7 @@ class GPTImage2CLowCost4K:
                 "size": size,
                 "format": output_format,
                 "quality": quality,
+                "seed": seed,
                 "image_count": len(outputs),
                 "output_refs": output_refs,
             },
@@ -374,9 +392,8 @@ class GPTImage2CFullSize(GPTImage2CLowCost4K):
     @classmethod
     def INPUT_TYPES(cls):
         inputs = super().INPUT_TYPES()
-        # This is a ComfyUI execution/cache seed.  The gpt-image-2-c relay
-        # does not document a seed request field, so it is intentionally not
-        # sent to the API; changing it forces a fresh node execution.
+        # The seed is used both as the ComfyUI execution/cache seed and as the
+        # request seed sent to the gpt-image-2-c API.
         inputs["required"][K_SEED] = (
             "INT",
             {
@@ -384,7 +401,7 @@ class GPTImage2CFullSize(GPTImage2CLowCost4K):
                 "min": 0,
                 "max": 0xFFFFFFFFFFFFFFFF,
                 "control_after_generate": True,
-                "tooltip": "仅控制 ComfyUI 重新执行；接口请求不会发送 seed 字段",
+                "tooltip": "控制 ComfyUI 执行并发送给接口",
             },
         )
         inputs["required"][K_RATIO] = (

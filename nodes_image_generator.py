@@ -486,7 +486,8 @@ class RelayImageGenerator:
         return resp.json()
 
     def _gpt_image2_openai_generate(self, base_url, api_key, model, prompt, ratio, size,
-                                    quality, moderation, images, timeout, pbar):
+                                    quality, moderation, images, timeout, pbar,
+                                    background="auto", output_format=None):
         paths = API_PATHS.get("image_v1/images", {})
         image_size = self._gpt_image2_size(ratio, size, images)
         timeout = self._gpt_image2_timeout(size, timeout)
@@ -508,6 +509,10 @@ class RelayImageGenerator:
                 "quality": quality,
                 "moderation": moderation,
             }
+            if background and background != "auto":
+                data_dict["background"] = background
+            if output_format:
+                data_dict["output_format"] = output_format
             files_list = []
             for i, img in enumerate(images[:GPT_IMAGE2_MAX_IMAGES]):
                 pbar.update_absolute(15 + i * 2)
@@ -534,6 +539,10 @@ class RelayImageGenerator:
                 "quality": quality,
                 "moderation": moderation,
             }
+            if background and background != "auto":
+                payload["background"] = background
+            if output_format:
+                payload["output_format"] = output_format
 
             request_label = "gpt-image2 openai create"
             request_kwargs = {
@@ -807,14 +816,15 @@ class RelayImageGenerator:
             )
         self._err(f"No image in response: {json.dumps(result)[:500]}")
 
-    def _download_image(self, url, timeout=60):
+    def _download_image(self, url, timeout=60, preserve_alpha=False):
         t0 = time.time()
         resp = requests.get(url, timeout=timeout)
         resp.raise_for_status()
         content = resp.content
         print(f"[RelayAPI] download {len(content)/1024:.1f}KB in {time.time()-t0:.1f}s timeout={timeout}s | {url}")
         try:
-            img = Image.open(BytesIO(content)).convert("RGB")
+            pil_image = Image.open(BytesIO(content))
+            img = pil_image.convert("RGBA" if preserve_alpha else "RGB")
         except Exception as e:
             # 下载回来的不是图：通常是 HTML 错误页 / 重定向 / 半截文件。
             # 把 content-type 和前 200 字节打出来，方便定位是中转的哪一步翻车
@@ -825,9 +835,9 @@ class RelayImageGenerator:
                 f"content-type={ctype}, size={len(content)}B)\n"
                 f"前 200 字节：{head_txt}\n原始错误：{e}"
             )
-        return pil2tensor(img)
+        return pil2tensor(img, preserve_alpha=preserve_alpha)
 
-    def _base64_to_tensor(self, b64_data):
+    def _base64_to_tensor(self, b64_data, preserve_alpha=False):
         # 去掉可能存在的 data URI 前缀，例如 data:image/png;base64,
         s = b64_data.strip()
         if s.startswith("data:"):
@@ -846,7 +856,8 @@ class RelayImageGenerator:
             )
 
         try:
-            img = Image.open(BytesIO(img_bytes)).convert("RGB")
+            pil_image = Image.open(BytesIO(img_bytes))
+            img = pil_image.convert("RGBA" if preserve_alpha else "RGB")
         except Exception as e:
             # 打印解码出的二进制头部，判断是不是图（PNG: 89 50 4E 47；JPEG: FF D8 FF）
             head_hex = img_bytes[:16].hex(" ")
@@ -856,7 +867,7 @@ class RelayImageGenerator:
                 f"前 16 字节 hex：{head_hex}\n"
                 f"前 200 字节文本：{head_txt}\n原始错误：{e}"
             )
-        return pil2tensor(img)
+        return pil2tensor(img, preserve_alpha=preserve_alpha)
 
     # ══════════════════════════════════════
     #  RunningHub — /openapi/v2 异步提交+轮询
@@ -1070,6 +1081,8 @@ class RelayImageGenerator:
                 result = self._gpt_image2_openai_generate(
                     base_url, api_key, model, prompt, ratio, size, quality, moderation,
                     images, request_timeout, pbar,
+                    background=parsed.get("background", "auto"),
+                    output_format=parsed.get("output_format"),
                 )
             elif api_format == "v1beta/models":
                 result = self._gemini_generate(
@@ -1097,13 +1110,16 @@ class RelayImageGenerator:
             # Prefer b64_json when available; accept url-only relay responses too.
             img_type, img_data = self._extract_image(result)
 
+            preserve_alpha = parsed.get("background") == "transparent"
             if img_type == "url":
                 print(f"[RelayAPI] Downloading image: {img_data}")
                 t_dec0 = time.time()
-                img_tensor = self._download_image(
-                    img_data,
-                    timeout=max(60, self._image_result_timeout(platform, size, request_timeout)),
-                )
+                download_kwargs = {
+                    "timeout": max(60, self._image_result_timeout(platform, size, request_timeout)),
+                }
+                if preserve_alpha:
+                    download_kwargs["preserve_alpha"] = True
+                img_tensor = self._download_image(img_data, **download_kwargs)
                 t_dec = time.time() - t_dec0
                 pbar.update_absolute(100)
                 resp_json = json.dumps({"code": "success", "url": img_data})
@@ -1111,7 +1127,7 @@ class RelayImageGenerator:
                 return (img_tensor, resp_json, img_data)
             else:
                 t_dec0 = time.time()
-                img_tensor = self._base64_to_tensor(img_data)
+                img_tensor = self._base64_to_tensor(img_data, preserve_alpha=preserve_alpha)
                 t_dec = time.time() - t_dec0
                 pbar.update_absolute(100)
                 resp_json = json.dumps({"code": "success", "type": "base64"})
@@ -1210,19 +1226,24 @@ class _RelayCompleteImageGenerator(RelayImageGenerator):
                                 quality="medium", moderation="low",
                                 timeout=GPT_IMAGE2_DEFAULT_TIMEOUT,
                                 unique_id=None, **kwargs):
+        transparent = kwargs.pop("透明底开关", kwargs.pop("transparent", False))
         info = self._build_info(api_base, model, apikey, unique_id, platform, api_format)
         if not json.loads(info).get("apikey"):
             self._err("API key not found. Please set apikey on this complete image node.")
+        info_data = json.loads(info)
+        if transparent:
+            info_data["background"] = "transparent"
+            info_data["output_format"] = "png"
         return self.generate_image(
             prompt=prompt,
             ratio=ratio,
             size=size,
             quality=quality,
-            format="jpeg",
+            format="png" if transparent else "jpeg",
             moderation=moderation,
             seed=seed,
             timeout=timeout,
-            info=info,
+            info=json.dumps(info_data),
             **kwargs,
         )
 
@@ -1238,12 +1259,57 @@ class RelayGPTImage2Generator(_RelayCompleteImageGenerator):
 
     @classmethod
     def INPUT_TYPES(cls):
-        return cls._input_types()
+        inputs = cls._input_types()
+        inputs["required"]["透明底开关"] = ("BOOLEAN", {"default": False})
+        return inputs
 
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
     RETURN_NAMES = ("image", "response", "image_url")
     FUNCTION = "generate_complete_image"
     CATEGORY = "ComfyUI_LLAI_API"
+
+
+class LLGPTImage2TransparentGenerator(RelayGPTImage2Generator):
+    """GPT Image 2 node with an optional transparent-background request."""
+
+    FIXED_API_BASE = "https://cn.llai.xin"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        inputs = super().INPUT_TYPES()
+        inputs["required"].pop("api_base", None)
+        inputs["required"]["透明底开关"] = ("BOOLEAN", {"default": False})
+        return inputs
+
+    def generate_complete_image(self, task_type, platform, api_format, model, apikey,
+                                prompt, ratio, size, seed, quality="medium",
+                                moderation="low", timeout=GPT_IMAGE2_DEFAULT_TIMEOUT,
+                                transparent=False, unique_id=None, **kwargs):
+        # The visible widget is named in Chinese; accept the old internal
+        # keyword as a compatibility fallback for already-created workflows.
+        transparent = kwargs.pop("透明底开关", transparent)
+        info = self._build_info(
+            self.FIXED_API_BASE, model, apikey, unique_id,
+            self.PLATFORM, self.API_FORMAT,
+        )
+        if not json.loads(info).get("apikey"):
+            self._err("API key not found. Please set apikey on this complete image node.")
+
+        parsed = json.loads(info)
+        parsed["background"] = "transparent" if transparent else "auto"
+        parsed["output_format"] = "png" if transparent else None
+        return self.generate_image(
+            prompt=prompt,
+            ratio=ratio,
+            size=size,
+            quality=quality,
+            format="png" if transparent else "jpeg",
+            moderation=moderation,
+            seed=seed,
+            timeout=timeout,
+            info=json.dumps(parsed),
+            **kwargs,
+        )
 
 
 class LLGPTImage25Generator(_RelayCompleteImageGenerator):
@@ -1273,6 +1339,7 @@ class LLGPTImage25Generator(_RelayCompleteImageGenerator):
         # GPT Image 2.5 uses the service defaults for moderation and the
         # screenshot-style node does not expose a separate moderation widget.
         inputs["required"].pop("moderation", None)
+        inputs["required"]["透明底开关"] = ("BOOLEAN", {"default": False})
         return inputs
 
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
@@ -1293,12 +1360,14 @@ class LLGPTImage25Generator(_RelayCompleteImageGenerator):
         seed,
         quality="medium",
         timeout=GPT_IMAGE2_DEFAULT_TIMEOUT,
+        transparent=False,
         unique_id=None,
         **kwargs,
     ):
         _ = task_type
         _ = platform
         _ = api_format
+        transparent = kwargs.pop("透明底开关", transparent)
         info = self._build_info(
             self.FIXED_API_BASE,
             model,
@@ -1309,16 +1378,20 @@ class LLGPTImage25Generator(_RelayCompleteImageGenerator):
         )
         if not json.loads(info).get("apikey"):
             self._err("API key not found. Please set apikey on this complete image node.")
+        info_data = json.loads(info)
+        if transparent:
+            info_data["background"] = "transparent"
+            info_data["output_format"] = "png"
         return self.generate_image(
             prompt=prompt,
             ratio=ratio,
             size=size,
             quality=quality,
-            format="jpeg",
+            format="png" if transparent else "jpeg",
             moderation="low",
             seed=seed,
             timeout=timeout,
-            info=info,
+            info=json.dumps(info_data),
             **kwargs,
         )
 

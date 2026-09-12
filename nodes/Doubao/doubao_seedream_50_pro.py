@@ -11,7 +11,9 @@ from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_sta
 
 
 MODEL = "doubao-seedream-5-0-pro-260628"
-ENDPOINT = "https://api.llaiapi.host/v1/images/generations"
+DEFAULT_API_BASE = "https://api.llaiapi.host"
+API_BASES = ["https://cn.llai.xin", DEFAULT_API_BASE]
+ENDPOINT = f"{DEFAULT_API_BASE}/v1/images/generations"
 SIZE_LEVELS = ["1K", "1.5K", "2K"]
 RESPONSE_FORMATS = ["url", "b64_json"]
 
@@ -85,7 +87,8 @@ class LLDoubaoSeedream50ProTextToImage:
                 "watermark": ("BOOLEAN", {"default": False, "tooltip": "开启后添加 AI 生成水印"}),
                 "response_format": (RESPONSE_FORMATS, {"default": "url", "tooltip": "url 或 b64_json；该项在节点上隐藏"}),
                 "api_key": ("STRING", {"default": "", "tooltip": "LLAI API 密钥；留空时读取 KUAI_API_KEY"}),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "control_after_generate": True, "tooltip": "仅控制 ComfyUI 执行，不发送给接口"}),
+                "api_base": (API_BASES, {"default": API_BASES[0], "tooltip": "图片生成接口地址"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFF, "control_after_generate": True, "tooltip": "仅控制 ComfyUI 执行，不发送给接口"}),
                 "ratio": (ALL_RATIO_OPTIONS, {"default": RATIO_OPTIONS_2K[0], "tooltip": "根据 size 档位切换官方比例"}),
             },
             "optional": {"timeout": ("INT", {"default": 1800, "min": 30, "max": 9999})},
@@ -96,7 +99,7 @@ class LLDoubaoSeedream50ProTextToImage:
     FUNCTION = "generate"
     CATEGORY = "LLAI/Doubao"
 
-    def generate(self, prompt, size, watermark, response_format, api_key, seed, ratio, timeout=1800):
+    def generate(self, prompt, size, watermark, response_format, api_key, seed, ratio, timeout=1800, api_base=API_BASES[0]):
         _ = seed
         prompt = str(prompt or "").strip()
         if not prompt:
@@ -111,7 +114,7 @@ class LLDoubaoSeedream50ProTextToImage:
         session = requests.Session()
         session.trust_env = False
         try:
-            response = session.post(ENDPOINT, json=payload, headers=headers, timeout=(30, int(timeout)))
+            response = session.post(f"{str(api_base or DEFAULT_API_BASE).rstrip('/')}/v1/images/generations", json=payload, headers=headers, timeout=(30, int(timeout)))
         except requests.RequestException as exc:
             raise RuntimeError(f"[LLAI] Doubao Seedream 5.0 Pro 请求失败：{exc}") from exc
         raise_for_bad_status(response, "Doubao Seedream 5.0 Pro 文生图失败")

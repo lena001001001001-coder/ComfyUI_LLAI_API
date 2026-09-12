@@ -217,7 +217,7 @@ def _extract_urls(data: dict) -> list:
     return [item["value"] for item in _extract_image_outputs(data)]
 
 
-def _output_to_tensor(output: dict, timeout: int) -> torch.Tensor:
+def _output_to_tensor(output: dict, timeout: int, preserve_alpha: bool = False) -> torch.Tensor:
     value = output["value"]
     if value.startswith("data:"):
         try:
@@ -234,17 +234,18 @@ def _output_to_tensor(output: dict, timeout: int) -> torch.Tensor:
         except Exception as exc:
             raise RuntimeError(f"下载图像失败: {_truncate_string(value, 200)} - {exc}") from exc
 
-    pil = Image.open(io.BytesIO(content)).convert("RGB")
+    pil_image = Image.open(io.BytesIO(content))
+    pil = pil_image.convert("RGBA" if preserve_alpha else "RGB")
     arr = np.array(pil).astype(np.float32) / 255.0
     return torch.from_numpy(arr)[None,]
 
 
-def _url_to_tensor(url: str, timeout: int) -> torch.Tensor:
-    return _output_to_tensor({"source": "data_url" if str(url).startswith("data:") else "url", "value": url, "mime": "image/png"}, timeout)
+def _url_to_tensor(url: str, timeout: int, preserve_alpha: bool = False) -> torch.Tensor:
+    return _output_to_tensor({"source": "data_url" if str(url).startswith("data:") else "url", "value": url, "mime": "image/png"}, timeout, preserve_alpha)
 
 
-def _outputs_to_tensor_and_refs(outputs: list, timeout: int):
-    tensors = [_output_to_tensor(output, timeout) for output in outputs]
+def _outputs_to_tensor_and_refs(outputs: list, timeout: int, preserve_alpha: bool = False):
+    tensors = [_output_to_tensor(output, timeout, preserve_alpha) for output in outputs]
     return torch.cat(tensors, dim=0), "\n".join(output["value"] for output in outputs)
 
 

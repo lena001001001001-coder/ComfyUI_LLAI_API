@@ -14,7 +14,9 @@ from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_sta
 
 
 MODEL = "doubao-seedream-4-5-251128"
-ENDPOINT = "https://api.llaiapi.host/v1/images/generations"
+DEFAULT_API_BASE = "https://api.llaiapi.host"
+API_BASES = ["https://cn.llai.xin", DEFAULT_API_BASE]
+ENDPOINT = f"{DEFAULT_API_BASE}/v1/images/generations"
 MIN_PIXELS = 2560 * 1440
 MAX_PIXELS = 4096 * 4096
 MIN_ASPECT_RATIO = 1 / 16
@@ -160,12 +162,13 @@ class LLDoubaoSeedream45TextToImage:
                         "tooltip": "LLAI API 密钥；留空时读取环境变量 KUAI_API_KEY",
                     },
                 ),
+                "api_base": (API_BASES, {"default": API_BASES[0], "tooltip": "图片生成接口地址"}),
                 "seed": (
                     "INT",
                     {
                         "default": 0,
                         "min": 0,
-                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "max": 0xFFFFFFFF,
                         "control_after_generate": True,
                         "tooltip": "用于控制 ComfyUI 是否重新执行生成；接口请求不发送 seed 字段",
                     },
@@ -206,6 +209,7 @@ class LLDoubaoSeedream45TextToImage:
         seed,
         timeout=1800,
         ratio=RATIO_OPTIONS_2K[0],
+        api_base=API_BASES[0],
     ):
         _ = seed
         prompt = str(prompt or "").strip()
@@ -224,7 +228,7 @@ class LLDoubaoSeedream45TextToImage:
         session.trust_env = False
         try:
             response = session.post(
-                ENDPOINT,
+                f"{str(api_base or DEFAULT_API_BASE).rstrip('/')}/v1/images/generations",
                 json=payload,
                 headers=headers,
                 timeout=(30, int(timeout)),

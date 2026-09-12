@@ -9,7 +9,9 @@ from ..GPTImage.gpt_image import _extract_image_outputs, _outputs_to_tensor_and_
 from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_status, save_image_to_buffer, to_pil_from_comfy
 
 MODEL = "doubao-seedream-4-0-250828"
-ENDPOINT = "https://api.llaiapi.host/v1/images/generations"
+DEFAULT_API_BASE = "https://api.llaiapi.host"
+API_BASES = ["https://cn.llai.xin", DEFAULT_API_BASE]
+ENDPOINT = f"{DEFAULT_API_BASE}/v1/images/generations"
 SIZE_LEVELS = ["1K", "2K", "4K"]
 SUPPORTED_SIZE_LEVELS = ["1K", "2K", "4K"]
 RATIOS = {
@@ -58,7 +60,8 @@ class LLDoubaoSeedream40ImageToImage:
             "watermark": ("BOOLEAN", {"default": False}),
             "response_format": (["url", "b64_json"], {"default": "url"}),
             "api_key": ("STRING", {"default": ""}),
-            "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF, "control_after_generate": True}),
+            "api_base": (API_BASES, {"default": API_BASES[0], "tooltip": "图片生成接口地址"}),
+            "seed": ("INT", {"default": 0, "min": 0, "max": 0xFFFFFFFF, "control_after_generate": True}),
         }, "optional": {**optional, "timeout": ("INT", {"default": 1800, "min": 30, "max": 9999})}}
 
     RETURN_TYPES = ("IMAGE", "STRING", "STRING")
@@ -66,7 +69,7 @@ class LLDoubaoSeedream40ImageToImage:
     FUNCTION = "generate"
     CATEGORY = "LLAI/Doubao"
 
-    def generate(self, 参考图1, prompt, size, ratio, watermark, response_format, api_key, seed, timeout=1800, **kwargs):
+    def generate(self, 参考图1, prompt, size, ratio, watermark, response_format, api_key, seed, timeout=1800, api_base=API_BASES[0], **kwargs):
         _ = seed
         if not str(prompt or "").strip():
             raise ValueError("提示词不能为空")
@@ -91,7 +94,7 @@ class LLDoubaoSeedream40ImageToImage:
         headers.update({"Accept": "application/json", "Content-Type": "application/json"})
         session = requests.Session(); session.trust_env = False
         try:
-            response = session.post(ENDPOINT, json=payload, headers=headers, timeout=(30, int(timeout)))
+            response = session.post(f"{str(api_base or DEFAULT_API_BASE).rstrip('/')}/v1/images/generations", json=payload, headers=headers, timeout=(30, int(timeout)))
         except requests.RequestException as exc:
             raise RuntimeError(f"Doubao Seedream 4.0 图生图请求失败: {exc}") from exc
         raise_for_bad_status(response, "Doubao Seedream 4.0 图生图失败")

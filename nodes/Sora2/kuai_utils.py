@@ -123,6 +123,13 @@ def http_headers_json(api_key: str = "") -> dict:
 
 def http_headers_auth_only(api_key: str = "") -> dict:
     """仅包含认证头，用于 requests.post(..., json=payload) 时避免编码冲突"""
+    # Older ComfyUI workflows can deserialize a single widget value as a list
+    # after inputs are inserted/reordered. Normalize that representation before
+    # constructing the Authorization header.
+    if isinstance(api_key, (list, tuple)):
+        api_key = next((item for item in api_key if item is not None and str(item).strip()), "")
+    if api_key is not None and not isinstance(api_key, str):
+        api_key = str(api_key)
     headers = {}
     if api_key:
         headers["Authorization"] = "Bearer " + api_key

@@ -12,7 +12,9 @@ from ..Sora2.kuai_utils import env_or, http_headers_auth_only, raise_for_bad_sta
 
 
 MODEL = "doubao-seedream-5-0-260128"
-ENDPOINT = "https://api.llaiapi.host/v1/images/generations"
+DEFAULT_API_BASE = "https://api.llaiapi.host"
+API_BASES = ["https://cn.llai.xin", DEFAULT_API_BASE]
+ENDPOINT = f"{DEFAULT_API_BASE}/v1/images/generations"
 SIZE_LEVELS = ["2K", "3K"]
 OUTPUT_FORMATS = ["png", "jpeg"]
 RESPONSE_FORMATS = ["url", "b64_json"]
@@ -129,7 +131,7 @@ class LLDoubaoSeedream50Lite:
                     {
                         "default": 0,
                         "min": 0,
-                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "max": 0xFFFFFFFF,
                         "control_after_generate": True,
                         "tooltip": "用于控制 ComfyUI 是否重新执行；接口请求不发送 seed 字段",
                     },
@@ -141,6 +143,7 @@ class LLDoubaoSeedream50Lite:
             },
             "optional": {
                 **optional_images,
+                "api_base": (API_BASES, {"default": API_BASES[0], "tooltip": "图片生成接口地址"}),
                 "timeout": (
                     "INT",
                     {"default": 1800, "min": 30, "max": 9999, "tooltip": "等待接口响应的最长秒数"},
@@ -165,6 +168,7 @@ class LLDoubaoSeedream50Lite:
         ratio=None,
         参考图=None,
         timeout=1800,
+        api_base=API_BASES[0],
         **kwargs,
     ):
         _ = seed
@@ -208,7 +212,7 @@ class LLDoubaoSeedream50Lite:
         session.trust_env = False
         try:
             response = session.post(
-                ENDPOINT,
+                f"{str(api_base or DEFAULT_API_BASE).rstrip('/')}/v1/images/generations",
                 json=payload,
                 headers=headers,
                 timeout=(30, int(timeout)),

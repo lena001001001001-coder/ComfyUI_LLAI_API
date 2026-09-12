@@ -4,13 +4,13 @@ from PIL import Image
 from typing import List, Union
 
 
-def pil2tensor(image: Union[Image.Image, List[Image.Image]]) -> torch.Tensor:
+def pil2tensor(image: Union[Image.Image, List[Image.Image]], preserve_alpha: bool = False) -> torch.Tensor:
     if isinstance(image, list):
         if len(image) == 0:
             return torch.empty(0)
-        return torch.cat([pil2tensor(img) for img in image], dim=0)
+        return torch.cat([pil2tensor(img, preserve_alpha=preserve_alpha) for img in image], dim=0)
 
-    if image.mode != 'RGB':
+    if not preserve_alpha and image.mode != 'RGB':
         image = image.convert('RGB')
 
     img_array = np.array(image).astype(np.float32) / 255.0
