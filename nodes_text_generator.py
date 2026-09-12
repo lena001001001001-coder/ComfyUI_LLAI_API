@@ -383,7 +383,7 @@ class RelayTextGenerator:
                 self._err(f"{model} does not support image input.")
             if platform == "通义千问" and model == "qwen3.7-max" and images:
                 self._err("qwen3.7-max does not support image input.")
-            if platform == "DeepSeek" and images:
+            if platform == "DeepSeek" and model != "deepseek-v4.1-flash" and images:
                 self._err(f"{model} does not support image input.")
 
             pbar = comfy.utils.ProgressBar(100)
@@ -424,6 +424,7 @@ def _plain_api_key(apikey):
 class RelayLLMText(RelayTextGenerator):
     PLATFORM = "GeminiText"
     API_FORMAT = "v1beta/models"
+    API_BASE_DEFAULT = "https://cn.llai.xin"
     MODEL_DEFAULT = "gemini-3-flash-preview"
     MODEL_LIST = FORMAT_MODELS.get(PLATFORM, {}).get(API_FORMAT, [MODEL_DEFAULT])
 
@@ -442,7 +443,7 @@ class RelayLLMText(RelayTextGenerator):
                 "task_type": (["text"], {"default": "text"}),
                 "platform": ([cls.PLATFORM], {"default": cls.PLATFORM}),
                 "api_format": ([cls.API_FORMAT], {"default": cls.API_FORMAT}),
-                "api_base": (api_base_list, {"default": api_base_list[0]}),
+                "api_base": (api_base_list, {"default": cls.API_BASE_DEFAULT}),
                 "model": (model_list, {"default": cls.MODEL_DEFAULT}),
                 "apikey": ("STRING", {"default": ""}),
                 "prompt_template": ("STRING", {"default": "", "multiline": True}),
@@ -500,7 +501,8 @@ class RelayLLMText(RelayTextGenerator):
 class RelayLLMTextBatch(RelayLLMText):
     """Batch variant: run the existing LLM text request once per prompt item."""
 
-    API_BASE = "https://api.llaiapi.host"
+    API_BASE = "https://cn.llai.xin"
+    API_BASES = [API_BASE, "https://api.llaiapi.host"]
     PLATFORM_CONFIG = {
         "GeminiText": {
             "api_format": "v1beta/models",
@@ -528,7 +530,8 @@ class RelayLLMTextBatch(RelayLLMText):
         },
         "DeepSeek": {
             "api_format": "v1/chat/completions",
-            "models": ["deepseek-v4-flash", "deepseek-v3"],
+            "models": ["deepseek-v4.1-flash", "deepseek-v4-flash", "deepseek-v3"],
+            "imageModels": ["deepseek-v4.1-flash"],
         },
         "豆包": {
             "api_format": "v1/chat/completions",
@@ -558,9 +561,9 @@ class RelayLLMTextBatch(RelayLLMText):
             list(dict.fromkeys(config["api_format"] for config in cls.PLATFORM_CONFIG.values())),
             {"default": cls.API_FORMAT},
         )
-        schema["required"]["api_base"] = ("STRING", {
+        schema["required"]["api_base"] = (cls.API_BASES, {
             "default": cls.API_BASE,
-            "tooltip": "固定使用 LLAI API 中转站",
+            "tooltip": "选择 LLAI API 中转地址",
         })
         # Keep the template as an explicit multiline widget for batch prompts.
         # Use a placeholder so the hint is not submitted as prompt content.
@@ -619,7 +622,7 @@ class RelayLLMTextBatch(RelayLLMText):
             prompts = [prompt_context]
 
         info = self._build_info(
-            self.API_BASE,
+            api_base,
             model,
             apikey,
             unique_id,

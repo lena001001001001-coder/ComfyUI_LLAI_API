@@ -85,6 +85,7 @@ def test_llm_text_batch_offers_separate_model_platforms():
         "qwen3.7-max",
         "qwen3.5-flash",
         "qwen3-vl-8b-instruct",
+        "deepseek-v4.1-flash",
         "deepseek-v4-flash",
         "deepseek-v3",
         "doubao-seed-2-1-pro-260628",
@@ -94,10 +95,10 @@ def test_llm_text_batch_offers_separate_model_platforms():
     ]
     assert model_input[1]["default"] == "gemini-3-flash-preview"
     assert input_types["required"]["api_base"] == (
-        "STRING",
+        ["https://cn.llai.xin", "https://api.llaiapi.host"],
         {
-            "default": "https://api.llaiapi.host",
-            "tooltip": "固定使用 LLAI API 中转站",
+            "default": "https://cn.llai.xin",
+            "tooltip": "选择 LLAI API 中转地址",
         },
     )
     assert input_types["required"]["prompt_template"][1]["default"] == ""
@@ -146,7 +147,7 @@ def test_llm_text_batch_routes_xai_to_openai_chat_format():
 
     assert texts == ["介绍一下你自己"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "xAI",
         "v1/chat/completions",
         "grok-4.5",
@@ -163,7 +164,7 @@ def test_llm_text_batch_routes_openai_to_chat_completions():
 
     assert texts == ["分析这段内容"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "OpenAI",
         "v1/chat/completions",
         "gpt-5.6-sol",
@@ -180,7 +181,7 @@ def test_llm_text_batch_routes_anthropic_to_chat_completions():
 
     assert texts == ["总结输入内容"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "Anthropic",
         "v1/chat/completions",
         "claude-fable-5",
@@ -197,7 +198,7 @@ def test_llm_text_batch_routes_zhipu_to_chat_completions():
 
     assert texts == ["编写摘要"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "智谱",
         "v1/chat/completions",
         "glm-5",
@@ -214,7 +215,7 @@ def test_llm_text_batch_routes_qwen_to_chat_completions():
 
     assert texts == ["分析视频"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "通义千问",
         "v1/chat/completions",
         "qwen3.5-flash",
@@ -231,7 +232,7 @@ def test_llm_text_batch_routes_deepseek_to_chat_completions():
 
     assert texts == ["分析文本"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "DeepSeek",
         "v1/chat/completions",
         "deepseek-v4-flash",
@@ -248,7 +249,7 @@ def test_llm_text_batch_routes_doubao_to_chat_completions():
 
     assert texts == ["分析内容"]
     assert node.built_info == [(
-        "https://api.llaiapi.host",
+        "https://wrong.example",
         "豆包",
         "v1/chat/completions",
         "doubao-seed-2-0-lite-260428",

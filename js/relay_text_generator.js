@@ -48,8 +48,8 @@ const BATCH_TEXT_PLATFORMS = {
     },
     DeepSeek: {
         apiFormat: "v1/chat/completions",
-        models: ["deepseek-v4-flash", "deepseek-v3"],
-        supportsImages: false,
+        models: ["deepseek-v4.1-flash", "deepseek-v4-flash", "deepseek-v3"],
+        imageModels: ["deepseek-v4.1-flash"],
         supportsVideo: false,
         supportsAudio: false,
     },
@@ -68,7 +68,7 @@ const BATCH_TEXT_PLATFORMS = {
     },
 };
 
-const HIDDEN_BATCH_PLATFORMS = new Set(["xAI", "Anthropic", "智谱", "通义千问", "DeepSeek"]);
+const HIDDEN_BATCH_PLATFORMS = new Set(["xAI", "Anthropic", "智谱", "通义千问"]);
 
 const BATCH_MODEL_DISPLAY_NAMES = {
     "gpt-5.6-luna-2026-07-09": "gpt-5.6-luna",
@@ -129,7 +129,8 @@ app.registerExtension({
             // Keep these compatibility inputs in the workflow payload while hiding
             // implementation details that are fixed/derived for the batch node.
             if (apiFormatW) hideWidget(apiFormatW);
-            if (apiBaseW) hideWidget(apiBaseW);
+            // Keep the base URL visible so users can inspect and select the
+            // route used by the batch node.
             const imageInputNames = new Set(Array.from({ length: 8 }, (_, index) => `image${index + 1}`));
             const videoInputNames = new Set(["video"]);
             const audioInputNames = new Set(["audio"]);
@@ -143,10 +144,21 @@ app.registerExtension({
 
                     if (enabled) {
                         input.type = input._llaiOriginalType;
-                        if (input._llaiOriginalColorOn === undefined) delete input.color_on;
-                        else input.color_on = input._llaiOriginalColorOn;
-                        if (input._llaiOriginalColorOff === undefined) delete input.color_off;
-                        else input.color_off = input._llaiOriginalColorOff;
+                        const originalColorOn = input._llaiOriginalColorOn;
+                        const originalColorOff = input._llaiOriginalColorOff;
+                        // A node loaded while disabled may have recorded the
+                        // gray disabled color as its original value. Restore
+                        // ComfyUI's standard IMAGE socket blue in that case.
+                        if (input._llaiOriginalType === "IMAGE" &&
+                            (!originalColorOn || originalColorOn === "#555555")) {
+                            input.color_on = "#64B5F6";
+                        } else if (originalColorOn === undefined) delete input.color_on;
+                        else input.color_on = originalColorOn;
+                        if (input._llaiOriginalType === "IMAGE" &&
+                            (!originalColorOff || originalColorOff === "#555555")) {
+                            input.color_off = "#64B5F6";
+                        } else if (originalColorOff === undefined) delete input.color_off;
+                        else input.color_off = originalColorOff;
                     } else {
                         if (input._llaiOriginalColorOn === undefined) input._llaiOriginalColorOn = input.color_on;
                         if (input._llaiOriginalColorOff === undefined) input._llaiOriginalColorOff = input.color_off;
@@ -235,10 +247,6 @@ app.registerExtension({
                 };
             }
 
-            if (apiBaseW) {
-                apiBaseW.value = "https://api.llaiapi.host";
-            }
-
             const templateW = node.widgets?.find(w => w.name === "prompt_template");
             if (templateW && (!templateW.value || templateW.value === "prompt_template")) {
                 templateW.value = "";
@@ -253,7 +261,8 @@ app.registerExtension({
 
         const preferredSize = Array.isArray(node.size) ? [...node.size] : null;
         const apiBaseW = node.widgets?.find(w => w.name === "api_base");
-        if (apiBaseW) hideWidget(apiBaseW);
+        // Keep the base URL visible for inspection; do not alter its value or
+        // the existing request behavior.
 
         const apiFormatW = node.widgets?.find(w => w.name === "api_format");
         if (apiFormatW) {
